@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "111193751758",
+    "project_id": "i7y932",
+    "storage_bucket": "i7y932.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:111193751758:android:74c9d0a03a13c4a59fd09f",
+        "android_client_info": {
+          "package_name": "com.example.gaiosophy_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "111193751758-ms4j3s1tfnprns7ej1bv8fjjfr7go63g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQFmDQYC5_VBcAyrG-FdS-8Sdg8kXCG2A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "111193751758-ms4j3s1tfnprns7ej1bv8fjjfr7go63g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "111193751758-f5nnogbuce2r4b6ualdjabb3r7flhgu1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gaiosophyApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

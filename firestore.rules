@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function isPublished() { return resource.data.published == true; }
+
+    match /content/{id} {
+      allow read: if isPublished();
+      allow list: if true; // queries rely on published filter in client + rule check
+      allow create, update, delete: if isSignedIn() && request.auth.token.admin == true; // admin flag
+    }
+
+    // optional public docs
+    match /config/{doc} { allow read: if true; }
+    match /seasons/{doc} { allow read: if true; }
+  }
+}
+
+// Composite index suggestions (create in firestore.indexes.json or console):
+// 1. content: type ASC, updated_at DESC
+// 2. content: type ASC, keywords ASC, updated_at DESC (if combining search + type ordering)

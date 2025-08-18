@@ -1,0 +1,1 @@
+// Legacy config repository removed.
