@@ -30,6 +30,20 @@ class ContentBlockButton with _$ContentBlockButton {
 }
 
 @freezed
+class SubBlock with _$SubBlock {
+  const factory SubBlock({
+    String? id,
+    String? plantPartName,
+    String? imageUrl,
+    @Default([]) List<String> medicinalUses,
+    @Default([]) List<String> energeticUses,
+    @Default([]) List<String> skincareUses,
+  }) = _SubBlock;
+
+  factory SubBlock.fromJson(Map<String, dynamic> json) => _$SubBlockFromJson(json);
+}
+
+@freezed
 class ContentBlockData with _$ContentBlockData {
   const factory ContentBlockData({
     String? title,
@@ -37,6 +51,7 @@ class ContentBlockData with _$ContentBlockData {
     String? content,
     String? featuredImageId,
     @Default([]) List<String> galleryImageIds,
+    @Default([]) List<SubBlock> subBlocks,
   }) = _ContentBlockData;
 
   factory ContentBlockData.fromJson(Map<String, dynamic> json) => _$ContentBlockDataFromJson(json);
@@ -53,6 +68,7 @@ class Content with _$Content {
     String? body,
     String? season,
     String? featuredImageId,
+    String? audioId,
     String? templateType,
     String? status,
     @Default(false) bool published,
@@ -68,6 +84,7 @@ class Content with _$Content {
   /// Firestore convenience factory (accepts snake_case or camelCase, handles Timestamp)
   static Content fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? <String, dynamic>{};
+    
     DateTime? parseDate(dynamic v) {
       if (v == null) return null;
       if (v is Timestamp) return v.toDate();
@@ -95,6 +112,7 @@ class Content with _$Content {
       body: data['body'] as String? ?? data['content'] as String?,
       season: data['season'] as String?,
       featuredImageId: data['featured_image_id'] as String?,
+      audioId: data['audio_id'] as String?,
       templateType: data['template_type'] as String?,
       status: data['status'] as String?,
       published: data['published'] as bool? ?? (data['status'] == 'published'),

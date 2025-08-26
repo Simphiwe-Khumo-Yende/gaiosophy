@@ -81,6 +81,14 @@ class FirestoreContentRepository {
 
   // Parse content using the same logic as Content.fromFirestore
   Content _parseContentFromData(String docId, Map<String, dynamic> data) {
+    // Debug logging for audio_id
+    print('=== REPOSITORY PARSING DEBUG ===');
+    print('Document ID: $docId');
+    print('Raw data keys: ${data.keys.toList()}');
+    print('audio_id value: ${data['audio_id']}');
+    print('audio_id type: ${data['audio_id'].runtimeType}');
+    print('=== END REPOSITORY DEBUG ===');
+    
     DateTime? parseDate(dynamic v) {
       if (v == null) return null;
       if (v is Timestamp) return v.toDate();
@@ -109,6 +117,7 @@ class FirestoreContentRepository {
       body: data['body'] as String? ?? data['content'] as String?,
       season: data['season'] as String?,
       featuredImageId: data['featured_image_id'] as String?,
+      audioId: data['audio_id'] as String?,  // ADD THIS LINE
       templateType: data['template_type'] as String?,
       status: data['status'] as String?,
       published: data['published'] as bool? ?? (data['status'] == 'published'),
@@ -132,6 +141,35 @@ class FirestoreContentRepository {
                             ?.whereType<String>()
                             .toList() ??
                         const [],
+                    subBlocks: () {
+                      final subBlocksData = blockData['data']?['sub_blocks'] as List?;
+                      print('=== SUB BLOCKS PARSING ===');
+                      print('Block ID: ${blockData['id']}');
+                      print('Block Type: ${blockData['type']}');
+                      print('Sub blocks data: $subBlocksData');
+                      print('========================');
+                      if (subBlocksData == null) return <SubBlock>[];
+                      return subBlocksData
+                          .whereType<Map<String, dynamic>>()
+                          .map((subBlockData) => SubBlock(
+                                id: subBlockData['id'] as String?,
+                                plantPartName: subBlockData['plant_part_name'] as String?,
+                                imageUrl: subBlockData['image_url'] as String?,
+                                medicinalUses: (subBlockData['medicinal_uses'] as List?)
+                                        ?.whereType<String>()
+                                        .toList() ??
+                                    const [],
+                                energeticUses: (subBlockData['energetic_uses'] as List?)
+                                        ?.whereType<String>()
+                                        .toList() ??
+                                    const [],
+                                skincareUses: (subBlockData['skincare_uses'] as List?)
+                                        ?.whereType<String>()
+                                        .toList() ??
+                                    const [],
+                              ))
+                          .toList();
+                    }(),
                   ),
                   button: () {
                     final buttonData = blockData['data']?['button'] as Map<String, dynamic>?;

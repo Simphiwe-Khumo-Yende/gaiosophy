@@ -6,6 +6,8 @@ import '../../application/providers/content_list_provider.dart';
 import '../../data/models/content.dart' as content_model;
 import '../theme/typography.dart';
 import '../widgets/firebase_storage_image.dart';
+import 'audio_player_screen.dart';
+import 'plant_allies_detail_screen.dart';
 
 class ContentScreen extends ConsumerStatefulWidget {
   const ContentScreen({super.key, required this.contentId});
@@ -121,6 +123,13 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
   }
 
   Widget _buildContentView(content_model.Content content) {
+    // Check content type and route to appropriate screen
+    if (content.type == content_model.ContentType.plant) {
+      // For plant allies content, use the new specialized screen
+      return PlantAlliesDetailScreen(content: content);
+    }
+    
+    // For seasonal wisdom and other content types, use the original layout
     final blocks = content.contentBlocks;
     
     // Debug: Print content info from Firestore
@@ -148,17 +157,36 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
 
     return Column(
       children: [
+
+        const Spacer(),
+        
+        const SizedBox(height: 24),
+        // Title on top of featured image
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Text(
+            content.title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF1A1612),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        
         // Large Featured Image (Figma design style)
         _buildFeaturedImage(content),
         
         // Content Preview Text
         _buildContentPreview(content),
         
-        // Spacer to push buttons to bottom
-        const Spacer(),
-        
-        // Action Buttons at Bottom (Figma design)
+        // Action Buttons closer to content
         _buildActionButtons(content),
+        
+        // Spacer to fill remaining space
+        const Spacer(),
         
         const SizedBox(height: 24), // Bottom padding
       ],
@@ -181,6 +209,9 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
           ),
         ],
       ),
+
+      
+      
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: content.featuredImageId != null
@@ -204,20 +235,37 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
 
   // Content preview text matching Figma design
   Widget _buildContentPreview(content_model.Content content) {
-    String? previewText;
+    String? fullText;
     
-    if (content.summary != null) {
-      previewText = content.summary;
-    } else if (content.contentBlocks.isNotEmpty) {
-      previewText = content.contentBlocks.first.data.content;
+    // Prioritize first content block (introduction) over summary or body
+    if (content.contentBlocks.isNotEmpty) {
+      fullText = content.contentBlocks.first.data.content;
+    } else if (content.summary != null) {
+      fullText = content.summary;
     } else {
-      previewText = content.body;
+      fullText = content.body;
+    }
+    
+    // Extract first two lines and add "..."
+    String previewText = 'No content available';
+    if (fullText != null && fullText.isNotEmpty) {
+      // Remove HTML tags first
+      final plainText = fullText.replaceAll(RegExp(r'<[^>]*>'), '');
+      final lines = plainText.split('\n').where((line) => line.trim().isNotEmpty).toList();
+      
+      if (lines.isNotEmpty) {
+        if (lines.length >= 2) {
+          previewText = '${lines[0].trim()}\n${lines[1].trim()}...';
+        } else {
+          previewText = '${lines[0].trim()}...';
+        }
+      }
     }
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Text(
-        previewText ?? 'No content available',
+        previewText,
         style: const TextStyle(
           fontSize: 16,
           height: 1.5,
@@ -382,18 +430,21 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
           fontSize: FontSize(24),
           fontWeight: FontWeight.w700,
           margin: Margins.only(top: 24, bottom: 12),
+          textAlign: TextAlign.center,
         ),
         "h2": Style(
           color: const Color(0xFF1A1612),
           fontSize: FontSize(20),
           fontWeight: FontWeight.w600,
           margin: Margins.only(top: 20, bottom: 10),
+          textAlign: TextAlign.center,
         ),
         "h3": Style(
           color: const Color(0xFF1A1612),
           fontSize: FontSize(18),
           fontWeight: FontWeight.w600,
           margin: Margins.only(top: 16, bottom: 8),
+          textAlign: TextAlign.center,
         ),
         "p": Style(
           margin: Margins.only(bottom: 16),
@@ -514,7 +565,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
 
   Widget _buildActionButtons(content_model.Content content) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 90),
       child: Column(
         children: [
           // Read More Button (Primary)
@@ -530,7 +581,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(50),
                 ),
               ),
               child: const Text(
@@ -558,7 +609,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(50),
                 ),
               ),
               child: const Text(
@@ -584,63 +635,15 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
   }
 
   void _playAudio(content_model.Content content) {
-    // Debug: Print what media data we have from Firestore
-    print('=== AUDIO DEBUG ===');
-    print('Content ID: ${content.id}');
-    print('Media array: ${content.media}');
-    print('Media count: ${content.media.length}');
-    
-    // Check if content has audio files in media array
-    if (content.media.isNotEmpty) {
-      // Find audio files (assuming they have audio extensions or are stored as audio)
-      final audioFiles = content.media.where((media) => 
-        media.toLowerCase().contains('.mp3') || 
-        media.toLowerCase().contains('.wav') || 
-        media.toLowerCase().contains('.m4a') ||
-        media.toLowerCase().contains('audio')).toList();
-      
-      print('Audio files found: $audioFiles');
-      
-      if (audioFiles.isNotEmpty) {
-        // TODO: Implement actual audio player with first audio file
-        final audioUrl = audioFiles.first;
-        print('Playing audio URL: $audioUrl');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Playing audio: ${audioUrl.split('/').last}'),
-            duration: const Duration(seconds: 3),
-            backgroundColor: const Color(0xFF8B6B47),
-            action: SnackBarAction(
-              label: 'Stop',
-              textColor: Colors.white,
-              onPressed: () {
-                // TODO: Stop audio playback
-                print('Audio stopped');
-              },
-            ),
-          ),
-        );
-      } else {
-        print('No audio files found in media array');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('No audio files found for "${content.title}"'),
-            duration: const Duration(seconds: 2),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    } else {
-      print('Media array is empty');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No audio available for "${content.title}"'),
-          duration: const Duration(seconds: 2),
-          backgroundColor: Colors.grey,
+    // Navigate to audio player screen
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AudioPlayerScreen(
+          content: content,
+          audioUrl: content.audioId,  // Use audioId instead of media array
         ),
-      );
-    }
-    print('=== END AUDIO DEBUG ===');
+      ),
+    );
   }
 
   Widget _buildLegacyContentView(content_model.Content content) {
@@ -757,14 +760,7 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1612)),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          widget.content.title,
-          style: const TextStyle(
-            color: Color(0xFF1A1612),
-            fontSize: 18,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
+
         centerTitle: true,
         actions: [
           IconButton(
@@ -788,7 +784,28 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
               controller: _pageController,
               onPageChanged: (index) => setState(() => _currentPage = index),
               itemCount: blocks.length,
-              itemBuilder: (context, index) => _buildDetailedPageContent(blocks[index]),
+              physics: const BouncingScrollPhysics(),
+              pageSnapping: true,
+              allowImplicitScrolling: true,
+              itemBuilder: (context, index) => AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.3, 0.0),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeInOutCubic,
+                    )),
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    ),
+                  );
+                },
+                child: _buildDetailedPageContent(blocks[index]),
+              ),
             ),
           ),
           if (blocks.length > 1) _buildDetailedPageIndicator(blocks.length),
@@ -806,6 +823,7 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
           if (block.data.title != null) ...[
             Text(
               block.data.title!,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w600,
@@ -819,6 +837,7 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
           if (block.data.subtitle != null) ...[
             Text(
               block.data.subtitle!,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w300,
@@ -865,18 +884,21 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
           fontSize: FontSize(26),
           fontWeight: FontWeight.w600,
           margin: Margins.only(top: 24, bottom: 16),
+          textAlign: TextAlign.center,
         ),
         "h2": Style(
           color: const Color(0xFF1A1612),
           fontSize: FontSize(22),
           fontWeight: FontWeight.w500,
           margin: Margins.only(top: 20, bottom: 12),
+          textAlign: TextAlign.center,
         ),
         "h3": Style(
           color: const Color(0xFF1A1612),
           fontSize: FontSize(18),
           fontWeight: FontWeight.w500,
           margin: Margins.only(top: 16, bottom: 8),
+          textAlign: TextAlign.center,
         ),
         "p": Style(
           margin: Margins.only(bottom: 16),

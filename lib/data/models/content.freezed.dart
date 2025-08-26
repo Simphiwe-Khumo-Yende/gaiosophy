@@ -465,6 +465,293 @@ abstract class _ContentBlockButton implements ContentBlockButton {
       throw _privateConstructorUsedError;
 }
 
+SubBlock _$SubBlockFromJson(Map<String, dynamic> json) {
+  return _SubBlock.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SubBlock {
+  String? get id => throw _privateConstructorUsedError;
+  String? get plantPartName => throw _privateConstructorUsedError;
+  String? get imageUrl => throw _privateConstructorUsedError;
+  List<String> get medicinalUses => throw _privateConstructorUsedError;
+  List<String> get energeticUses => throw _privateConstructorUsedError;
+  List<String> get skincareUses => throw _privateConstructorUsedError;
+
+  /// Serializes this SubBlock to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of SubBlock
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SubBlockCopyWith<SubBlock> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SubBlockCopyWith<$Res> {
+  factory $SubBlockCopyWith(SubBlock value, $Res Function(SubBlock) then) =
+      _$SubBlockCopyWithImpl<$Res, SubBlock>;
+  @useResult
+  $Res call(
+      {String? id,
+      String? plantPartName,
+      String? imageUrl,
+      List<String> medicinalUses,
+      List<String> energeticUses,
+      List<String> skincareUses});
+}
+
+/// @nodoc
+class _$SubBlockCopyWithImpl<$Res, $Val extends SubBlock>
+    implements $SubBlockCopyWith<$Res> {
+  _$SubBlockCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SubBlock
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = freezed,
+    Object? plantPartName = freezed,
+    Object? imageUrl = freezed,
+    Object? medicinalUses = null,
+    Object? energeticUses = null,
+    Object? skincareUses = null,
+  }) {
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
+      plantPartName: freezed == plantPartName
+          ? _value.plantPartName
+          : plantPartName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      medicinalUses: null == medicinalUses
+          ? _value.medicinalUses
+          : medicinalUses // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      energeticUses: null == energeticUses
+          ? _value.energeticUses
+          : energeticUses // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      skincareUses: null == skincareUses
+          ? _value.skincareUses
+          : skincareUses // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$SubBlockImplCopyWith<$Res>
+    implements $SubBlockCopyWith<$Res> {
+  factory _$$SubBlockImplCopyWith(
+          _$SubBlockImpl value, $Res Function(_$SubBlockImpl) then) =
+      __$$SubBlockImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String? id,
+      String? plantPartName,
+      String? imageUrl,
+      List<String> medicinalUses,
+      List<String> energeticUses,
+      List<String> skincareUses});
+}
+
+/// @nodoc
+class __$$SubBlockImplCopyWithImpl<$Res>
+    extends _$SubBlockCopyWithImpl<$Res, _$SubBlockImpl>
+    implements _$$SubBlockImplCopyWith<$Res> {
+  __$$SubBlockImplCopyWithImpl(
+      _$SubBlockImpl _value, $Res Function(_$SubBlockImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SubBlock
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = freezed,
+    Object? plantPartName = freezed,
+    Object? imageUrl = freezed,
+    Object? medicinalUses = null,
+    Object? energeticUses = null,
+    Object? skincareUses = null,
+  }) {
+    return _then(_$SubBlockImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
+      plantPartName: freezed == plantPartName
+          ? _value.plantPartName
+          : plantPartName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      medicinalUses: null == medicinalUses
+          ? _value._medicinalUses
+          : medicinalUses // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      energeticUses: null == energeticUses
+          ? _value._energeticUses
+          : energeticUses // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      skincareUses: null == skincareUses
+          ? _value._skincareUses
+          : skincareUses // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SubBlockImpl implements _SubBlock {
+  const _$SubBlockImpl(
+      {this.id,
+      this.plantPartName,
+      this.imageUrl,
+      final List<String> medicinalUses = const [],
+      final List<String> energeticUses = const [],
+      final List<String> skincareUses = const []})
+      : _medicinalUses = medicinalUses,
+        _energeticUses = energeticUses,
+        _skincareUses = skincareUses;
+
+  factory _$SubBlockImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SubBlockImplFromJson(json);
+
+  @override
+  final String? id;
+  @override
+  final String? plantPartName;
+  @override
+  final String? imageUrl;
+  final List<String> _medicinalUses;
+  @override
+  @JsonKey()
+  List<String> get medicinalUses {
+    if (_medicinalUses is EqualUnmodifiableListView) return _medicinalUses;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_medicinalUses);
+  }
+
+  final List<String> _energeticUses;
+  @override
+  @JsonKey()
+  List<String> get energeticUses {
+    if (_energeticUses is EqualUnmodifiableListView) return _energeticUses;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_energeticUses);
+  }
+
+  final List<String> _skincareUses;
+  @override
+  @JsonKey()
+  List<String> get skincareUses {
+    if (_skincareUses is EqualUnmodifiableListView) return _skincareUses;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_skincareUses);
+  }
+
+  @override
+  String toString() {
+    return 'SubBlock(id: $id, plantPartName: $plantPartName, imageUrl: $imageUrl, medicinalUses: $medicinalUses, energeticUses: $energeticUses, skincareUses: $skincareUses)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SubBlockImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.plantPartName, plantPartName) ||
+                other.plantPartName == plantPartName) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            const DeepCollectionEquality()
+                .equals(other._medicinalUses, _medicinalUses) &&
+            const DeepCollectionEquality()
+                .equals(other._energeticUses, _energeticUses) &&
+            const DeepCollectionEquality()
+                .equals(other._skincareUses, _skincareUses));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      plantPartName,
+      imageUrl,
+      const DeepCollectionEquality().hash(_medicinalUses),
+      const DeepCollectionEquality().hash(_energeticUses),
+      const DeepCollectionEquality().hash(_skincareUses));
+
+  /// Create a copy of SubBlock
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SubBlockImplCopyWith<_$SubBlockImpl> get copyWith =>
+      __$$SubBlockImplCopyWithImpl<_$SubBlockImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SubBlockImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _SubBlock implements SubBlock {
+  const factory _SubBlock(
+      {final String? id,
+      final String? plantPartName,
+      final String? imageUrl,
+      final List<String> medicinalUses,
+      final List<String> energeticUses,
+      final List<String> skincareUses}) = _$SubBlockImpl;
+
+  factory _SubBlock.fromJson(Map<String, dynamic> json) =
+      _$SubBlockImpl.fromJson;
+
+  @override
+  String? get id;
+  @override
+  String? get plantPartName;
+  @override
+  String? get imageUrl;
+  @override
+  List<String> get medicinalUses;
+  @override
+  List<String> get energeticUses;
+  @override
+  List<String> get skincareUses;
+
+  /// Create a copy of SubBlock
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SubBlockImplCopyWith<_$SubBlockImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 ContentBlockData _$ContentBlockDataFromJson(Map<String, dynamic> json) {
   return _ContentBlockData.fromJson(json);
 }
@@ -476,6 +763,7 @@ mixin _$ContentBlockData {
   String? get content => throw _privateConstructorUsedError;
   String? get featuredImageId => throw _privateConstructorUsedError;
   List<String> get galleryImageIds => throw _privateConstructorUsedError;
+  List<SubBlock> get subBlocks => throw _privateConstructorUsedError;
 
   /// Serializes this ContentBlockData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -498,7 +786,8 @@ abstract class $ContentBlockDataCopyWith<$Res> {
       String? subtitle,
       String? content,
       String? featuredImageId,
-      List<String> galleryImageIds});
+      List<String> galleryImageIds,
+      List<SubBlock> subBlocks});
 }
 
 /// @nodoc
@@ -521,6 +810,7 @@ class _$ContentBlockDataCopyWithImpl<$Res, $Val extends ContentBlockData>
     Object? content = freezed,
     Object? featuredImageId = freezed,
     Object? galleryImageIds = null,
+    Object? subBlocks = null,
   }) {
     return _then(_value.copyWith(
       title: freezed == title
@@ -543,6 +833,10 @@ class _$ContentBlockDataCopyWithImpl<$Res, $Val extends ContentBlockData>
           ? _value.galleryImageIds
           : galleryImageIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      subBlocks: null == subBlocks
+          ? _value.subBlocks
+          : subBlocks // ignore: cast_nullable_to_non_nullable
+              as List<SubBlock>,
     ) as $Val);
   }
 }
@@ -560,7 +854,8 @@ abstract class _$$ContentBlockDataImplCopyWith<$Res>
       String? subtitle,
       String? content,
       String? featuredImageId,
-      List<String> galleryImageIds});
+      List<String> galleryImageIds,
+      List<SubBlock> subBlocks});
 }
 
 /// @nodoc
@@ -581,6 +876,7 @@ class __$$ContentBlockDataImplCopyWithImpl<$Res>
     Object? content = freezed,
     Object? featuredImageId = freezed,
     Object? galleryImageIds = null,
+    Object? subBlocks = null,
   }) {
     return _then(_$ContentBlockDataImpl(
       title: freezed == title
@@ -603,6 +899,10 @@ class __$$ContentBlockDataImplCopyWithImpl<$Res>
           ? _value._galleryImageIds
           : galleryImageIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      subBlocks: null == subBlocks
+          ? _value._subBlocks
+          : subBlocks // ignore: cast_nullable_to_non_nullable
+              as List<SubBlock>,
     ));
   }
 }
@@ -615,8 +915,10 @@ class _$ContentBlockDataImpl implements _ContentBlockData {
       this.subtitle,
       this.content,
       this.featuredImageId,
-      final List<String> galleryImageIds = const []})
-      : _galleryImageIds = galleryImageIds;
+      final List<String> galleryImageIds = const [],
+      final List<SubBlock> subBlocks = const []})
+      : _galleryImageIds = galleryImageIds,
+        _subBlocks = subBlocks;
 
   factory _$ContentBlockDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$ContentBlockDataImplFromJson(json);
@@ -638,9 +940,18 @@ class _$ContentBlockDataImpl implements _ContentBlockData {
     return EqualUnmodifiableListView(_galleryImageIds);
   }
 
+  final List<SubBlock> _subBlocks;
+  @override
+  @JsonKey()
+  List<SubBlock> get subBlocks {
+    if (_subBlocks is EqualUnmodifiableListView) return _subBlocks;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_subBlocks);
+  }
+
   @override
   String toString() {
-    return 'ContentBlockData(title: $title, subtitle: $subtitle, content: $content, featuredImageId: $featuredImageId, galleryImageIds: $galleryImageIds)';
+    return 'ContentBlockData(title: $title, subtitle: $subtitle, content: $content, featuredImageId: $featuredImageId, galleryImageIds: $galleryImageIds, subBlocks: $subBlocks)';
   }
 
   @override
@@ -655,13 +966,21 @@ class _$ContentBlockDataImpl implements _ContentBlockData {
             (identical(other.featuredImageId, featuredImageId) ||
                 other.featuredImageId == featuredImageId) &&
             const DeepCollectionEquality()
-                .equals(other._galleryImageIds, _galleryImageIds));
+                .equals(other._galleryImageIds, _galleryImageIds) &&
+            const DeepCollectionEquality()
+                .equals(other._subBlocks, _subBlocks));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, title, subtitle, content,
-      featuredImageId, const DeepCollectionEquality().hash(_galleryImageIds));
+  int get hashCode => Object.hash(
+      runtimeType,
+      title,
+      subtitle,
+      content,
+      featuredImageId,
+      const DeepCollectionEquality().hash(_galleryImageIds),
+      const DeepCollectionEquality().hash(_subBlocks));
 
   /// Create a copy of ContentBlockData
   /// with the given fields replaced by the non-null parameter values.
@@ -686,7 +1005,8 @@ abstract class _ContentBlockData implements ContentBlockData {
       final String? subtitle,
       final String? content,
       final String? featuredImageId,
-      final List<String> galleryImageIds}) = _$ContentBlockDataImpl;
+      final List<String> galleryImageIds,
+      final List<SubBlock> subBlocks}) = _$ContentBlockDataImpl;
 
   factory _ContentBlockData.fromJson(Map<String, dynamic> json) =
       _$ContentBlockDataImpl.fromJson;
@@ -701,6 +1021,8 @@ abstract class _ContentBlockData implements ContentBlockData {
   String? get featuredImageId;
   @override
   List<String> get galleryImageIds;
+  @override
+  List<SubBlock> get subBlocks;
 
   /// Create a copy of ContentBlockData
   /// with the given fields replaced by the non-null parameter values.
@@ -724,6 +1046,7 @@ mixin _$Content {
   String? get body => throw _privateConstructorUsedError;
   String? get season => throw _privateConstructorUsedError;
   String? get featuredImageId => throw _privateConstructorUsedError;
+  String? get audioId => throw _privateConstructorUsedError;
   String? get templateType => throw _privateConstructorUsedError;
   String? get status => throw _privateConstructorUsedError;
   bool get published => throw _privateConstructorUsedError;
@@ -756,6 +1079,7 @@ abstract class $ContentCopyWith<$Res> {
       String? body,
       String? season,
       String? featuredImageId,
+      String? audioId,
       String? templateType,
       String? status,
       bool published,
@@ -789,6 +1113,7 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
     Object? body = freezed,
     Object? season = freezed,
     Object? featuredImageId = freezed,
+    Object? audioId = freezed,
     Object? templateType = freezed,
     Object? status = freezed,
     Object? published = null,
@@ -830,6 +1155,10 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
       featuredImageId: freezed == featuredImageId
           ? _value.featuredImageId
           : featuredImageId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      audioId: freezed == audioId
+          ? _value.audioId
+          : audioId // ignore: cast_nullable_to_non_nullable
               as String?,
       templateType: freezed == templateType
           ? _value.templateType
@@ -883,6 +1212,7 @@ abstract class _$$ContentImplCopyWith<$Res> implements $ContentCopyWith<$Res> {
       String? body,
       String? season,
       String? featuredImageId,
+      String? audioId,
       String? templateType,
       String? status,
       bool published,
@@ -914,6 +1244,7 @@ class __$$ContentImplCopyWithImpl<$Res>
     Object? body = freezed,
     Object? season = freezed,
     Object? featuredImageId = freezed,
+    Object? audioId = freezed,
     Object? templateType = freezed,
     Object? status = freezed,
     Object? published = null,
@@ -955,6 +1286,10 @@ class __$$ContentImplCopyWithImpl<$Res>
       featuredImageId: freezed == featuredImageId
           ? _value.featuredImageId
           : featuredImageId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      audioId: freezed == audioId
+          ? _value.audioId
+          : audioId // ignore: cast_nullable_to_non_nullable
               as String?,
       templateType: freezed == templateType
           ? _value.templateType
@@ -1004,6 +1339,7 @@ class _$ContentImpl implements _Content {
       this.body,
       this.season,
       this.featuredImageId,
+      this.audioId,
       this.templateType,
       this.status,
       this.published = false,
@@ -1035,6 +1371,8 @@ class _$ContentImpl implements _Content {
   final String? season;
   @override
   final String? featuredImageId;
+  @override
+  final String? audioId;
   @override
   final String? templateType;
   @override
@@ -1076,7 +1414,7 @@ class _$ContentImpl implements _Content {
 
   @override
   String toString() {
-    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, templateType: $templateType, status: $status, published: $published, tags: $tags, media: $media, contentBlocks: $contentBlocks, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, published: $published, tags: $tags, media: $media, contentBlocks: $contentBlocks, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -1093,6 +1431,7 @@ class _$ContentImpl implements _Content {
             (identical(other.season, season) || other.season == season) &&
             (identical(other.featuredImageId, featuredImageId) ||
                 other.featuredImageId == featuredImageId) &&
+            (identical(other.audioId, audioId) || other.audioId == audioId) &&
             (identical(other.templateType, templateType) ||
                 other.templateType == templateType) &&
             (identical(other.status, status) || other.status == status) &&
@@ -1120,6 +1459,7 @@ class _$ContentImpl implements _Content {
       body,
       season,
       featuredImageId,
+      audioId,
       templateType,
       status,
       published,
@@ -1155,6 +1495,7 @@ abstract class _Content implements Content {
       final String? body,
       final String? season,
       final String? featuredImageId,
+      final String? audioId,
       final String? templateType,
       final String? status,
       final bool published,
@@ -1182,6 +1523,8 @@ abstract class _Content implements Content {
   String? get season;
   @override
   String? get featuredImageId;
+  @override
+  String? get audioId;
   @override
   String? get templateType;
   @override

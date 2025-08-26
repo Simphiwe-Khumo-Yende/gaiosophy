@@ -42,6 +42,35 @@ Map<String, dynamic> _$$ContentBlockButtonImplToJson(
       'text': instance.text,
     };
 
+_$SubBlockImpl _$$SubBlockImplFromJson(Map<String, dynamic> json) =>
+    _$SubBlockImpl(
+      id: json['id'] as String?,
+      plantPartName: json['plantPartName'] as String?,
+      imageUrl: json['imageUrl'] as String?,
+      medicinalUses: (json['medicinalUses'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      energeticUses: (json['energeticUses'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      skincareUses: (json['skincareUses'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$$SubBlockImplToJson(_$SubBlockImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'plantPartName': instance.plantPartName,
+      'imageUrl': instance.imageUrl,
+      'medicinalUses': instance.medicinalUses,
+      'energeticUses': instance.energeticUses,
+      'skincareUses': instance.skincareUses,
+    };
+
 _$ContentBlockDataImpl _$$ContentBlockDataImplFromJson(
         Map<String, dynamic> json) =>
     _$ContentBlockDataImpl(
@@ -51,6 +80,10 @@ _$ContentBlockDataImpl _$$ContentBlockDataImplFromJson(
       featuredImageId: json['featuredImageId'] as String?,
       galleryImageIds: (json['galleryImageIds'] as List<dynamic>?)
               ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      subBlocks: (json['subBlocks'] as List<dynamic>?)
+              ?.map((e) => SubBlock.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
     );
@@ -63,6 +96,7 @@ Map<String, dynamic> _$$ContentBlockDataImplToJson(
       'content': instance.content,
       'featuredImageId': instance.featuredImageId,
       'galleryImageIds': instance.galleryImageIds,
+      'subBlocks': instance.subBlocks,
     };
 
 _$ContentImpl _$$ContentImplFromJson(Map<String, dynamic> json) =>
@@ -75,6 +109,7 @@ _$ContentImpl _$$ContentImplFromJson(Map<String, dynamic> json) =>
       body: json['body'] as String?,
       season: json['season'] as String?,
       featuredImageId: json['featuredImageId'] as String?,
+      audioId: json['audioId'] as String?,
       templateType: json['templateType'] as String?,
       status: json['status'] as String?,
       published: json['published'] as bool? ?? false,
@@ -106,6 +141,7 @@ Map<String, dynamic> _$$ContentImplToJson(_$ContentImpl instance) =>
       'body': instance.body,
       'season': instance.season,
       'featuredImageId': instance.featuredImageId,
+      'audioId': instance.audioId,
       'templateType': instance.templateType,
       'status': instance.status,
       'published': instance.published,
