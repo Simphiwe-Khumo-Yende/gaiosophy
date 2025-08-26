@@ -46,7 +46,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   GoRoute(path: '/register', builder: (c, s) => const RegisterScreen()),
       GoRoute(
         path: '/content/:id',
-        builder: (c, s) => ContentDetailScreen(contentId: s.pathParameters['id']!),
+        builder: (c, s) => ContentScreen(contentId: s.pathParameters['id']!),
       ),
     ],
   );
