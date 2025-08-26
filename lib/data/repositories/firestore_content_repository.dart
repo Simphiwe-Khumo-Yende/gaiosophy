@@ -117,9 +117,13 @@ class FirestoreContentRepository {
       body: data['body'] as String? ?? data['content'] as String?,
       season: data['season'] as String?,
       featuredImageId: data['featured_image_id'] as String?,
-      audioId: data['audio_id'] as String?,  // ADD THIS LINE
+      audioId: data['audio_id'] as String?,
       templateType: data['template_type'] as String?,
       status: data['status'] as String?,
+      // Recipe-specific fields
+      prepTime: data['prep_time'] as String?,
+      infusionTime: data['infusion_time'] as String?,
+      difficulty: data['difficulty'] as String?,
       published: data['published'] as bool? ?? (data['status'] == 'published'),
       tags: (data['tags'] as List?)?.whereType<String>().toList() ?? const [],
       media: (data['media'] as List?)?.whereType<String>().toList() ?? const [],

@@ -1048,7 +1048,11 @@ mixin _$Content {
   String? get featuredImageId => throw _privateConstructorUsedError;
   String? get audioId => throw _privateConstructorUsedError;
   String? get templateType => throw _privateConstructorUsedError;
-  String? get status => throw _privateConstructorUsedError;
+  String? get status =>
+      throw _privateConstructorUsedError; // Recipe-specific fields
+  String? get prepTime => throw _privateConstructorUsedError;
+  String? get infusionTime => throw _privateConstructorUsedError;
+  String? get difficulty => throw _privateConstructorUsedError;
   bool get published => throw _privateConstructorUsedError;
   List<String> get tags => throw _privateConstructorUsedError;
   List<String> get media => throw _privateConstructorUsedError;
@@ -1082,6 +1086,9 @@ abstract class $ContentCopyWith<$Res> {
       String? audioId,
       String? templateType,
       String? status,
+      String? prepTime,
+      String? infusionTime,
+      String? difficulty,
       bool published,
       List<String> tags,
       List<String> media,
@@ -1116,6 +1123,9 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
     Object? audioId = freezed,
     Object? templateType = freezed,
     Object? status = freezed,
+    Object? prepTime = freezed,
+    Object? infusionTime = freezed,
+    Object? difficulty = freezed,
     Object? published = null,
     Object? tags = null,
     Object? media = null,
@@ -1168,6 +1178,18 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as String?,
+      prepTime: freezed == prepTime
+          ? _value.prepTime
+          : prepTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      infusionTime: freezed == infusionTime
+          ? _value.infusionTime
+          : infusionTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      difficulty: freezed == difficulty
+          ? _value.difficulty
+          : difficulty // ignore: cast_nullable_to_non_nullable
+              as String?,
       published: null == published
           ? _value.published
           : published // ignore: cast_nullable_to_non_nullable
@@ -1215,6 +1237,9 @@ abstract class _$$ContentImplCopyWith<$Res> implements $ContentCopyWith<$Res> {
       String? audioId,
       String? templateType,
       String? status,
+      String? prepTime,
+      String? infusionTime,
+      String? difficulty,
       bool published,
       List<String> tags,
       List<String> media,
@@ -1247,6 +1272,9 @@ class __$$ContentImplCopyWithImpl<$Res>
     Object? audioId = freezed,
     Object? templateType = freezed,
     Object? status = freezed,
+    Object? prepTime = freezed,
+    Object? infusionTime = freezed,
+    Object? difficulty = freezed,
     Object? published = null,
     Object? tags = null,
     Object? media = null,
@@ -1299,6 +1327,18 @@ class __$$ContentImplCopyWithImpl<$Res>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as String?,
+      prepTime: freezed == prepTime
+          ? _value.prepTime
+          : prepTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      infusionTime: freezed == infusionTime
+          ? _value.infusionTime
+          : infusionTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      difficulty: freezed == difficulty
+          ? _value.difficulty
+          : difficulty // ignore: cast_nullable_to_non_nullable
+              as String?,
       published: null == published
           ? _value.published
           : published // ignore: cast_nullable_to_non_nullable
@@ -1342,6 +1382,9 @@ class _$ContentImpl implements _Content {
       this.audioId,
       this.templateType,
       this.status,
+      this.prepTime,
+      this.infusionTime,
+      this.difficulty,
       this.published = false,
       final List<String> tags = const [],
       final List<String> media = const [],
@@ -1377,6 +1420,13 @@ class _$ContentImpl implements _Content {
   final String? templateType;
   @override
   final String? status;
+// Recipe-specific fields
+  @override
+  final String? prepTime;
+  @override
+  final String? infusionTime;
+  @override
+  final String? difficulty;
   @override
   @JsonKey()
   final bool published;
@@ -1414,7 +1464,7 @@ class _$ContentImpl implements _Content {
 
   @override
   String toString() {
-    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, published: $published, tags: $tags, media: $media, contentBlocks: $contentBlocks, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, prepTime: $prepTime, infusionTime: $infusionTime, difficulty: $difficulty, published: $published, tags: $tags, media: $media, contentBlocks: $contentBlocks, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -1435,6 +1485,12 @@ class _$ContentImpl implements _Content {
             (identical(other.templateType, templateType) ||
                 other.templateType == templateType) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.prepTime, prepTime) ||
+                other.prepTime == prepTime) &&
+            (identical(other.infusionTime, infusionTime) ||
+                other.infusionTime == infusionTime) &&
+            (identical(other.difficulty, difficulty) ||
+                other.difficulty == difficulty) &&
             (identical(other.published, published) ||
                 other.published == published) &&
             const DeepCollectionEquality().equals(other._tags, _tags) &&
@@ -1449,25 +1505,29 @@ class _$ContentImpl implements _Content {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      type,
-      title,
-      slug,
-      summary,
-      body,
-      season,
-      featuredImageId,
-      audioId,
-      templateType,
-      status,
-      published,
-      const DeepCollectionEquality().hash(_tags),
-      const DeepCollectionEquality().hash(_media),
-      const DeepCollectionEquality().hash(_contentBlocks),
-      createdAt,
-      updatedAt);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        type,
+        title,
+        slug,
+        summary,
+        body,
+        season,
+        featuredImageId,
+        audioId,
+        templateType,
+        status,
+        prepTime,
+        infusionTime,
+        difficulty,
+        published,
+        const DeepCollectionEquality().hash(_tags),
+        const DeepCollectionEquality().hash(_media),
+        const DeepCollectionEquality().hash(_contentBlocks),
+        createdAt,
+        updatedAt
+      ]);
 
   /// Create a copy of Content
   /// with the given fields replaced by the non-null parameter values.
@@ -1498,6 +1558,9 @@ abstract class _Content implements Content {
       final String? audioId,
       final String? templateType,
       final String? status,
+      final String? prepTime,
+      final String? infusionTime,
+      final String? difficulty,
       final bool published,
       final List<String> tags,
       final List<String> media,
@@ -1528,7 +1591,13 @@ abstract class _Content implements Content {
   @override
   String? get templateType;
   @override
-  String? get status;
+  String? get status; // Recipe-specific fields
+  @override
+  String? get prepTime;
+  @override
+  String? get infusionTime;
+  @override
+  String? get difficulty;
   @override
   bool get published;
   @override

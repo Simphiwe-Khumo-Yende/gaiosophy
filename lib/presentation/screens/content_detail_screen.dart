@@ -8,6 +8,7 @@ import '../theme/typography.dart';
 import '../widgets/firebase_storage_image.dart';
 import 'audio_player_screen.dart';
 import 'plant_allies_detail_screen.dart';
+import 'recipe_screen.dart';
 
 class ContentScreen extends ConsumerStatefulWidget {
   const ContentScreen({super.key, required this.contentId});
@@ -127,6 +128,9 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
     if (content.type == content_model.ContentType.plant) {
       // For plant allies content, use the new specialized screen
       return PlantAlliesDetailScreen(content: content);
+    } else if (content.type == content_model.ContentType.recipe) {
+      // For recipe content, use the recipe screen
+      return RecipeScreen(content: content);
     }
     
     // For seasonal wisdom and other content types, use the original layout

@@ -71,6 +71,10 @@ class Content with _$Content {
     String? audioId,
     String? templateType,
     String? status,
+    // Recipe-specific fields
+    String? prepTime,
+    String? infusionTime,
+    String? difficulty,
     @Default(false) bool published,
     @Default([]) List<String> tags,
     @Default([]) List<String> media,
@@ -115,6 +119,10 @@ class Content with _$Content {
       audioId: data['audio_id'] as String?,
       templateType: data['template_type'] as String?,
       status: data['status'] as String?,
+      // Recipe-specific fields
+      prepTime: data['prep_time'] as String?,
+      infusionTime: data['infusion_time'] as String?,
+      difficulty: data['difficulty'] as String?,
       published: data['published'] as bool? ?? (data['status'] == 'published'),
       tags: (data['tags'] as List?)?.whereType<String>().toList() ?? const [],
       media: (data['media'] as List?)?.whereType<String>().toList() ?? const [],

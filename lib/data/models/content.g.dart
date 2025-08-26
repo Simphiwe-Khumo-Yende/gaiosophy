@@ -112,6 +112,9 @@ _$ContentImpl _$$ContentImplFromJson(Map<String, dynamic> json) =>
       audioId: json['audioId'] as String?,
       templateType: json['templateType'] as String?,
       status: json['status'] as String?,
+      prepTime: json['prepTime'] as String?,
+      infusionTime: json['infusionTime'] as String?,
+      difficulty: json['difficulty'] as String?,
       published: json['published'] as bool? ?? false,
       tags:
           (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
@@ -144,6 +147,9 @@ Map<String, dynamic> _$$ContentImplToJson(_$ContentImpl instance) =>
       'audioId': instance.audioId,
       'templateType': instance.templateType,
       'status': instance.status,
+      'prepTime': instance.prepTime,
+      'infusionTime': instance.infusionTime,
+      'difficulty': instance.difficulty,
       'published': instance.published,
       'tags': instance.tags,
       'media': instance.media,
