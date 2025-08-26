@@ -6,6 +6,7 @@ import 'content_block_detail_screen.dart';
 import 'plant_overview_screen.dart';
 import 'plant_folklore_screen.dart';
 import 'plant_harvesting_screen.dart';
+import 'folk_medicine_screen.dart';
 
 class PlantAlliesDetailScreen extends ConsumerStatefulWidget {
   final content_model.Content content;
@@ -218,9 +219,11 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
           );
           print('Navigating to PlantHarvestingScreen...');
         } else if (blockType == 'folk_medicine') {
-          // Folk medicine is handled by the special section, not navigation
-          print('Folk medicine section - no navigation');
-          return;
+          destinationScreen = FolkMedicineScreen(
+            contentBlock: block,
+            parentTitle: widget.content.title,
+          );
+          print('Navigating to FolkMedicineScreen...');
         } else {
           // Fallback to generic content block detail screen
           destinationScreen = ContentBlockDetailScreen(
@@ -267,7 +270,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      block.data.subtitle ?? 'Traditional herbal medicine uses',
+                      'Tap on plant parts below to explore their medicinal uses',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: const Color(0xFF5A4E3C).withOpacity(0.7),
                         height: 1.3,
@@ -275,10 +278,6 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                     ),
                   ],
                 ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: const Color(0xFF5A4E3C).withOpacity(0.6),
               ),
             ],
           ),
@@ -294,7 +293,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
               child: Column(
                 children: [
                   const SizedBox(height: 16),
-                  _buildPlantPartsGrid(block.data.subBlocks),
+                  _buildPlantPartsGrid(block.data.subBlocks, block),
                 ],
               ),
             ),
@@ -304,7 +303,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
     );
   }
   
-  Widget _buildPlantPartsGrid(List<content_model.SubBlock> subBlocks) {
+  Widget _buildPlantPartsGrid(List<content_model.SubBlock> subBlocks, content_model.ContentBlock parentBlock) {
     // Create a grid of plant parts (2 per row)
     List<Widget> rows = [];
     for (int i = 0; i < subBlocks.length; i += 2) {
@@ -312,13 +311,13 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
       
       // Add first item in the row
       rowChildren.add(Expanded(
-        child: _buildPlantPartCircle(subBlocks[i]),
+        child: _buildPlantPartCircle(subBlocks[i], parentBlock),
       ));
       
       // Add second item if it exists, otherwise add empty space
       if (i + 1 < subBlocks.length) {
         rowChildren.add(Expanded(
-          child: _buildPlantPartCircle(subBlocks[i + 1]),
+          child: _buildPlantPartCircle(subBlocks[i + 1], parentBlock),
         ));
       } else {
         rowChildren.add(const Expanded(child: SizedBox()));
@@ -338,7 +337,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
     return Column(children: rows);
   }
   
-  Widget _buildPlantPartCircle(content_model.SubBlock subBlock) {
+  Widget _buildPlantPartCircle(content_model.SubBlock subBlock, content_model.ContentBlock parentBlock) {
     print('=== PLANT PART DEBUG ===');
     print('Plant part: ${subBlock.plantPartName}');
     print('Image URL: ${subBlock.imageUrl}');
@@ -351,8 +350,30 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
         children: [
           GestureDetector(
             onTap: () {
-              // TODO: Navigate to plant part detail
-              print('Navigate to plant part: ${subBlock.plantPartName}');
+              print('Navigate to folk medicine for plant part: ${subBlock.plantPartName}');
+              
+              // Create a modified content block that focuses on this specific plant part
+              final focusedBlock = content_model.ContentBlock(
+                id: parentBlock.id,
+                type: parentBlock.type,
+                order: parentBlock.order,
+                data: content_model.ContentBlockData(
+                  title: parentBlock.data.title,
+                  subtitle: parentBlock.data.subtitle,
+                  content: parentBlock.data.content,
+                  featuredImageId: parentBlock.data.featuredImageId,
+                  subBlocks: [subBlock], // Only pass the specific sub-block
+                ),
+              );
+              
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => FolkMedicineScreen(
+                    contentBlock: focusedBlock,
+                    parentTitle: widget.content.title,
+                  ),
+                ),
+              );
             },
             child: Container(
               width: 80,
