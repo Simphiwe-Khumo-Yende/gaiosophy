@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/models/content.dart';
 import '../../data/repositories/firestore_content_repository.dart';
 
@@ -75,6 +76,18 @@ final contentListProvider = StateNotifierProvider<ContentListNotifier, Paginated
 });
 
 final contentDetailProvider = FutureProvider.family<Content, String>((ref, id) async {
-  final repo = ref.watch(firestoreContentRepositoryProvider);
-  return repo.fetchById(id);
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    throw Exception('Please sign in to view content');
+  }
+  
+  try {
+    final repo = ref.watch(firestoreContentRepositoryProvider);
+    return await repo.fetchById(id);
+  } catch (e) {
+    if (e.toString().contains('permission-denied')) {
+      throw Exception('Access denied. Please check your login status.');
+    }
+    rethrow;
+  }
 });

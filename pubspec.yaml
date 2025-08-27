@@ -37,6 +37,7 @@ dependencies:
   flutter_html: ^3.0.0
   # Audio playback
   just_audio: ^0.9.40
+  font_awesome_flutter: ^10.9.1
 
 dev_dependencies:
   flutter_test:

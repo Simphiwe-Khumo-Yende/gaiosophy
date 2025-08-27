@@ -186,10 +186,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: Navigate to settings screen
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Settings coming soon!')),
-                    );
+                    context.push('/settings');
                   },
                 ),
                 ListTile(
