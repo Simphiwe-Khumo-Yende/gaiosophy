@@ -218,11 +218,7 @@ class SettingsScreen extends ConsumerWidget {
                 icon: Icons.notifications_outlined,
                 title: 'Notifications',
                 subtitle: 'Manage your notification preferences',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Notifications settings coming soon!')),
-                  );
-                },
+                onTap: () => context.push('/notification-settings'),
               ),
               const Divider(height: 1, color: Color(0xFFE5E5E5)),
               _buildSettingsItem(
@@ -230,11 +226,7 @@ class SettingsScreen extends ConsumerWidget {
                 icon: Icons.privacy_tip_outlined,
                 title: 'Privacy',
                 subtitle: 'Control your privacy settings',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Privacy settings coming soon!')),
-                  );
-                },
+                onTap: () => context.push('/privacy-settings'),
               ),
               const Divider(height: 1, color: Color(0xFFE5E5E5)),
               _buildSettingsItem(
@@ -242,11 +234,7 @@ class SettingsScreen extends ConsumerWidget {
                 icon: Icons.help_outline,
                 title: 'Help & Support',
                 subtitle: 'Get help and contact support',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Help & Support coming soon!')),
-                  );
-                },
+                onTap: () => context.push('/help-support'),
               ),
               const Divider(height: 1, color: Color(0xFFE5E5E5)),
               _buildSettingsItem(

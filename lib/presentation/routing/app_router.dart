@@ -10,6 +10,9 @@ import '../screens/register_screen.dart';
 import '../screens/profile_setup_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/profile_edit_screen.dart';
+import '../screens/notification_settings_screen.dart';
+import '../screens/privacy_settings_screen.dart';
+import '../screens/help_support_screen.dart';
 
 final firebaseAuthProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
@@ -69,6 +72,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile-setup', builder: (c, s) => const ProfileSetupScreen()),
       GoRoute(path: '/settings', builder: (c, s) => const SettingsScreen()),
       GoRoute(path: '/profile-edit', builder: (c, s) => const ProfileEditScreen()),
+      GoRoute(path: '/notification-settings', builder: (c, s) => const NotificationSettingsScreen()),
+      GoRoute(path: '/privacy-settings', builder: (c, s) => const PrivacySettingsScreen()),
+      GoRoute(path: '/help-support', builder: (c, s) => const HelpSupportScreen()),
       GoRoute(
         path: '/content/:id',
         builder: (c, s) => ContentScreen(contentId: s.pathParameters['id']!),
