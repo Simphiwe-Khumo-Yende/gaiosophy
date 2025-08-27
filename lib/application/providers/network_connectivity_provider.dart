@@ -2,9 +2,9 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final connectivityStreamProvider = StreamProvider<ConnectivityResult>((ref) {
+final connectivityStreamProvider = StreamProvider<List<ConnectivityResult>>((ref) {
   final connectivity = Connectivity();
-  final controller = StreamController<ConnectivityResult>();
+  final controller = StreamController<List<ConnectivityResult>>();
   connectivity.checkConnectivity().then(controller.add);
   final sub = connectivity.onConnectivityChanged.listen(controller.add);
   ref.onDispose(() {
@@ -15,9 +15,9 @@ final connectivityStreamProvider = StreamProvider<ConnectivityResult>((ref) {
 });
 
 final isOfflineProvider = Provider<bool>((ref) {
-  final connectivity = ref.watch(connectivityStreamProvider).maybeWhen(
-        data: (r) => r,
-        orElse: () => ConnectivityResult.none,
+  final isOffline = ref.watch(connectivityStreamProvider).maybeWhen(
+        data: (results) => results.isEmpty || results.every((r) => r == ConnectivityResult.none),
+        orElse: () => true, // Assume offline if we can't determine connectivity
       );
-  return connectivity == ConnectivityResult.none;
+  return isOffline;
 });

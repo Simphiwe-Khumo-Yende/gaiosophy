@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart';
 import '../theme/typography.dart';
 import 'firebase_storage_image.dart';
+import 'bookmark_button.dart';
 
 class ContentCard extends StatelessWidget {
   const ContentCard({super.key, required this.content});
@@ -41,24 +42,43 @@ class ContentCard extends StatelessWidget {
               child: SizedBox(
                 height: 80,
                 width: double.infinity,
-                child: content.featuredImageId != null
-                    ? FirebaseStorageImage(
-                        imageId: content.featuredImageId!,
-                        fit: BoxFit.cover,
-                        placeholder: Container(color: const Color(0xFFF5F1E8)), // Slightly darker cream for placeholders
-                        errorWidget: Container(
-                          color: const Color(0xFFF5F1E8), // Slightly darker cream for placeholders
-                          child: const Center(
-                            child: Icon(Icons.image_not_supported, color: Color(0xFF8B6B47)),
-                          ),
-                        ),
-                      )
-                    : Container(
-                        color: const Color(0xFFF5F1E8), // Slightly darker cream for placeholders
-                        child: const Center(
-                          child: Icon(Icons.image_not_supported, color: Color(0xFF8B6B47)),
-                        ),
+                child: Stack(
+                  children: [
+                    // Image
+                    SizedBox(
+                      height: 80,
+                      width: double.infinity,
+                      child: content.featuredImageId != null
+                          ? FirebaseStorageImage(
+                              imageId: content.featuredImageId!,
+                              fit: BoxFit.cover,
+                              placeholder: Container(color: const Color(0xFFF5F1E8)), // Slightly darker cream for placeholders
+                              errorWidget: Container(
+                                color: const Color(0xFFF5F1E8), // Slightly darker cream for placeholders
+                                child: const Center(
+                                  child: Icon(Icons.image_not_supported, color: Color(0xFF8B6B47)),
+                                ),
+                              ),
+                            )
+                          : Container(
+                              color: const Color(0xFFF5F1E8), // Slightly darker cream for placeholders
+                              child: const Center(
+                                child: Icon(Icons.image_not_supported, color: Color(0xFF8B6B47)),
+                              ),
+                            ),
+                    ),
+                    
+                    // Bookmark indicator
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: BookmarkIconIndicator(
+                        contentId: content.id,
+                        size: 16,
                       ),
+                    ),
+                  ],
+                ),
               ),
             ),
             Padding(

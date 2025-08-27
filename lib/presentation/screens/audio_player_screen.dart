@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
+import '../widgets/bookmark_button.dart';
 
 class AudioPlayerScreen extends StatefulWidget {
   final content_model.Content content;
@@ -105,17 +106,15 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   }
   
   String _getAudioUrl(String audioId) {
-    // TODO: Replace this with your actual audio URL construction logic
-    // This is a placeholder - you'll need to:
-    // 1. Use Firebase Storage or your audio hosting service
-    // 2. Construct the proper URL from the audioId
-    // 3. Handle authentication if needed
+    // Construct Firebase Storage URL for M4A audio files
+    // Using the actual Firebase Storage bucket from your project
+    const String firebaseStorageBucket = 'i7y932.firebasestorage.app';
     
-    // Example for Firebase Storage:
-    // return 'https://firebasestorage.googleapis.com/v0/b/your-bucket/o/audio%2F$audioId?alt=media';
+    // Construct the path - assuming audio files are stored in an 'audio' folder
+    // and using M4A format
+    final String encodedPath = Uri.encodeComponent('audio/$audioId.m4a');
     
-    // For now, return a placeholder URL that will fail gracefully
-    return 'https://example.com/audio/$audioId.mp3';
+    return 'https://firebasestorage.googleapis.com/v0/b/$firebaseStorageBucket/o/$encodedPath?alt=media';
   }
 
   @override
@@ -275,22 +274,10 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                       ),
                       
                       // Bookmark icon
-                      IconButton(
-                        onPressed: () {
-                          // TODO: Implement bookmark functionality
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Bookmark functionality coming soon'),
-                              duration: Duration(seconds: 2),
-                              backgroundColor: Color(0xFF8B6B47),
-                            ),
-                          );
-                        },
-                        icon: const Icon(
-                          Icons.bookmark_outline,
-                          color: Color(0xFF8B6B47),
-                          size: 24,
-                        ),
+                      BookmarkButton(
+                        content: widget.content,
+                        iconColor: const Color(0xFF8B6B47),
+                        iconSize: 24,
                       ),
                     ],
                   ),

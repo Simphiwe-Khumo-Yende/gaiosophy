@@ -3,6 +3,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
+import '../widgets/bookmark_button.dart';
 
 class RecipeScreen extends StatelessWidget {
   final content_model.Content content;
@@ -286,43 +287,10 @@ class RecipeScreen extends StatelessWidget {
 
   Widget _buildSaveButton() {
     return Center(
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade400),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {
-              // TODO: Implement save functionality
-            },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 10,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.bookmark_border,
-                    size: 16,
-                    color: Colors.black87,
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    'Save',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+      child: BookmarkButton(
+        content: content,
+        iconColor: Colors.black87,
+        iconSize: 16,
       ),
     );
   }

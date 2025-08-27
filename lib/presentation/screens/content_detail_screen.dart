@@ -6,6 +6,7 @@ import '../../application/providers/content_list_provider.dart';
 import '../../data/models/content.dart' as content_model;
 import '../theme/typography.dart';
 import '../widgets/firebase_storage_image.dart';
+import '../widgets/bookmark_button.dart';
 import 'audio_player_screen.dart';
 import 'plant_allies_detail_screen.dart';
 import 'recipe_screen.dart';
@@ -767,17 +768,9 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
 
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.bookmark_outline, color: Color(0xFF1A1612)),
-            onPressed: () {
-              // TODO: Implement bookmark functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Bookmark functionality coming soon'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
+          BookmarkButton(
+            content: widget.content,
+            iconColor: const Color(0xFF1A1612),
           ),
         ],
       ),

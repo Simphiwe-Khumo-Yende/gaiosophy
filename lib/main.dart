@@ -4,10 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'presentation/routing/app_router.dart';
 import 'presentation/theme/app_theme.dart';
 import 'firebase_options.dart';
+import 'data/local/hive_init.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  // Initialize offline storage
+  await initHive();
+  
   runApp(const ProviderScope(child: GaiosophyApp()));
 }
 
