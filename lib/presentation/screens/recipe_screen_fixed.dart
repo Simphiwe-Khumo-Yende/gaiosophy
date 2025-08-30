@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
@@ -17,6 +18,20 @@ class RecipeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F2),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => context.pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home, color: Colors.black87),
+            onPressed: () => context.go('/'),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -63,7 +78,7 @@ class RecipeScreen extends StatelessWidget {
                   
                   const SizedBox(height: 40),
                   // Save button
-                  _buildSaveButton(context),
+                  _buildSaveButton(),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -299,36 +314,12 @@ class RecipeScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildSaveButton(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Colors.grey.shade400,
-            width: 1,
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            BookmarkButton(
-              content: content,
-              iconColor: Colors.black87,
-              iconSize: 16,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Save',
-              style: context.secondaryBodyMedium.copyWith(
-                color: Colors.black87,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+  Widget _buildSaveButton() {
+    return Center(
+      child: BookmarkButton(
+        content: content,
+        iconColor: Colors.black87,
+        iconSize: 16,
       ),
     );
   }
