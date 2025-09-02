@@ -6,6 +6,9 @@ import '../../data/models/content.dart' as content_model;
 class PlantHarvestingScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
   final String parentTitle;
+  final Color backgroundColor = const Color(0xFFFCF9F2);
+  final Color boxColor = const Color(0xFFE9E2D5);
+  final Color textColor = const Color(0xFF5A4E3C);
 
   const PlantHarvestingScreen({
     super.key,
@@ -15,279 +18,254 @@ class PlantHarvestingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Debug logging
+    print('=== PLANT HARVESTING SCREEN ===');
+    print('ContentBlock ID: ${contentBlock.id}');
+    print('ContentBlock Type: ${contentBlock.type}');
+    print('ContentBlock Order: ${contentBlock.order}');
+    print('Has HTML content: ${contentBlock.data.content != null && contentBlock.data.content!.isNotEmpty}');
+    print('HTML content length: ${contentBlock.data.content?.length ?? 0}');
+    print('================================');
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF9F2),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Header
-            SliverAppBar(
-              expandedHeight: 200,
-              floating: false,
-              pinned: true,
-              backgroundColor: const Color(0xFFFCF9F2),
-              leading: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: Color(0xFF5A4E3C),
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: textColor),
+          onPressed: () => context.pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.home_outlined, color: textColor),
+            onPressed: () => context.go('/'),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              Center(
+                child: Text(
+                  contentBlock.data.title ?? 'Harvesting $parentTitle',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                onPressed: () => context.pop(),
               ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.home, color: Color(0xFF5A4E3C)),
-                  onPressed: () => context.go('/'),
+              const SizedBox(height: 30),
+              
+              // Seasonal Icons Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildSeasonIcon(context, Icons.local_florist, 'Spring'),
+                  _buildSeasonIcon(context, Icons.wb_sunny, 'Summer'),
+                  _buildSeasonIcon(context, Icons.eco, 'Autumn'),
+                  _buildSeasonIcon(context, Icons.ac_unit, 'Winter'),
+                ],
+              ),
+              const SizedBox(height: 20),
+              
+              // Timeline
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Jan', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: textColor)),
+                    Expanded(
+                      child: Slider(
+                        value: 0.7,
+                        onChanged: (value) {},
+                        activeColor: Colors.brown[400],
+                        inactiveColor: Colors.brown[200],
+                      ),
+                    ),
+                    Text('Dec', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: textColor)),
+                  ],
                 ),
+              ),
+              const SizedBox(height: 30),
+              
+              // Subtitle if available (Ethical Foraging Practices)
+              if (contentBlock.data.subtitle != null) ...[
+                Text(
+                  contentBlock.data.subtitle!,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 20),
               ],
-              flexibleSpace: FlexibleSpaceBar(
-                title: Text(
-                  'Harvesting Guide',
-                  style: const TextStyle(
-                    color: Color(0xFF5A4E3C),
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(0, 1),
-                        blurRadius: 3,
-                        color: Colors.black26,
+              
+              // Main Content from Firestore
+              if (contentBlock.data.content != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: boxColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Html(
+                    data: contentBlock.data.content!,
+                    style: {
+                      "body": Style(
+                        color: textColor,
+                        fontSize: FontSize(16),
+                        lineHeight: const LineHeight(1.5),
+                        margin: Margins.zero,
+                        padding: HtmlPaddings.zero,
+                      ),
+                      "h1, h2, h3, h4, h5, h6": Style(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: FontSize(18),
+                        margin: Margins.only(top: 16, bottom: 8),
+                      ),
+                      "p": Style(
+                        color: textColor,
+                        margin: Margins.only(bottom: 12),
+                        fontSize: FontSize(14),
+                      ),
+                      "ul, ol": Style(
+                        color: textColor,
+                        margin: Margins.zero,
+                        padding: HtmlPaddings.only(left: 16),
+                      ),
+                      "li": Style(
+                        color: textColor,
+                        margin: Margins.zero,
+                        fontSize: FontSize(14),
+                        lineHeight: const LineHeight(1.1),
+                      ),
+                      "b, strong": Style(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      "span": Style(
+                        color: textColor,
+                      ),
+                    },
+                    onLinkTap: (url, _, __) {
+                      // Handle link taps if needed
+                      print('Link tapped: $url');
+                    },
+                    extensions: [
+                      TagExtension(
+                        tagsToExtend: {"li"},
+                        builder: (extensionContext) {
+                          final element = extensionContext.element;
+                          if (element == null) return const SizedBox.shrink();
+
+                          final parent = element.parent;
+                          final isOrdered = parent?.localName == 'ol';
+                          final index = parent != null ? parent.children.indexOf(element) : 0;
+
+                          IconData icon;
+                          if (isOrdered) {
+                            // Use numbered icons for ordered lists
+                            switch (index) {
+                              case 0: icon = Icons.looks_one_outlined; break;
+                              case 1: icon = Icons.looks_two_outlined; break;
+                              case 2: icon = Icons.looks_3_outlined; break;
+                              case 3: icon = Icons.looks_4_outlined; break;
+                              case 4: icon = Icons.looks_5_outlined; break;
+                              default: icon = Icons.circle_outlined; break;
+                            }
+                          } else {
+                            // Determine icon based on content keywords
+                            final text = element.text.toLowerCase();
+                            if (text.contains('harvest') || text.contains('collect')) {
+                              icon = Icons.agriculture_outlined;
+                            } else if (text.contains('season') || text.contains('time')) {
+                              icon = Icons.schedule_outlined;
+                            } else if (text.contains('prepare') || text.contains('process')) {
+                              icon = Icons.build_outlined;
+                            } else if (text.contains('store') || text.contains('preserve')) {
+                              icon = Icons.inventory_outlined;
+                            } else if (text.contains('dry') || text.contains('drying')) {
+                              icon = Icons.wb_sunny_outlined;
+                            } else if (text.contains('caution') || text.contains('warning')) {
+                              icon = Icons.warning_outlined;
+                            } else {
+                              icon = Icons.eco_outlined;
+                            }
+                          }
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(icon, size: 16, color: textColor),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Html(
+                                    data: element.innerHtml,
+                                    style: {
+                                      "body": Style(
+                                        fontSize: FontSize(14),
+                                        color: textColor,
+                                        lineHeight: LineHeight(1.5),
+                                        margin: Margins.zero,
+                                        padding: HtmlPaddings.zero,
+                                      ),
+                                      "p": Style(
+                                        fontSize: FontSize(14),
+                                        color: textColor,
+                                        lineHeight: LineHeight(1.5),
+                                        margin: Margins.zero,
+                                        padding: HtmlPaddings.zero,
+                                      ),
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
                 ),
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFF8B6B47).withOpacity(0.3),
-                        const Color(0xFFFCF9F2),
-                      ],
-                    ),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.agriculture,
-                      size: 60,
-                      color: Color(0xFF5A4E3C),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            
-            // Content
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    // Main Content
-                    if (contentBlock.data.content != null)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF5A4E3C).withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Html(
-                          data: contentBlock.data.content,
-                          style: {
-                            "body": Style(
-                              color: const Color(0xFF5A4E3C),
-                              fontSize: FontSize(16),
-                              lineHeight: const LineHeight(1.8),
-                              margin: Margins.zero,
-                              padding: HtmlPaddings.zero,
-                            ),
-                          },
-                        ),
-                      ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Harvesting Sections
-                    _buildHarvestSection(
-                      title: 'Best Times to Harvest',
-                      icon: Icons.schedule,
-                      items: [
-                        HarvestInfo('Flowers/Berries', 'Peak growing season', 'When fully mature and at peak potency'),
-                        HarvestInfo('Young Leaves', 'Spring (March-May)', 'Tender new growth for teas and preparations'),
-                        HarvestInfo('Root Material', 'Autumn or early spring', 'When plant energy is concentrated in roots'),
-                        HarvestInfo('Stems/Bark', 'Dormant season', 'For various traditional preparations'),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    _buildHarvestSection(
-                      title: 'Harvesting Tools & Safety',
-                      icon: Icons.construction,
-                      items: [
-                        HarvestInfo('Protective gear', 'Essential protection', 'Gloves and appropriate clothing for safety'),
-                        HarvestInfo('Long sleeves', 'Skin protection', 'Dense fabric to prevent scratches and irritation'),
-                        HarvestInfo('Clean tools', 'Sterile harvesting', 'Sharp, clean tools for proper cuts'),
-                        HarvestInfo('Collection containers', 'Gentle handling', 'Appropriate vessels for different plant parts'),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    _buildHarvestSection(
-                      title: 'Sustainable Practices',
-                      icon: Icons.eco,
-                      items: [
-                        HarvestInfo('Leave plenty behind', 'Rule of thirds', 'Take only 1/3, leave 2/3 for wildlife'),
-                        HarvestInfo('Rotate locations', 'Give plants rest', 'Don\'t harvest from same spot repeatedly'),
-                        HarvestInfo('Thank the plant', 'Respectful practice', 'Acknowledge the gift you\'re receiving'),
-                        HarvestInfo('Give back', 'Reciprocity', 'Leave water, compost, or other gifts'),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHarvestSection({
-    required String title,
-    required IconData icon,
-    required List<HarvestInfo> items,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFF8B6B47).withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF8B6B47).withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF5A4E3C).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  icon,
-                  color: const Color(0xFF5A4E3C),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF5A4E3C),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+                const SizedBox(height: 30),
+              ],
             ],
           ),
-          const SizedBox(height: 20),
-          ...items.map((item) => _buildHarvestItem(item)).toList(),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildHarvestItem(HarvestInfo info) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF5A4E3C).withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+  Widget _buildSeasonIcon(BuildContext context, IconData icon, String label) {
+    return Column(
+      children: [
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            color: boxColor,
+            shape: BoxShape.circle,
           ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF8B6B47).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.nature,
-              color: Color(0xFF5A4E3C),
-              size: 20,
-            ),
+          child: Icon(icon, color: textColor, size: 30),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: textColor,
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  info.item,
-                  style: const TextStyle(
-                    color: Color(0xFF5A4E3C),
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  info.timing,
-                  style: TextStyle(
-                    color: const Color(0xFF5A4E3C).withOpacity(0.8),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  info.description,
-                  style: TextStyle(
-                    color: const Color(0xFF5A4E3C).withOpacity(0.7),
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-}
-
-class HarvestInfo {
-  final String item;
-  final String timing;
-  final String description;
-
-  HarvestInfo(this.item, this.timing, this.description);
 }

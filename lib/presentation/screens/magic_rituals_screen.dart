@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
 
 class MagicRitualsScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
   final String parentTitle;
+  final Color backgroundColor = const Color(0xFFFCF9F2);
+  final Color boxColor = const Color(0xFFF2E9D7);
+  final Color textColor = const Color(0xFF3C3C3C);
 
   const MagicRitualsScreen({
     super.key,
@@ -15,232 +19,187 @@ class MagicRitualsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF9F2),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Mystical Header
-            SliverAppBar(
-              expandedHeight: 220,
-              floating: false,
-              pinned: true,
-              backgroundColor: const Color(0xFFFCF9F2),
-              leading: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: Color(0xFF5A4E3C),
-                ),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              flexibleSpace: FlexibleSpaceBar(
-                title: Text(
-                  'Magic & Rituals',
-                  style: const TextStyle(
-                    color: Color(0xFF5A4E3C),
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(0, 1),
-                        blurRadius: 3,
-                        color: Colors.black26,
-                      ),
-                    ],
-                  ),
-                ),
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment.center,
-                      radius: 1.2,
-                      colors: [
-                        const Color(0xFF8B6B47).withOpacity(0.3),
-                        const Color(0xFF5A4E3C).withOpacity(0.2),
-                        const Color(0xFFFCF9F2),
-                      ],
-                    ),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.auto_fix_high,
-                      size: 70,
-                      color: Color(0xFF5A4E3C),
-                    ),
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: textColor),
+          onPressed: () => context.pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.home_outlined, color: textColor),
+            onPressed: () => context.go('/'),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              Center(
+                child: Text(
+                  contentBlock.data.title ?? 'Magic and Rituals',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w400,
+                    color: textColor,
                   ),
                 ),
               ),
-            ),
-            
-            // Ritual Content
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    // Main Content
-                    if (contentBlock.data.content != null)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF5A4E3C).withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Html(
-                          data: contentBlock.data.content,
-                          style: {
-                            "body": Style(
-                              color: const Color(0xFF5A4E3C),
-                              fontSize: FontSize(16),
-                              lineHeight: const LineHeight(1.8),
-                              margin: Margins.zero,
-                              padding: HtmlPaddings.zero,
-                            ),
-                          },
-                        ),
-                      ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Ritual Categories
-                    _buildRitualCategory(
-                      title: 'Protection Rituals',
-                      icon: Icons.security,
-                      description: 'Use bramble thorns in protective spells and boundary work',
-                      items: [
-                        'Create protective circles with dried bramble canes',
-                        'Burn bramble leaves for cleansing rituals',
-                        'Carry a small bramble thorn for personal protection',
-                      ],
+              const SizedBox(height: 30),
+
+              // Dynamic content using flutter_html
+              if (contentBlock.data.content != null)
+                Html(
+                  data: contentBlock.data.content!,
+                  style: {
+                    "body": Style(
+                      fontSize: FontSize(14),
+                      color: textColor,
+                      lineHeight: LineHeight(1.5),
+                      margin: Margins.zero,
+                      padding: HtmlPaddings.zero,
                     ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    _buildRitualCategory(
-                      title: 'Abundance Magic',
-                      icon: Icons.trending_up,
-                      description: 'Harness the fertile energy of bramble for manifestation',
-                      items: [
-                        'Use bramble berries in prosperity spells',
-                        'Plant brambles to attract abundance to your land',
-                        'Create bramble berry ink for manifestation writing',
-                      ],
+                    "p": Style(
+                      fontSize: FontSize(14),
+                      color: textColor,
+                      lineHeight: LineHeight(1.5),
+                      margin: Margins.only(bottom: 16),
                     ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    _buildRitualCategory(
-                      title: 'Seasonal Ceremonies',
-                      icon: Icons.wb_sunny,
-                      description: 'Connect with natural cycles through bramble rituals',
-                      items: [
-                        'Lammas berry blessing ceremonies',
-                        'Autumn gratitude rituals with bramble fruit',
-                        'Spring growth meditation with new bramble shoots',
-                      ],
+                    "h1": Style(
+                      fontSize: FontSize(20),
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                      margin: Margins.only(bottom: 16, top: 24),
+                    ),
+                    "h2": Style(
+                      fontSize: FontSize(18),
+                      fontWeight: FontWeight.w500,
+                      color: textColor,
+                      margin: Margins.only(bottom: 12, top: 20),
+                    ),
+                    "h3": Style(
+                      fontSize: FontSize(16),
+                      fontWeight: FontWeight.w500,
+                      color: textColor,
+                      margin: Margins.only(bottom: 12, top: 16),
+                    ),
+                    "ul": Style(
+                      margin: Margins.only(left: 16, bottom: 16),
+                      padding: HtmlPaddings.zero,
+                    ),
+                    "ol": Style(
+                      margin: Margins.only(left: 16, bottom: 16),
+                      padding: HtmlPaddings.zero,
+                    ),
+                    "li": Style(
+                      margin: Margins.only(bottom: 8),
+                      padding: HtmlPaddings.zero,
+                    ),
+                    "strong": Style(
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                    "b": Style(
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                    "em": Style(
+                      fontStyle: FontStyle.italic,
+                      color: textColor,
+                    ),
+                    "i": Style(
+                      fontStyle: FontStyle.italic,
+                      color: textColor,
+                    ),
+                  },
+                  extensions: [
+                    TagExtension(
+                      tagsToExtend: {"li"},
+                      builder: (extensionContext) {
+                        final element = extensionContext.element;
+                        if (element == null) return const SizedBox.shrink();
+                        
+                        final parent = element.parent;
+                        final isOrdered = parent?.localName == 'ol';
+                        final index = parent != null ? parent.children.indexOf(element) : 0;
+
+                        IconData icon;
+                        if (isOrdered) {
+                          // Use numbered icons for ordered lists
+                          switch (index) {
+                            case 0: icon = Icons.looks_one_outlined; break;
+                            case 1: icon = Icons.looks_two_outlined; break;
+                            case 2: icon = Icons.looks_3_outlined; break;
+                            case 3: icon = Icons.looks_4_outlined; break;
+                            case 4: icon = Icons.looks_5_outlined; break;
+                            default: icon = Icons.circle_outlined; break;
+                          }
+                        } else {
+                          // Determine icon based on content keywords
+                          final text = element.text.toLowerCase();
+                          if (text.contains('protection') || text.contains('warding')) {
+                            icon = Icons.shield_outlined;
+                          } else if (text.contains('healing') || text.contains('medicine')) {
+                            icon = Icons.favorite_outline;
+                          } else if (text.contains('magic') || text.contains('spell')) {
+                            icon = Icons.auto_fix_high_outlined;
+                          } else if (text.contains('ritual') || text.contains('ceremony')) {
+                            icon = Icons.auto_awesome_outlined;
+                          } else if (text.contains('seasonal') || text.contains('season')) {
+                            icon = Icons.wb_sunny_outlined;
+                          } else if (text.contains('knowledge') || text.contains('wisdom')) {
+                            icon = Icons.menu_book_outlined;
+                          } else if (text.contains('plant') || text.contains('herb')) {
+                            icon = Icons.eco_outlined;
+                          } else {
+                            icon = Icons.circle_outlined;
+                          }
+                        }
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(icon, size: 16, color: textColor),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Html(
+                                  data: element.innerHtml,
+                                  style: {
+                                    "body": Style(
+                                      fontSize: FontSize(14),
+                                      color: textColor,
+                                      lineHeight: LineHeight(1.5),
+                                      margin: Margins.zero,
+                                      padding: HtmlPaddings.zero,
+                                    ),
+                                    "p": Style(
+                                      fontSize: FontSize(14),
+                                      color: textColor,
+                                      lineHeight: LineHeight(1.5),
+                                      margin: Margins.zero,
+                                      padding: HtmlPaddings.zero,
+                                    ),
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRitualCategory({
-    required String title,
-    required IconData icon,
-    required String description,
-    required List<String> items,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFF8B6B47).withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF8B6B47).withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF5A4E3C).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  icon,
-                  color: const Color(0xFF5A4E3C),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF5A4E3C),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            description,
-            style: TextStyle(
-              color: const Color(0xFF5A4E3C).withOpacity(0.8),
-              fontSize: 16,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 6),
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF5A4E3C),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    item,
-                    style: const TextStyle(
-                      color: Color(0xFF5A4E3C),
-                      fontSize: 15,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )).toList(),
-        ],
+        ),
       ),
     );
   }

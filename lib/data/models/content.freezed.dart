@@ -764,6 +764,8 @@ mixin _$ContentBlockData {
   String? get featuredImageId => throw _privateConstructorUsedError;
   List<String> get galleryImageIds => throw _privateConstructorUsedError;
   List<SubBlock> get subBlocks => throw _privateConstructorUsedError;
+  List<String> get listItems => throw _privateConstructorUsedError;
+  String? get listStyle => throw _privateConstructorUsedError;
 
   /// Serializes this ContentBlockData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -787,7 +789,9 @@ abstract class $ContentBlockDataCopyWith<$Res> {
       String? content,
       String? featuredImageId,
       List<String> galleryImageIds,
-      List<SubBlock> subBlocks});
+      List<SubBlock> subBlocks,
+      List<String> listItems,
+      String? listStyle});
 }
 
 /// @nodoc
@@ -811,6 +815,8 @@ class _$ContentBlockDataCopyWithImpl<$Res, $Val extends ContentBlockData>
     Object? featuredImageId = freezed,
     Object? galleryImageIds = null,
     Object? subBlocks = null,
+    Object? listItems = null,
+    Object? listStyle = freezed,
   }) {
     return _then(_value.copyWith(
       title: freezed == title
@@ -837,6 +843,14 @@ class _$ContentBlockDataCopyWithImpl<$Res, $Val extends ContentBlockData>
           ? _value.subBlocks
           : subBlocks // ignore: cast_nullable_to_non_nullable
               as List<SubBlock>,
+      listItems: null == listItems
+          ? _value.listItems
+          : listItems // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      listStyle: freezed == listStyle
+          ? _value.listStyle
+          : listStyle // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -855,7 +869,9 @@ abstract class _$$ContentBlockDataImplCopyWith<$Res>
       String? content,
       String? featuredImageId,
       List<String> galleryImageIds,
-      List<SubBlock> subBlocks});
+      List<SubBlock> subBlocks,
+      List<String> listItems,
+      String? listStyle});
 }
 
 /// @nodoc
@@ -877,6 +893,8 @@ class __$$ContentBlockDataImplCopyWithImpl<$Res>
     Object? featuredImageId = freezed,
     Object? galleryImageIds = null,
     Object? subBlocks = null,
+    Object? listItems = null,
+    Object? listStyle = freezed,
   }) {
     return _then(_$ContentBlockDataImpl(
       title: freezed == title
@@ -903,6 +921,14 @@ class __$$ContentBlockDataImplCopyWithImpl<$Res>
           ? _value._subBlocks
           : subBlocks // ignore: cast_nullable_to_non_nullable
               as List<SubBlock>,
+      listItems: null == listItems
+          ? _value._listItems
+          : listItems // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      listStyle: freezed == listStyle
+          ? _value.listStyle
+          : listStyle // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -916,9 +942,12 @@ class _$ContentBlockDataImpl implements _ContentBlockData {
       this.content,
       this.featuredImageId,
       final List<String> galleryImageIds = const [],
-      final List<SubBlock> subBlocks = const []})
+      final List<SubBlock> subBlocks = const [],
+      final List<String> listItems = const [],
+      this.listStyle})
       : _galleryImageIds = galleryImageIds,
-        _subBlocks = subBlocks;
+        _subBlocks = subBlocks,
+        _listItems = listItems;
 
   factory _$ContentBlockDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$ContentBlockDataImplFromJson(json);
@@ -949,9 +978,21 @@ class _$ContentBlockDataImpl implements _ContentBlockData {
     return EqualUnmodifiableListView(_subBlocks);
   }
 
+  final List<String> _listItems;
+  @override
+  @JsonKey()
+  List<String> get listItems {
+    if (_listItems is EqualUnmodifiableListView) return _listItems;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_listItems);
+  }
+
+  @override
+  final String? listStyle;
+
   @override
   String toString() {
-    return 'ContentBlockData(title: $title, subtitle: $subtitle, content: $content, featuredImageId: $featuredImageId, galleryImageIds: $galleryImageIds, subBlocks: $subBlocks)';
+    return 'ContentBlockData(title: $title, subtitle: $subtitle, content: $content, featuredImageId: $featuredImageId, galleryImageIds: $galleryImageIds, subBlocks: $subBlocks, listItems: $listItems, listStyle: $listStyle)';
   }
 
   @override
@@ -968,7 +1009,11 @@ class _$ContentBlockDataImpl implements _ContentBlockData {
             const DeepCollectionEquality()
                 .equals(other._galleryImageIds, _galleryImageIds) &&
             const DeepCollectionEquality()
-                .equals(other._subBlocks, _subBlocks));
+                .equals(other._subBlocks, _subBlocks) &&
+            const DeepCollectionEquality()
+                .equals(other._listItems, _listItems) &&
+            (identical(other.listStyle, listStyle) ||
+                other.listStyle == listStyle));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -980,7 +1025,9 @@ class _$ContentBlockDataImpl implements _ContentBlockData {
       content,
       featuredImageId,
       const DeepCollectionEquality().hash(_galleryImageIds),
-      const DeepCollectionEquality().hash(_subBlocks));
+      const DeepCollectionEquality().hash(_subBlocks),
+      const DeepCollectionEquality().hash(_listItems),
+      listStyle);
 
   /// Create a copy of ContentBlockData
   /// with the given fields replaced by the non-null parameter values.
@@ -1006,7 +1053,9 @@ abstract class _ContentBlockData implements ContentBlockData {
       final String? content,
       final String? featuredImageId,
       final List<String> galleryImageIds,
-      final List<SubBlock> subBlocks}) = _$ContentBlockDataImpl;
+      final List<SubBlock> subBlocks,
+      final List<String> listItems,
+      final String? listStyle}) = _$ContentBlockDataImpl;
 
   factory _ContentBlockData.fromJson(Map<String, dynamic> json) =
       _$ContentBlockDataImpl.fromJson;
@@ -1023,6 +1072,10 @@ abstract class _ContentBlockData implements ContentBlockData {
   List<String> get galleryImageIds;
   @override
   List<SubBlock> get subBlocks;
+  @override
+  List<String> get listItems;
+  @override
+  String? get listStyle;
 
   /// Create a copy of ContentBlockData
   /// with the given fields replaced by the non-null parameter values.

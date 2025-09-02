@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:math';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
 
@@ -16,404 +17,244 @@ class FolkMedicineScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Add comprehensive debugging
+    print('=== FOLK MEDICINE SCREEN BUILD ===');
+    print('ContentBlock ID: ${contentBlock.id}');
+    print('ContentBlock Type: ${contentBlock.type}');
+    print('ContentBlock Order: ${contentBlock.order}');
+    print('Has subBlocks: ${contentBlock.data.subBlocks.isNotEmpty}');
+    print('SubBlocks count: ${contentBlock.data.subBlocks.length}');
+    print('Has HTML content: ${contentBlock.data.content != null && contentBlock.data.content!.isNotEmpty}');
+    print('HTML content preview: ${contentBlock.data.content?.substring(0, min(100, contentBlock.data.content?.length ?? 0)) ?? "null"}');
+    print('Has featuredImageId: ${contentBlock.data.featuredImageId != null && contentBlock.data.featuredImageId!.isNotEmpty}');
+    print('=====================================');
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF9F2),
-      appBar: _buildAppBar(context),
+      backgroundColor: const Color(0xFFF5F0E8),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF5F0E8),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF3C3C3C)),
+          onPressed: () => context.pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home_outlined, color: Color(0xFF3C3C3C)),
+            onPressed: () => context.go('/'),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            
-            // Plant Title
-            Text(
-              parentTitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1A1612),
-                letterSpacing: 0.5,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              Center(
+                child: Text(
+                  contentBlock.data.title ?? parentTitle,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF3C3C3C),
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Large Circular Plant Image
-            _buildPlantImage(),
-            
-            const SizedBox(height: 40),
-            
-            // Folk Medicine Content
-            _buildFolkMedicineContent(),
-          ],
-        ),
-      ),
-    );
-  }
+              const SizedBox(height: 24),
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1612)),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.home, color: Color(0xFF1A1612)),
-          onPressed: () => context.go('/'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPlantImage() {
-    // Try to get image from sub_blocks first, then fallback to featured image
-    String? imageId;
-    
-    if (contentBlock.data.subBlocks.isNotEmpty) {
-      final subBlock = contentBlock.data.subBlocks.first;
-      if (subBlock.imageUrl != null && subBlock.imageUrl!.isNotEmpty) {
-        // Extract image ID from the full URL if it's a Firebase Storage URL
-        final url = subBlock.imageUrl!;
-        if (url.contains('firebasestorage.app') || url.contains('googleapis.com')) {
-          // Extract the image ID from the URL path
-          final parts = url.split('/');
-          if (parts.isNotEmpty) {
-            final lastPart = parts.last;
-            if (lastPart.contains('.')) {
-              imageId = lastPart.split('.').first;
-            } else {
-              imageId = lastPart;
-            }
-          }
-        } else {
-          imageId = url; // Use as-is if it's already an ID
-        }
-      }
-    }
-    
-    // Fallback to featured image ID
-    imageId ??= contentBlock.data.featuredImageId;
-    
-    return Center(
-      child: Container(
-        width: 160,
-        height: 160,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: ClipOval(
-          child: imageId != null
-              ? FirebaseStorageImage(
-                  imageId: imageId,
-                  fit: BoxFit.cover,
-                  width: 160,
-                  height: 160,
-                  placeholder: Container(
-                    width: 160,
-                    height: 160,
-                    color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B6B47)),
+              // Image if available
+              if (contentBlock.data.featuredImageId != null && contentBlock.data.featuredImageId!.isNotEmpty) ...[
+                Center(
+                  child: FirebaseStorageImage(
+                    imageId: contentBlock.data.featuredImageId!,
+                    width: 180,
+                    height: 180,
+                    fit: BoxFit.cover,
+                    placeholder: Container(
+                      width: 180,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
+                      ),
+                      child: const Icon(
+                        Icons.spa_outlined,
+                        size: 48,
+                        color: Color(0xFF8B6B47),
                       ),
                     ),
-                  ),
-                  errorWidget: Container(
-                    width: 160,
-                    height: 160,
-                    color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
-                    child: const Center(
-                      child: Icon(
-                        Icons.eco,
-                        size: 64,
+                    errorWidget: Container(
+                      width: 180,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
+                      ),
+                      child: const Icon(
+                        Icons.broken_image_outlined,
+                        size: 48,
                         color: Color(0xFF8B6B47),
                       ),
                     ),
                   ),
-                )
-              : Container(
-                  width: 160,
-                  height: 160,
-                  color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
-                  child: const Center(
-                    child: Icon(
-                      Icons.eco,
-                      size: 64,
-                      color: Color(0xFF8B6B47),
-                    ),
-                  ),
                 ),
+                const SizedBox(height: 32),
+              ],
+
+              // Content
+              _buildFolkMedicineContent(),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildFolkMedicineContent() {
-    // Parse the HTML content to extract structured information
+    // Debug logging
+    print('=== FOLK MEDICINE CONTENT DEBUG ===');
+    print('ContentBlock ID: ${contentBlock.id}');
+    print('ContentBlock Type: ${contentBlock.type}');
+    print('ContentBlock Order: ${contentBlock.order}');
+    print('Has subBlocks: ${contentBlock.data.subBlocks.isNotEmpty}');
+    print('SubBlocks count: ${contentBlock.data.subBlocks.length}');
+    print('Has HTML content: ${contentBlock.data.content != null && contentBlock.data.content!.isNotEmpty}');
+    print('HTML content length: ${contentBlock.data.content?.length ?? 0}');
+    print('=====================================');
+
+    // Check if we have sub-blocks (specific plant parts)
+    if (contentBlock.data.subBlocks.isNotEmpty) {
+      return _buildSubBlocksContent();
+    }
+
+    // Fall back to HTML content if no sub-blocks
     String? htmlContent = contentBlock.data.content;
-    
+
     if (htmlContent == null || htmlContent.isEmpty) {
+      print('No content available, showing default content');
       return _buildDefaultContent();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Medicinal Uses Section
-        _buildUsesSection(
-          title: "Medicinal Uses",
-          icon: Icons.local_hospital_outlined,
-          content: _extractMedicinalUses(htmlContent),
-        ),
-        
-        const SizedBox(height: 32),
-        
-        // Skincare Uses Section
-        _buildUsesSection(
-          title: "Skincare Uses",
-          icon: Icons.face_outlined,
-          content: _extractSkincareUses(htmlContent),
-        ),
-        
-        // Additional sections based on content
-        if (_hasAdditionalContent(htmlContent)) ...[
-          const SizedBox(height: 32),
-          _buildAdditionalContent(htmlContent),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildUsesSection({
-    required String title,
-    required IconData icon,
-    required List<String> content,
-  }) {
+    print('Rendering HTML content');
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                icon,
-                color: const Color(0xFF8B6B47),
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1612),
+      constraints: const BoxConstraints(minHeight: 200), // Ensure minimum height
+      child: Html(
+        data: htmlContent,
+        style: {
+          "body": Style(
+            fontSize: FontSize(15),
+            color: const Color(0xFF3C3C3C),
+            lineHeight: LineHeight(1.6),
+            margin: Margins.zero,
+            padding: HtmlPaddings.zero,
+          ),
+          "p": Style(
+            fontSize: FontSize(15),
+            color: const Color(0xFF3C3C3C),
+            lineHeight: LineHeight(1.6),
+            margin: Margins.only(bottom: 16),
+          ),
+          "h1": Style(
+            fontSize: FontSize(18),
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF3C3C3C),
+            margin: Margins.only(bottom: 16, top: 24),
+          ),
+          "h2": Style(
+            fontSize: FontSize(16),
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF3C3C3C),
+            margin: Margins.only(bottom: 12, top: 24),
+          ),
+          "h3": Style(
+            fontSize: FontSize(15),
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF3C3C3C),
+            margin: Margins.only(bottom: 12, top: 20),
+          ),
+          "ul": Style(
+            margin: Margins.only(left: 20, bottom: 16),
+            padding: HtmlPaddings.zero,
+          ),
+          "ol": Style(
+            margin: Margins.only(left: 20, bottom: 16),
+            padding: HtmlPaddings.zero,
+          ),
+          "li": Style(
+            fontSize: FontSize(15),
+            color: const Color(0xFF3C3C3C),
+            lineHeight: LineHeight(1.6),
+            margin: Margins.only(bottom: 8),
+          ),
+          "strong": Style(
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF3C3C3C),
+          ),
+          "b": Style(
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF3C3C3C),
+          ),
+          "em": Style(
+            fontStyle: FontStyle.italic,
+            color: const Color(0xFF3C3C3C),
+          ),
+          "i": Style(
+            fontStyle: FontStyle.italic,
+            color: const Color(0xFF3C3C3C),
+          ),
+        },
+        onLinkTap: (url, _, __) {
+          // Handle link taps if needed
+          print('Link tapped: $url');
+        },
+        extensions: [
+          TagExtension(
+            tagsToExtend: {"li"},
+            builder: (extensionContext) {
+              final element = extensionContext.element;
+              if (element == null) return const SizedBox.shrink();
+
+              // Simple list item rendering without complex icons for now
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '• ',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF3C3C3C),
+                        height: 1.6,
+                      ),
+                    ),
+                    Expanded(
+                      child: Html(
+                        data: element.innerHtml,
+                        style: {
+                          "body": Style(
+                            fontSize: FontSize(15),
+                            color: const Color(0xFF3C3C3C),
+                            lineHeight: LineHeight(1.6),
+                            margin: Margins.zero,
+                            padding: HtmlPaddings.zero,
+                          ),
+                          "p": Style(
+                            fontSize: FontSize(15),
+                            color: const Color(0xFF3C3C3C),
+                            lineHeight: LineHeight(1.6),
+                            margin: Margins.zero,
+                            padding: HtmlPaddings.zero,
+                          ),
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ...content.map((use) => _buildBulletPoint(use)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBulletPoint(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 8, right: 12),
-            width: 6,
-            height: 6,
-            decoration: const BoxDecoration(
-              color: Color(0xFF8B6B47),
-              shape: BoxShape.circle,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 14,
-                height: 1.5,
-                color: Color(0xFF1A1612),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<String> _extractMedicinalUses(String htmlContent) {
-    // Extract medicinal uses from HTML content
-    List<String> uses = [];
-    
-    // Remove HTML tags for basic parsing
-    String plainText = htmlContent.replaceAll(RegExp(r'<[^>]*>'), '\n');
-    
-    // Look for medicinal keywords and extract relevant sections
-    List<String> medicinalKeywords = [
-      'vitamin c', 'vitamin k', 'manganese', 'antioxidants', 'immunity',
-      'supports digestion', 'strengthens immunity', 'colds', 'convalescence',
-      'inflammation', 'medicinal', 'treatment', 'healing', 'remedy'
-    ];
-    
-    List<String> lines = plainText.split('\n');
-    for (String line in lines) {
-      line = line.trim();
-      if (line.isNotEmpty) {
-        String lowerLine = line.toLowerCase();
-        for (String keyword in medicinalKeywords) {
-          if (lowerLine.contains(keyword)) {
-            // Clean up the line and add it if it's substantial
-            if (line.length > 20 && !uses.contains(line)) {
-              uses.add(line);
-              break;
-            }
-          }
-        }
-      }
-    }
-    
-    // If no specific medicinal uses found, add some defaults based on plant type
-    if (uses.isEmpty) {
-      uses = [
-        'High in vitamin C, K, manganese, and antioxidants that help boost immune system',
-        'Strengthens immunity, supports digestion',
-        'Used for colds, convalescence, inflammation'
-      ];
-    }
-    
-    return uses.take(4).toList(); // Limit to 4 items for clean display
-  }
-
-  List<String> _extractSkincareUses(String htmlContent) {
-    // Extract skincare uses from HTML content
-    List<String> uses = [];
-    
-    String plainText = htmlContent.replaceAll(RegExp(r'<[^>]*>'), '\n');
-    
-    List<String> skincareKeywords = [
-      'skin', 'skincare', 'beauty', 'moistur', 'hydrat', 'complexion',
-      'collagen', 'inflammation', 'barrier', 'nourish', 'vitamin e',
-      'fatty acids', 'essential oils', 'topical', 'apply', 'mask', 'serum'
-    ];
-    
-    List<String> lines = plainText.split('\n');
-    for (String line in lines) {
-      line = line.trim();
-      if (line.isNotEmpty) {
-        String lowerLine = line.toLowerCase();
-        for (String keyword in skincareKeywords) {
-          if (lowerLine.contains(keyword)) {
-            if (line.length > 20 && !uses.contains(line)) {
-              uses.add(line);
-              break;
-            }
-          }
-        }
-      }
-    }
-    
-    // Default skincare uses if none found
-    if (uses.isEmpty) {
-      uses = [
-        'Rich in polyphenols, flavonoids, and anthocyanins that defend skin from photoaging and environmental stress',
-        'Contains vitamin C and phenolic compounds that support collagen and reduce inflammation',
-        'Used in masks and serums to promote skin clarity, hydration, and radiance',
-        'High in vitamin E and essential fatty acids for deep moisturization'
-      ];
-    }
-    
-    return uses.take(4).toList();
-  }
-
-  bool _hasAdditionalContent(String htmlContent) {
-    // Check if there's additional content worth displaying
-    String plainText = htmlContent.replaceAll(RegExp(r'<[^>]*>'), '');
-    return plainText.length > 500; // If substantial content exists
-  }
-
-  Widget _buildAdditionalContent(String htmlContent) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.info_outline,
-                color: Color(0xFF8B6B47),
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Additional Information',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1612),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Html(
-            data: htmlContent,
-            style: {
-              "body": Style(
-                margin: Margins.zero,
-                padding: HtmlPaddings.zero,
-                color: const Color(0xFF1A1612),
-                fontSize: FontSize(14),
-                lineHeight: LineHeight(1.6),
-              ),
-              "p": Style(
-                margin: Margins.only(bottom: 12),
-              ),
-              "ul": Style(
-                padding: HtmlPaddings.only(left: 20),
-              ),
-              "li": Style(
-                margin: Margins.only(bottom: 8),
-              ),
+              );
             },
           ),
         ],
@@ -421,88 +262,170 @@ class FolkMedicineScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDefaultContent() {
-    // Get data from sub_blocks if available
-    if (contentBlock.data.subBlocks.isNotEmpty) {
-      final subBlock = contentBlock.data.subBlocks.first;
-      
-      return Column(
-        children: [
-          // Plant Part Title
-          if (subBlock.plantPartName != null && subBlock.plantPartName!.isNotEmpty) ...[
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Text(
-                subBlock.plantPartName!.toUpperCase(),
-                textAlign: TextAlign.center,
+  Widget _buildSubBlocksContent() {
+    print('=== BUILDING SUB BLOCKS CONTENT ===');
+    print('Number of sub-blocks: ${contentBlock.data.subBlocks.length}');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: contentBlock.data.subBlocks.map((subBlock) {
+        print('Processing sub-block: ${subBlock.plantPartName}');
+        print('Medicinal uses: ${subBlock.medicinalUses.length}');
+        print('Skincare uses: ${subBlock.skincareUses.length}');
+        print('Energetic uses: ${subBlock.energeticUses.length}');
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Medicinal uses
+            if (subBlock.medicinalUses.isNotEmpty) ...[
+              const Text(
+                'Medicinal Uses',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF3C3C3C),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildSimpleUsesList(subBlock.medicinalUses),
+              const SizedBox(height: 24),
+            ],
+
+            // Skincare uses
+            if (subBlock.skincareUses.isNotEmpty) ...[
+              const Text(
+                'Skincare Uses',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF3C3C3C),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildSimpleUsesList(subBlock.skincareUses),
+              const SizedBox(height: 24),
+            ],
+
+            // Energetic uses (or Seed Oil as shown in design)
+            if (subBlock.energeticUses.isNotEmpty) ...[
+              Text(
+                subBlock.plantPartName?.contains('Seed') == true ? 'Seed Oil' : 'Energetic Uses',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF8B6B47),
-                  letterSpacing: 1.5,
+                  color: Color(0xFF3C3C3C),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              _buildSimpleUsesList(subBlock.energeticUses),
+              const SizedBox(height: 24),
+            ],
           ],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildSimpleUsesList(List<String> uses) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: uses.map((use) {
+          // Clean the HTML content
+          final cleanedUse = _stripHtml(use);
           
-          // Medicinal Uses Section
-          if (subBlock.medicinalUses.isNotEmpty)
-            _buildUsesSection(
-              title: "Medicinal Uses",
-              icon: Icons.local_hospital_outlined,
-              content: subBlock.medicinalUses,
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '• ',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFF3C3C3C),
+                    height: 1.6,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    cleanedUse,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Color(0xFF3C3C3C),
+                      height: 1.6,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          
-          const SizedBox(height: 32),
-          
-          // Skincare Uses Section
-          if (subBlock.skincareUses.isNotEmpty)
-            _buildUsesSection(
-              title: "Skincare Uses",
-              icon: Icons.face_outlined,
-              content: subBlock.skincareUses,
-            ),
-          
-          // Energetic Uses Section (if available)
-          if (subBlock.energeticUses.isNotEmpty) ...[
-            const SizedBox(height: 32),
-            _buildUsesSection(
-              title: "Energetic Uses",
-              icon: Icons.energy_savings_leaf_outlined,
-              content: subBlock.energeticUses,
-            ),
-          ],
-        ],
-      );
-    }
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // Helper method to strip HTML tags and decode entities
+  String _stripHtml(String htmlString) {
+    // Remove HTML tags
+    final RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
+    String stripped = htmlString.replaceAll(exp, '');
     
-    // Fallback to default content if no sub_blocks data
-    return Column(
-      children: [
-        _buildUsesSection(
-          title: "Medicinal Uses",
-          icon: Icons.local_hospital_outlined,
-          content: [
-            'Traditional herbal medicine applications',
-            'Supports natural healing processes',
-            'Rich in beneficial compounds',
-            'Used for wellness and vitality'
+    // Decode HTML entities
+    stripped = stripped
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&ldquo;', '"')
+        .replaceAll('&rdquo;', '"')
+        .replaceAll('&lsquo;', "'")
+        .replaceAll('&rsquo;', "'");
+    
+    // Clean up extra whitespace
+    stripped = stripped.trim().replaceAll(RegExp(r'\s+'), ' ');
+    
+    return stripped;
+  }
+
+  Widget _buildDefaultContent() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: const Center(
+        child: Column(
+          children: [
+            Icon(
+              Icons.spa_outlined,
+              size: 48,
+              color: Color(0xFF8B6B47),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Folk medicine content is being prepared.\nPlease check back later.',
+              style: TextStyle(
+                color: Color(0xFF3C3C3C),
+                fontSize: 15,
+                height: 1.6,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'If you continue to see this message,\nthe content may not be available yet.',
+              style: TextStyle(
+                color: Color(0xFF8B6B47),
+                fontSize: 13,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
-        const SizedBox(height: 32),
-        _buildUsesSection(
-          title: "Skincare Uses",
-          icon: Icons.face_outlined,
-          content: [
-            'Natural skincare applications',
-            'Supports healthy skin appearance',
-            'Traditional beauty treatments',
-            'Nourishing and protective properties'
-          ],
-        ),
-      ],
+      ),
     );
   }
 }

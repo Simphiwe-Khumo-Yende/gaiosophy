@@ -225,40 +225,81 @@ class RecipeScreen extends StatelessWidget {
   }
 
   Widget _buildListContent(BuildContext context, content_model.ContentBlock block) {
-    // Parse the content to extract list items
-    String content = block.data.content ?? '';
-    
-    // Split by common separators and clean up
     List<String> items = [];
     
-    // Try to split by line breaks first
-    List<String> lines = content.split('\n').where((line) => line.trim().isNotEmpty).toList();
-    
-    if (lines.length > 1) {
-      items = lines;
-    } else {
-      // If no line breaks, try splitting by numbers (1., 2., etc.) or other patterns
-      if (content.contains(RegExp(r'\d+\.'))) {
-        items = content.split(RegExp(r'\d+\.')).where((item) => item.trim().isNotEmpty).toList();
+    // Check if we have structured list items first
+    if (block.data.listItems.isNotEmpty) {
+      items = block.data.listItems;
+    } else if (block.data.content != null && block.data.content!.isNotEmpty) {
+      // Fallback to parsing HTML content
+      String content = block.data.content!;
+      
+      // Split by common separators and clean up
+      List<String> lines = content.split('\n').where((line) => line.trim().isNotEmpty).toList();
+      
+      if (lines.length > 1) {
+        items = lines;
       } else {
-        // Fallback: split by periods or other punctuation
-        items = [content];
+        // If no line breaks, try splitting by numbers (1., 2., etc.) or other patterns
+        if (content.contains(RegExp(r'\d+\.'))) {
+          items = content.split(RegExp(r'\d+\.')).where((item) => item.trim().isNotEmpty).toList();
+        } else {
+          // Fallback: split by periods or other punctuation
+          items = [content];
+        }
       }
     }
     
+    // Determine list style
+    final bool isNumbered = block.data.listStyle == 'numbered' || block.data.listStyle == 'number';
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: items
-          .map((item) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Text(
-                  item.trim(),
-                  style: context.secondaryBodyMedium.copyWith(
-                    height: 1.5,
-                    color: const Color(0xFF5A5A5A),
+      children: items.asMap().entries
+          .map((entry) {
+            final int index = entry.key;
+            final String item = entry.value;
+            
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // List marker (bullet or number)
+                  if (isNumbered)
+                    Container(
+                      margin: const EdgeInsets.only(right: 12),
+                      child: Text(
+                        '${index + 1}.',
+                        style: context.secondaryBodyMedium.copyWith(
+                          color: const Color(0xFF5A5A5A),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      margin: const EdgeInsets.only(top: 8, right: 12),
+                      width: 4,
+                      height: 4,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF5A5A5A),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  Expanded(
+                    child: Text(
+                      _cleanText(item.trim()),
+                      style: context.secondaryBodyMedium.copyWith(
+                        height: 1.5,
+                        color: const Color(0xFF5A5A5A),
+                      ),
+                    ),
                   ),
-                ),
-              ))
+                ],
+              ),
+            );
+          })
           .toList(),
     );
   }
@@ -285,12 +326,20 @@ class RecipeScreen extends StatelessWidget {
             color: Colors.black87,
             fontWeight: FontWeight.w500,
           ),
+          "ul": Style(
+            margin: Margins.zero,
+            padding: HtmlPaddings.zero,
+          ),
+          "li": Style(
+            margin: Margins.only(bottom: 4),
+            listStyleType: ListStyleType.disc,
+          ),
         },
       );
     } else {
       // Plain text
       return Text(
-        content,
+        _cleanText(content),
         style: context.secondaryBodyMedium.copyWith(
           height: 1.5,
           color: const Color(0xFF5A5A5A),
@@ -331,5 +380,13 @@ class RecipeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Helper method to clean text from HTML tags and extra formatting
+  String _cleanText(String text) {
+    return text
+        .replaceAll(RegExp(r'<[^>]*>'), '') // Remove HTML tags
+        .replaceAll(RegExp(r'\s+'), ' ') // Replace multiple spaces with single space
+        .trim();
   }
 }

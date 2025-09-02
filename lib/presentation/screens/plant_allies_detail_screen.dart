@@ -7,6 +7,7 @@ import 'plant_overview_screen.dart';
 import 'plant_folklore_screen.dart';
 import 'plant_harvesting_screen.dart';
 import 'folk_medicine_screen.dart';
+import 'magic_rituals_screen.dart';
 
 class PlantAlliesDetailScreen extends ConsumerStatefulWidget {
   final content_model.Content content;
@@ -58,7 +59,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                     colors: [
                       Colors.transparent,
                       Colors.transparent,
-                      Colors.black.withOpacity(0.4),
+                      Colors.black.withValues(alpha: 0.4),
                     ],
                   ),
                 ),
@@ -126,7 +127,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
         border: !isLast
             ? Border(
                 bottom: BorderSide(
-                  color: const Color(0xFF5A4E3C).withOpacity(0.2),
+                  color: const Color(0xFF5A4E3C).withValues(alpha: 0.2),
                   width: 1,
                 ),
               )
@@ -152,7 +153,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
         ),
         trailing: Icon(
           Icons.chevron_right,
-          color: const Color(0xFF5A4E3C).withOpacity(0.6),
+                            color: const Color(0xFF5A4E3C).withValues(alpha: 0.6),
         ),
         onTap: onTap,
       ),
@@ -196,17 +197,32 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
             parentTitle: widget.content.title,
           );
           print('Navigating to PlantOverviewScreen...');
-        } else if (blockType == 'folklore' || 
+        } else if (blockType == 'folklore' ||
                    blockType == 'plant_folklore' ||
-                   blockTitle.contains('folklore') ||
-                   blockTitle.contains('magic') ||
-                   blockTitle.contains('ritual') ||
-                   blockTitle.contains('spell')) {
+                   blockTitle.contains('folklore')) {
           destinationScreen = PlantFolkloreScreen(
             contentBlock: block,
             parentTitle: widget.content.title,
           );
           print('Navigating to PlantFolkloreScreen...');
+        } else if (blockType == 'ritual' ||
+                   blockType == 'magic_ritual' ||
+                   blockTitle.contains('ritual') ||
+                   blockTitle.contains('magic and ritual')) {
+          destinationScreen = MagicRitualsScreen(
+            contentBlock: block,
+            parentTitle: widget.content.title,
+          );
+          print('Navigating to MagicRitualsScreen...');
+        } else if (blockType == 'spell' ||
+                   blockType == 'spell_work' ||
+                   blockTitle.contains('spell')) {
+          // For now, use PlantFolkloreScreen for spell works until a dedicated screen is created
+          destinationScreen = PlantFolkloreScreen(
+            contentBlock: block,
+            parentTitle: widget.content.title,
+          );
+          print('Navigating to PlantFolkloreScreen for spell works...');
         } else if (blockType == 'harvesting' || 
                    blockType == 'plant_harvesting' ||
                    blockType == 'preparation' ||
@@ -247,7 +263,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: const Color(0xFF5A4E3C).withOpacity(0.2),
+            color: const Color(0xFF5A4E3C).withValues(alpha: 0.2),
             width: 1,
           ),
         ),
@@ -272,7 +288,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                     Text(
                       'Tap on plant parts below to explore their medicinal uses',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF5A4E3C).withOpacity(0.7),
+                        color: const Color(0xFF5A4E3C).withValues(alpha: 0.7),
                         height: 1.3,
                       ),
                     ),
@@ -287,7 +303,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -382,7 +398,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -402,7 +418,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                             height: 80,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: const Color(0xFF5A4E3C).withOpacity(0.1),
+                              color: const Color(0xFF5A4E3C).withValues(alpha: 0.1),
                             ),
                             child: Center(
                               child: CircularProgressIndicator(
@@ -422,7 +438,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                             height: 80,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: const Color(0xFF5A4E3C).withOpacity(0.1),
+                              color: const Color(0xFF5A4E3C).withValues(alpha: 0.1),
                             ),
                             child: Icon(
                               _getPlantPartIcon(subBlock.plantPartName),
@@ -436,7 +452,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                   : Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFF5A4E3C).withOpacity(0.1),
+                        color: const Color(0xFF5A4E3C).withValues(alpha: 0.1),
                       ),
                       child: Icon(
                         _getPlantPartIcon(subBlock.plantPartName),

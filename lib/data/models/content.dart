@@ -52,6 +52,8 @@ class ContentBlockData with _$ContentBlockData {
     String? featuredImageId,
     @Default([]) List<String> galleryImageIds,
     @Default([]) List<SubBlock> subBlocks,
+    @Default([]) List<String> listItems,
+    String? listStyle,
   }) = _ContentBlockData;
 
   factory ContentBlockData.fromJson(Map<String, dynamic> json) => _$ContentBlockDataFromJson(json);
@@ -131,7 +133,8 @@ class Content with _$Content {
         if (blocks == null) return <ContentBlock>[];
         return blocks
             .whereType<Map<String, dynamic>>()
-            .map((blockData) => ContentBlock(
+            .map((blockData) {
+              return ContentBlock(
                   id: blockData['id'] as String? ?? '',
                   type: blockData['type'] as String? ?? 'text',
                   order: blockData['order'] as int? ?? 0,
@@ -144,6 +147,11 @@ class Content with _$Content {
                             ?.whereType<String>()
                             .toList() ??
                         const [],
+                    listItems: (blockData['data']?['list_items'] as List?)
+                            ?.whereType<String>()
+                            .toList() ??
+                        const [],
+                    listStyle: blockData['data']?['list_style'] as String?,
                   ),
                   button: () {
                     final buttonData = blockData['data']?['button'] as Map<String, dynamic>?;
@@ -154,7 +162,8 @@ class Content with _$Content {
                       text: buttonData['text'] as String? ?? '',
                     );
                   }(),
-                ))
+                );
+            })
             .toList();
       }(),
       createdAt: parseDate(data['created_at'] ?? data['createdAt']),

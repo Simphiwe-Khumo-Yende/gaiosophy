@@ -86,10 +86,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               color: iconColor,
             ),
             onPressed: () {
-              // TODO: Implement search functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Search coming soon!')),
-              );
+              context.push('/search');
             },
           ),
         ],

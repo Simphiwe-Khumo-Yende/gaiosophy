@@ -14,6 +14,7 @@ import '../screens/notification_settings_screen.dart';
 import '../screens/privacy_settings_screen.dart';
 import '../screens/help_support_screen.dart';
 import '../screens/saved_content_screen.dart';
+import '../screens/search_screen.dart';
 
 final firebaseAuthProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
@@ -68,6 +69,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/splash', builder: (c, s) => const SplashScreen()),
       GoRoute(path: '/', builder: (c, s) => const HomeScreen()),
+      GoRoute(path: '/search', builder: (c, s) => const SearchScreen()),
       GoRoute(path: '/login', builder: (c, s) => const LoginScreen()),
       GoRoute(path: '/register', builder: (c, s) => const RegisterScreen()),
       GoRoute(path: '/profile-setup', builder: (c, s) => const ProfileSetupScreen()),

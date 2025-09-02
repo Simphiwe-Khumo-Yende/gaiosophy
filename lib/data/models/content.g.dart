@@ -86,6 +86,11 @@ _$ContentBlockDataImpl _$$ContentBlockDataImplFromJson(
               ?.map((e) => SubBlock.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      listItems: (json['listItems'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      listStyle: json['listStyle'] as String?,
     );
 
 Map<String, dynamic> _$$ContentBlockDataImplToJson(
@@ -97,6 +102,8 @@ Map<String, dynamic> _$$ContentBlockDataImplToJson(
       'featuredImageId': instance.featuredImageId,
       'galleryImageIds': instance.galleryImageIds,
       'subBlocks': instance.subBlocks,
+      'listItems': instance.listItems,
+      'listStyle': instance.listStyle,
     };
 
 _$ContentImpl _$$ContentImplFromJson(Map<String, dynamic> json) =>
