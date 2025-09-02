@@ -20,7 +20,7 @@ class FirestoreContentRepository {
     String? query,
     DocumentSnapshot<Map<String, dynamic>>? startAfter,
   }) async {
-    Query<Map<String, dynamic>> q = _db.collection(_collection).where('published', isEqualTo: true);
+    Query<Map<String, dynamic>> q = _db.collection(_collection).where('status', isEqualTo: 'Published');
     if (type != null) {
       q = q.where('type', isEqualTo: _typeString(type));
     }

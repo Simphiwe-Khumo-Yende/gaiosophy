@@ -39,7 +39,7 @@ final searchResultsProvider = FutureProvider<List<Content>>((ref) async {
       // For better performance in production, consider using Algolia or similar search service
       final snap = await db
           .collection(collection['name'] as String)
-          .where('status', isEqualTo: 'published')
+          .where('status', isEqualTo: 'Published')
           .orderBy('updated_at', descending: true)
           .limit(100) // Limit to prevent excessive data transfer
           .get();

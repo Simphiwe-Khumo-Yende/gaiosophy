@@ -16,6 +16,7 @@ final _dbProvider = firestoreProvider; // alias
 Future<List<Content>> _fetchFromCollection(FirebaseFirestore db, String collectionName, ContentType type, {int limit = 10}) async {
   final snap = await db
       .collection(collectionName)
+      .where('status', isEqualTo: 'published')  // Only fetch published content
       .orderBy('updated_at', descending: true)
       .limit(limit)
       .get();
