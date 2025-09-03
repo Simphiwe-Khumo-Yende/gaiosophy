@@ -48,8 +48,17 @@ jobs:
         fi
         echo "✅ App Store Connect API secrets are configured"
         
-    - name: Import certificates (if available)
-      if: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}
+    - name: Check if certificates are available
+      id: check_certs
+      run: |
+        if [ -n "${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}" ]; then
+          echo "has_certs=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_certs=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Import certificates
+      if: steps.check_certs.outputs.has_certs == 'true'
       uses: apple-actions/import-codesign-certs@v2
       with:
         p12-file-base64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}
@@ -67,8 +76,8 @@ jobs:
       run: |
         flutter build ios --release --no-codesign
         
-    - name: Build and archive with Xcode (if certificates available)
-      if: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}
+    - name: Build and archive with Xcode
+      if: steps.check_certs.outputs.has_certs == 'true'
       run: |
         xcodebuild -workspace ios/Runner.xcworkspace \
           -scheme Runner \
@@ -77,16 +86,16 @@ jobs:
           -archivePath build/Runner.xcarchive \
           archive
           
-    - name: Export IPA (if certificates available)
-      if: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}
+    - name: Export IPA
+      if: steps.check_certs.outputs.has_certs == 'true'
       run: |
         xcodebuild -exportArchive \
           -archivePath build/Runner.xcarchive \
           -exportPath build \
           -exportOptionsPlist ios/ExportOptions.plist
           
-    - name: Upload to TestFlight (if IPA exists)
-      if: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}
+    - name: Upload to TestFlight
+      if: steps.check_certs.outputs.has_certs == 'true'
       uses: apple-actions/upload-testflight-build@v1
       with:
         app-path: build/Runner.ipa
@@ -95,7 +104,7 @@ jobs:
         api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
         
     - name: Upload build artifacts
-      if: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}
+      if: steps.check_certs.outputs.has_certs == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: ios-build
@@ -105,7 +114,7 @@ jobs:
       run: |
         echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Flutter build completed" >> $GITHUB_STEP_SUMMARY
-        if [ -n "${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}" ]; then
+        if [ "${{ steps.check_certs.outputs.has_certs }}" = "true" ]; then
           echo "- ✅ Code signing configured" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ IPA generated and uploaded to TestFlight" >> $GITHUB_STEP_SUMMARY
         else
