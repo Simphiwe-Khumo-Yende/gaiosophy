@@ -49,7 +49,7 @@ jobs:
         echo "✅ App Store Connect API secrets are configured"
         
     - name: Import certificates (if available)
-      if: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE != '' }}
+      if: secrets.IOS_DISTRIBUTION_CERTIFICATE != ''
       uses: apple-actions/import-codesign-certs@v2
       with:
         p12-file-base64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}
@@ -68,7 +68,7 @@ jobs:
         flutter build ios --release --no-codesign
         
     - name: Build and archive with Xcode (if certificates available)
-      if: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE != '' }}
+      if: secrets.IOS_DISTRIBUTION_CERTIFICATE != ''
       run: |
         xcodebuild -workspace ios/Runner.xcworkspace \
           -scheme Runner \
@@ -78,7 +78,7 @@ jobs:
           archive
           
     - name: Export IPA (if certificates available)
-      if: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE != '' }}
+      if: secrets.IOS_DISTRIBUTION_CERTIFICATE != ''
       run: |
         xcodebuild -exportArchive \
           -archivePath build/Runner.xcarchive \
@@ -86,7 +86,7 @@ jobs:
           -exportOptionsPlist ios/ExportOptions.plist
           
     - name: Upload to TestFlight (if IPA exists)
-      if: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE != '' }}
+      if: secrets.IOS_DISTRIBUTION_CERTIFICATE != ''
       uses: apple-actions/upload-testflight-build@v1
       with:
         app-path: build/Runner.ipa
@@ -95,7 +95,7 @@ jobs:
         api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
         
     - name: Upload build artifacts
-      if: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE != '' }}
+      if: secrets.IOS_DISTRIBUTION_CERTIFICATE != ''
       uses: actions/upload-artifact@v4
       with:
         name: ios-build
