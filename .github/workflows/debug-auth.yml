@@ -63,10 +63,24 @@ jobs:
         echo "Using Issuer ID: ${{ secrets.APPSTORE_ISSUER_ID }}"
         
         # Try a simple API call to test authentication
+        echo "Attempting to list apps..."
         xcrun altool --list-apps \
           --apiKey ${{ secrets.APPSTORE_KEY_ID }} \
           --apiIssuer ${{ secrets.APPSTORE_ISSUER_ID }} \
-          --output-format json || echo "❌ API authentication failed"
+          --output-format json || echo "❌ List apps failed"
+          
+        echo ""
+        echo "Attempting to validate app..."
+        xcrun altool --validate-app \
+          --type ios \
+          --file /dev/null \
+          --apiKey ${{ secrets.APPSTORE_KEY_ID }} \
+          --apiIssuer ${{ secrets.APPSTORE_ISSUER_ID }} \
+          --output-format json 2>&1 || echo "❌ Validate permission test failed"
+          
+        echo ""
+        echo "Checking API key capabilities..."
+        # This will tell us more about what the key can/cannot do
           
     - name: Clean up
       if: always()
