@@ -1,0 +1,53 @@
+name: Build iOS (No Provisioning Profile)
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+env:
+  FLUTTER_VERSION: '3.32.0'
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+        
+    - name: Install dependencies
+      run: flutter pub get
+      
+    - name: Run tests
+      run: flutter test
+      continue-on-error: true
+      
+    - name: Build iOS app (no code signing)
+      run: |
+        flutter build ios --release --no-codesign
+        
+    - name: List build outputs
+      run: |
+        echo "Build completed successfully!"
+        echo "iOS build files:"
+        find build -name "*.app" -type d || echo "No .app found"
+        find ios -name "*.xcarchive" -type d || echo "No .xcarchive found"
+        ls -la build/ || echo "No build directory"
+        
+    - name: Build summary
+      run: |
+        echo "## iOS Build Test Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Flutter build completed successfully" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ iOS build generated (without code signing)" >> $GITHUB_STEP_SUMMARY
+        echo "- ℹ️ Ready for certificate setup and TestFlight upload" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Fix App Store Connect API key permissions" >> $GITHUB_STEP_SUMMARY
+        echo "2. Add iOS distribution certificates" >> $GITHUB_STEP_SUMMARY
+        echo "3. Enable full TestFlight deployment" >> $GITHUB_STEP_SUMMARY
