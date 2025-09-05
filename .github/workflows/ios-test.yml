@@ -63,14 +63,63 @@ jobs:
         echo "📦 Running flutter pub get..."
         flutter pub get
         
-        # Test CocoaPods
+        # Ensure Flutter iOS frameworks are available
+        echo "🔧 Ensuring Flutter iOS frameworks..."
+        flutter precache --ios
+        
+        # Test CocoaPods with proper Flutter setup
         echo "🍫 Testing CocoaPods installation..."
         cd ios
+        
+        # Clean previous pods
         rm -rf Pods/
         rm -f Podfile.lock
-        pod install --verbose
-        cd ..
         
+        # Ensure Flutter generates proper configuration
+        cd ..
+        flutter clean
+        flutter pub get
+        cd ios
+        
+        # Install pods with verbose output
+        pod install --verbose
+        
+        # Verify Flutter framework is properly linked
+        echo "🔍 Verifying Flutter framework integration..."
+        if [ -d "Pods/Target Support Files/Pods-Runner" ]; then
+          echo "✅ CocoaPods target support files created"
+          find Pods/Target\ Support\ Files/Pods-Runner -name "*.xcconfig" | head -3
+          
+          # Check if we need to update xcconfig files
+          if [ -f "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig" ]; then
+            echo "🔧 Ensuring Flutter xcconfig includes CocoaPods..."
+            
+            # Add CocoaPods includes to Flutter xcconfig if not present
+            if ! grep -q "Pods-Runner" ../Flutter/Debug.xcconfig; then
+              echo '#include "../Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"' >> ../Flutter/Debug.xcconfig
+              echo "✅ Added CocoaPods debug config to Flutter Debug.xcconfig"
+            fi
+            
+            if ! grep -q "Pods-Runner" ../Flutter/Release.xcconfig; then
+              echo '#include "../Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"' >> ../Flutter/Release.xcconfig
+              echo "✅ Added CocoaPods release config to Flutter Release.xcconfig"
+            fi
+          fi
+        else
+          echo "❌ CocoaPods target support files missing"
+          exit 1
+        fi
+        
+        # Check for Flutter framework in pods
+        if find Pods -name "*Flutter*" -type d | grep -q Flutter; then
+          echo "✅ Flutter framework found in Pods"
+          find Pods -name "*Flutter*" -type d | head -3
+        else
+          echo "❌ Flutter framework not found in Pods"
+          exit 1
+        fi
+        
+        cd ..
         echo "✅ Phase 2 Complete: Dependencies resolved"
 
     - name: 🔍 Phase 3 - Test Flutter Build
@@ -78,13 +127,43 @@ jobs:
       run: |
         echo "=== TESTING FLUTTER BUILD ==="
         
-        # Clean build
+        # Ensure clean environment
         flutter clean
         flutter pub get
+        
+        # Ensure Flutter iOS precache
+        flutter precache --ios
+        
+        # Ensure CocoaPods are fresh
+        cd ios
+        rm -rf Pods/
+        rm -f Podfile.lock
+        pod install
+        cd ..
+        
+        # Check Flutter framework availability before build
+        echo "🔍 Checking Flutter framework availability..."
+        if [ -d "$FLUTTER_ROOT/bin/cache/artifacts/engine/ios" ]; then
+          echo "✅ Flutter iOS engine artifacts available"
+          ls -la "$FLUTTER_ROOT/bin/cache/artifacts/engine/ios/" | head -5
+        else
+          echo "⚠️ Flutter iOS engine artifacts not found, forcing download..."
+          flutter precache --ios --force
+        fi
         
         # Test Flutter iOS build (no codesigning)
         echo "🏗️ Building iOS app without codesigning..."
         flutter build ios --release --no-codesign --verbose
+        
+        # Verify build outputs
+        echo "🔍 Verifying build outputs..."
+        if [ -d "build/ios/iphoneos/Runner.app" ]; then
+          echo "✅ Runner.app created successfully"
+          ls -la build/ios/iphoneos/Runner.app
+        else
+          echo "❌ Runner.app not found"
+          exit 1
+        fi
         
         echo "✅ Phase 3 Complete: Flutter build successful"
 

@@ -65,63 +65,9 @@ jobs:
         echo "Setting up automatic code signing..."
         echo "Xcode will handle certificate and provisioning profile creation automatically"
         
-    - name: Clean and prepare iOS build
-      run: |
-        # Clean any previous builds
-        flutter clean
-        flutter pub get
-        
-        # Ensure Flutter iOS frameworks are available
-        flutter precache --ios
-        
-        # Clean iOS build artifacts
-        cd ios
-        rm -rf build/
-        rm -rf Pods/
-        rm -f Podfile.lock
-        
-        # Install CocoaPods dependencies with proper Flutter setup
-        pod install
-        cd ..
-        
-        # Verify Flutter framework integration
-        echo "🔍 Verifying Flutter framework availability..."
-        if [ -d "$FLUTTER_ROOT/bin/cache/artifacts/engine/ios" ]; then
-          echo "✅ Flutter iOS engine artifacts available"
-        else
-          echo "⚠️ Forcing Flutter iOS precache..."
-          flutter precache --ios --force
-        fi
-        
-    - name: Verify Flutter integration
-      run: |
-        echo "Checking Flutter iOS integration..."
-        cd ios
-        
-        # Check if Flutter framework is properly linked
-        ls -la Flutter/
-        
-        # Verify Pods integration
-        if [ -d "Pods" ]; then
-          echo "✅ CocoaPods installed successfully"
-          find Pods -name "*Flutter*" -type d | head -5
-        else
-          echo "❌ CocoaPods not found"
-        fi
-        
-        # Check workspace
-        if [ -f "Runner.xcworkspace/contents.xcworkspacedata" ]; then
-          echo "✅ Xcode workspace exists"
-          cat Runner.xcworkspace/contents.xcworkspacedata
-        else
-          echo "❌ Xcode workspace not found"
-        fi
-        cd ..
-        
     - name: Build iOS app
       run: |
-        # Build with verbose output to debug any issues
-        flutter build ios --release --no-codesign --verbose
+        flutter build ios --release --no-codesign
         
     - name: Test API Connection
       run: |
