@@ -1,11 +1,11 @@
-name: Build and Deploy to TestFlight (Cloud Signing)
+name: Build and Deploy to TestFlight (No Local Mac Required)
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch: # Allow manual trigger
 
 env:
   FLUTTER_VERSION: '3.32.0'
@@ -17,236 +17,118 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
+      
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
-        channel: stable
+        channel: 'stable'
         cache: true
-
-    # Cache Pod dependencies (safe cache)
-    - name: Cache CocoaPods
-      uses: actions/cache@v4
-      with:
-        path: ios/Pods
-        key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-pods-
-
-    - name: Clean Flutter build
-      run: |
-        flutter clean
-        flutter pub cache clean
-
+        
     - name: Install dependencies
       run: flutter pub get
-
-    - name: Install CocoaPods (system version)
-      run: |
-        # Use system CocoaPods to avoid Ruby version conflicts
-        sudo gem update --system
-        sudo gem install cocoapods -v 1.14.3
-        cd ios
-        # Clear any problematic cache
-        rm -rf Pods/
-        rm -f Podfile.lock
-        pod install --repo-update
-        cd ..
-
-    - name: Verify CocoaPods integration
-      run: |
-        cd ios
-        echo "Checking CocoaPods configuration files..."
-        ls -la Pods/Target\ Support\ Files/Pods-Runner/ || echo "Pods target support files not found"
-        echo "Verifying Flutter xcconfig files include CocoaPods..."
-        grep -n "Pods-Runner" Flutter/Debug.xcconfig || echo "CocoaPods include missing in Debug.xcconfig"
-        grep -n "Pods-Runner" Flutter/Release.xcconfig || echo "CocoaPods include missing in Release.xcconfig"
-        
-        # Ensure xcconfig files are properly configured for CocoaPods
-        echo "Ensuring CocoaPods xcconfig integration..."
-        if [ -f "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig" ]; then
-          echo "Found Debug CocoaPods config, ensuring integration..."
-          if ! grep -q "Pods-Runner.debug.xcconfig" Flutter/Debug.xcconfig; then
-            echo "Adding CocoaPods debug config include..."
-            echo "" >> Flutter/Debug.xcconfig
-            echo "#include \"../Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig\"" >> Flutter/Debug.xcconfig
-          fi
-        fi
-        
-        if [ -f "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig" ]; then
-          echo "Found Release CocoaPods config, ensuring integration..."
-          if ! grep -q "Pods-Runner.release.xcconfig" Flutter/Release.xcconfig; then
-            echo "Adding CocoaPods release config include..."
-            echo "" >> Flutter/Release.xcconfig
-            echo "#include \"../Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig\"" >> Flutter/Release.xcconfig
-          fi
-        fi
-        
-        echo "Final xcconfig file contents:"
-        echo "=== Debug.xcconfig ==="
-        cat Flutter/Debug.xcconfig
-        echo "=== Release.xcconfig ==="
-        cat Flutter/Release.xcconfig
-        cd ..
-
+      
     - name: Run tests
       run: flutter test
       continue-on-error: true
-
-    - name: Create App Store Connect API Key
-      env:
-        APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-        APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-        APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+      
+    - name: Check for required secrets
       run: |
-        mkdir -p ~/private_keys
-        echo "$APP_STORE_CONNECT_API_KEY_KEY" > ~/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_KEY_ID}.p8
-        chmod 600 ~/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_KEY_ID}.p8
-
-    - name: Create ExportOptions.plist
-      run: |
-        cat > ios/ExportOptions.plist <<EOF
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-          <key>method</key>
-          <string>app-store</string>
-          <key>signingStyle</key>
-          <string>automatic</string>
-          <key>teamID</key>
-          <string>Z9WJ3V7JV3</string>
-          <key>uploadSymbols</key>
-          <true/>
-          <key>provisioningProfiles</key>
-          <dict>
-            <key>com.gaiosophy.app</key>
-            <string>Automatic</string>
-          </dict>
-        </dict>
-        </plist>
-        EOF
-
-    - name: Check Flutter iOS configuration
-      run: |
-        echo "Flutter version and configuration:"
-        flutter --version
-        flutter config --list
-        echo "iOS available devices:"
-        flutter devices --machine | jq '.' || flutter devices
-
-    - name: Build Flutter iOS
-      run: |
-        # Force iOS build for device by setting environment
-        export FLUTTER_BUILD_MODE=release
-        flutter build ios --release --no-codesign --verbose || {
-          echo "⚠️ First build failed, retrying with fresh pods..."
-          flutter clean
-          flutter pub get
-          cd ios
-          rm -rf Pods/
-          rm -f Podfile.lock
-          pod install --repo-update
-          cd ..
-          export FLUTTER_BUILD_MODE=release
-          flutter build ios --release --no-codesign --verbose
-        }
-
-    - name: Install xcpretty
-      run: gem install xcpretty
-
-    - name: Verify iOS build artifacts
-      run: |
-        echo "Checking iOS build outputs..."
-        ls -la ios/build/
-        if [ -d "ios/build/Release-iphoneos" ]; then
-          echo "✅ Found Release-iphoneos build (correct for device)"
-          ls -la ios/build/Release-iphoneos/
-        else
-          echo "❌ Release-iphoneos build not found"
-          echo "Available build folders:"
-          find ios/build -type d -name "*Release*" 2>/dev/null || echo "No Release folders found"
+        if [ -z "${{ secrets.APPSTORE_ISSUER_ID }}" ]; then
+          echo "Missing APPSTORE_ISSUER_ID secret"
+          exit 1
         fi
-
-    - name: Create temporary keychain
+        if [ -z "${{ secrets.APPSTORE_KEY_ID }}" ]; then
+          echo "Missing APPSTORE_KEY_ID secret"
+          exit 1
+        fi
+        if [ -z "${{ secrets.APPSTORE_PRIVATE_KEY }}" ]; then
+          echo "Missing APPSTORE_PRIVATE_KEY secret"
+          exit 1
+        fi
+        echo "✅ App Store Connect API secrets are configured"
+        
+    - name: Create App Store Connect API Key file
       run: |
-        security create-keychain -p "" build.keychain
+        mkdir -p ~/.appstoreconnect/private_keys/
+        echo '${{ secrets.APPSTORE_PRIVATE_KEY }}' > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
+        chmod 600 ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
+        
+    - name: Setup iOS Certificates (Automatic)
+      run: |
+        # Create a temporary keychain
+        security create-keychain -p "temp123" build.keychain
         security default-keychain -s build.keychain
-        security unlock-keychain -p "" build.keychain
-        security set-keychain-settings -lut 7200 build.keychain
-
-    - name: Build and Archive with Cloud Signing
-      env:
-        APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-        APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+        security unlock-keychain -p "temp123" build.keychain
+        security set-keychain-settings -t 3600 -u build.keychain
+        
+        echo "Setting up automatic code signing..."
+        echo "Xcode will handle certificate and provisioning profile creation automatically"
+        
+    - name: Build iOS app
       run: |
-        cd ios
-        xcodebuild clean archive \
-          -workspace Runner.xcworkspace \
+        flutter build ios --release --no-codesign
+        
+    - name: Test API Connection
+      run: |
+        echo "Testing App Store Connect API..."
+        xcrun altool --list-apps \
+          --apiKey ${{ secrets.APPSTORE_KEY_ID }} \
+          --apiIssuer ${{ secrets.APPSTORE_ISSUER_ID }} \
+          --verbose
+          
+    - name: Build and Archive with Automatic Signing
+      run: |
+        echo "Building with automatic code signing..."
+        xcodebuild -workspace ios/Runner.xcworkspace \
           -scheme Runner \
           -configuration Release \
-          -archivePath ../build/Runner.xcarchive \
-          -destination "generic/platform=iOS" \
-          -authenticationKeyPath ~/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_KEY_ID}.p8 \
-          -authenticationKeyID ${APP_STORE_CONNECT_API_KEY_KEY_ID} \
-          -authenticationKeyIssuerID ${APP_STORE_CONNECT_API_KEY_ISSUER_ID} \
-          DEVELOPMENT_TEAM=Z9WJ3V7JV3 \
+          -destination generic/platform=iOS \
+          -archivePath build/Runner.xcarchive \
           -allowProvisioningUpdates \
-          | xcpretty --simple --color
-
-    - name: Export IPA
-      env:
-        APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-        APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          CODE_SIGN_STYLE=Automatic \
+          DEVELOPMENT_TEAM=Z9WJ3V7JV3 \
+          archive
+          
+    - name: Export IPA for App Store
       run: |
         xcodebuild -exportArchive \
           -archivePath build/Runner.xcarchive \
           -exportPath build \
           -exportOptionsPlist ios/ExportOptions.plist \
-          -authenticationKeyPath ~/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_KEY_ID}.p8 \
-          -authenticationKeyID ${APP_STORE_CONNECT_API_KEY_KEY_ID} \
-          -authenticationKeyIssuerID ${APP_STORE_CONNECT_API_KEY_ISSUER_ID} \
           -allowProvisioningUpdates
-
+          
     - name: Upload to TestFlight
-      env:
-        APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-        APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
       run: |
-        echo "📤 Uploading IPA to TestFlight..."
-        xcrun iTMSTransporter -m upload \
-          -assetFile build/Runner.ipa \
-          -apiKey ${APP_STORE_CONNECT_API_KEY_KEY_ID} \
-          -apiIssuer ${APP_STORE_CONNECT_API_KEY_ISSUER_ID} \
-          -v informational
-
+        echo "Uploading to TestFlight..."
+        xcrun altool --upload-app \
+          --type ios \
+          --file build/Runner.ipa \
+          --apiKey ${{ secrets.APPSTORE_KEY_ID }} \
+          --apiIssuer ${{ secrets.APPSTORE_ISSUER_ID }} \
+          --verbose
+          
     - name: Upload build artifacts
-      if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: ios-build-artifacts
-        path: |
-          build/Runner.ipa
-          build/Runner.xcarchive
-
-    - name: Build Summary
-      if: success()
-      run: |
-        echo "## 🎉 Build Successful!" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Build Details:" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Flutter iOS build completed" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Signed with App Store Connect cloud signing" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ IPA uploaded to TestFlight" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
-        echo "1. Check [App Store Connect](https://appstoreconnect.apple.com) for your build" >> $GITHUB_STEP_SUMMARY
-        echo "2. Wait for processing (typically 10–30 minutes)" >> $GITHUB_STEP_SUMMARY
-        echo "3. Once processed, distribute to testers" >> $GITHUB_STEP_SUMMARY
-
+        name: ios-build
+        path: build/Runner.ipa
+        
     - name: Clean up
       if: always()
       run: |
-        rm -rf ~/private_keys
+        rm -f ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
         security delete-keychain build.keychain || true
+        
+    - name: Build Summary
+      run: |
+        echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Flutter build completed" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Used automatic code signing (no local certificates required)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ IPA exported successfully" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Uploaded to TestFlight" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Check TestFlight in App Store Connect for your build" >> $GITHUB_STEP_SUMMARY
+        echo "2. The build will need to be processed by Apple (usually 10-30 minutes)" >> $GITHUB_STEP_SUMMARY
+        echo "3. Once processed, you can distribute to internal testers" >> $GITHUB_STEP_SUMMARY
