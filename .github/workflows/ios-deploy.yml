@@ -94,7 +94,8 @@ jobs:
 
     - name: Build Flutter iOS
       run: |
-        flutter build ios --release --no-codesign --verbose || {
+        # Build specifically for iOS device (not simulator)
+        flutter build ios --release --no-codesign --verbose --device || {
           echo "⚠️ First build failed, retrying with fresh pods..."
           flutter clean
           flutter pub get
@@ -103,11 +104,24 @@ jobs:
           rm -f Podfile.lock
           pod install --repo-update
           cd ..
-          flutter build ios --release --no-codesign --verbose
+          flutter build ios --release --no-codesign --verbose --device
         }
 
     - name: Install xcpretty
       run: gem install xcpretty
+
+    - name: Verify iOS build artifacts
+      run: |
+        echo "Checking iOS build outputs..."
+        ls -la ios/build/
+        if [ -d "ios/build/Release-iphoneos" ]; then
+          echo "✅ Found Release-iphoneos build (correct for device)"
+          ls -la ios/build/Release-iphoneos/
+        else
+          echo "❌ Release-iphoneos build not found"
+          echo "Available build folders:"
+          find ios/build -type d -name "*Release*" 2>/dev/null || echo "No Release folders found"
+        fi
 
     - name: Create temporary keychain
       run: |
