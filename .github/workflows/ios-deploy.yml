@@ -13,47 +13,50 @@ env:
 jobs:
   build-ios:
     runs-on: macos-latest
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
-        channel: 'stable'
+        channel: stable
         cache: true
-        
+
+    # Cache Pod dependencies (safe cache)
     - name: Cache CocoaPods
       uses: actions/cache@v4
       with:
         path: ios/Pods
-        key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock') }}
+        key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
         restore-keys: |
-          ${{ runner.os }}-cocoapods-
-          
-    - name: Clear Flutter and CocoaPods caches
+          ${{ runner.os }}-pods-
+
+    - name: Clean Flutter build
       run: |
         flutter clean
         flutter pub cache clean
-        rm -rf ios/Pods
-        rm -rf ios/Podfile.lock
-        rm -rf ios/.symlinks
-        
+
     - name: Install dependencies
       run: flutter pub get
-      
-    - name: Update CocoaPods
+
+    - name: Install CocoaPods via Gemfile
       run: |
-        sudo gem install cocoapods -v 1.16.2
         cd ios
-        pod repo update
-      
+        if [ ! -f Gemfile ]; then
+          echo 'source "https://rubygems.org"' > Gemfile
+          echo 'gem "cocoapods", "1.16.2"' >> Gemfile
+        fi
+        bundle install
+        bundle exec pod install --repo-update
+        cd ..
+
     - name: Run tests
       run: flutter test
       continue-on-error: true
-      
+
     - name: Create App Store Connect API Key
       env:
         APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
@@ -61,8 +64,9 @@ jobs:
         APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
       run: |
         mkdir -p ~/private_keys
-        echo -n "$APP_STORE_CONNECT_API_KEY_KEY" > ~/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_KEY_ID}.p8
-        
+        echo "$APP_STORE_CONNECT_API_KEY_KEY" > ~/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_KEY_ID}.p8
+        chmod 600 ~/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_KEY_ID}.p8
+
     - name: Create ExportOptions.plist
       run: |
         cat > ios/ExportOptions.plist <<EOF
@@ -70,16 +74,10 @@ jobs:
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
         <dict>
-          <key>destination</key>
-          <string>export</string>
           <key>method</key>
-          <string>app-store-connect</string>
+          <string>app-store</string>
           <key>signingStyle</key>
           <string>automatic</string>
-          <key>generateAppStoreInformation</key>
-          <true/>
-          <key>stripSwiftSymbols</key>
-          <true/>
           <key>teamID</key>
           <string>Z9WJ3V7JV3</string>
           <key>uploadSymbols</key>
@@ -92,43 +90,35 @@ jobs:
         </dict>
         </plist>
         EOF
-        
-    - name: Build Flutter iOS (generates config files)
+
+    - name: Build Flutter iOS
       run: |
-        # Clear iOS-specific caches
-        rm -rf ios/Pods
-        rm -rf ios/Podfile.lock
-        rm -rf ios/.symlinks
-        
-        # Build with verbose output and retry logic
         flutter build ios --release --no-codesign --verbose || {
-          echo "First build attempt failed, clearing caches and retrying..."
+          echo "⚠️ First build failed, retrying with fresh pods..."
           flutter clean
           flutter pub get
           cd ios
-          pod install --repo-update
+          bundle exec pod install --repo-update
           cd ..
           flutter build ios --release --no-codesign --verbose
         }
-        
+
     - name: Install xcpretty
-      run: |
-        gem install xcpretty
-        
+      run: gem install xcpretty
+
     - name: Create temporary keychain
       run: |
         security create-keychain -p "" build.keychain
         security default-keychain -s build.keychain
         security unlock-keychain -p "" build.keychain
         security set-keychain-settings -lut 7200 build.keychain
-        
+
     - name: Build and Archive with Cloud Signing
       env:
         APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
         APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
       run: |
         cd ios
-        
         xcodebuild clean archive \
           -workspace Runner.xcworkspace \
           -scheme Runner \
@@ -141,7 +131,7 @@ jobs:
           DEVELOPMENT_TEAM=Z9WJ3V7JV3 \
           -allowProvisioningUpdates \
           | xcpretty --simple --color
-          
+
     - name: Export IPA
       env:
         APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
@@ -155,20 +145,19 @@ jobs:
           -authenticationKeyID ${APP_STORE_CONNECT_API_KEY_KEY_ID} \
           -authenticationKeyIssuerID ${APP_STORE_CONNECT_API_KEY_ISSUER_ID} \
           -allowProvisioningUpdates
-          
+
     - name: Upload to TestFlight
       env:
         APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
         APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
       run: |
-        echo "Uploading IPA to TestFlight..."
-        xcrun altool --upload-app \
-          --type ios \
-          --file build/Runner.ipa \
-          --apiKey ${APP_STORE_CONNECT_API_KEY_KEY_ID} \
-          --apiIssuer ${APP_STORE_CONNECT_API_KEY_ISSUER_ID} \
-          --verbose
-          
+        echo "📤 Uploading IPA to TestFlight..."
+        xcrun iTMSTransporter -m upload \
+          -assetFile build/Runner.ipa \
+          -apiKey ${APP_STORE_CONNECT_API_KEY_KEY_ID} \
+          -apiIssuer ${APP_STORE_CONNECT_API_KEY_ISSUER_ID} \
+          -v informational
+
     - name: Upload build artifacts
       if: always()
       uses: actions/upload-artifact@v4
@@ -177,7 +166,7 @@ jobs:
         path: |
           build/Runner.ipa
           build/Runner.xcarchive
-          
+
     - name: Build Summary
       if: success()
       run: |
@@ -190,9 +179,9 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
         echo "1. Check [App Store Connect](https://appstoreconnect.apple.com) for your build" >> $GITHUB_STEP_SUMMARY
-        echo "2. Wait for processing (typically 10-30 minutes)" >> $GITHUB_STEP_SUMMARY
+        echo "2. Wait for processing (typically 10–30 minutes)" >> $GITHUB_STEP_SUMMARY
         echo "3. Once processed, distribute to testers" >> $GITHUB_STEP_SUMMARY
-          
+
     - name: Clean up
       if: always()
       run: |
