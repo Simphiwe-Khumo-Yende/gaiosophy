@@ -25,8 +25,30 @@ jobs:
         channel: 'stable'
         cache: true
         
+    - name: Cache CocoaPods
+      uses: actions/cache@v4
+      with:
+        path: ios/Pods
+        key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cocoapods-
+          
+    - name: Clear Flutter and CocoaPods caches
+      run: |
+        flutter clean
+        flutter pub cache clean
+        rm -rf ios/Pods
+        rm -rf ios/Podfile.lock
+        rm -rf ios/.symlinks
+        
     - name: Install dependencies
       run: flutter pub get
+      
+    - name: Update CocoaPods
+      run: |
+        sudo gem install cocoapods -v 1.16.2
+        cd ios
+        pod repo update
       
     - name: Run tests
       run: flutter test
@@ -72,7 +94,26 @@ jobs:
         EOF
         
     - name: Build Flutter iOS (generates config files)
-      run: flutter build ios --release --no-codesign
+      run: |
+        # Clear iOS-specific caches
+        rm -rf ios/Pods
+        rm -rf ios/Podfile.lock
+        rm -rf ios/.symlinks
+        
+        # Build with verbose output and retry logic
+        flutter build ios --release --no-codesign --verbose || {
+          echo "First build attempt failed, clearing caches and retrying..."
+          flutter clean
+          flutter pub get
+          cd ios
+          pod install --repo-update
+          cd ..
+          flutter build ios --release --no-codesign --verbose
+        }
+        
+    - name: Install xcpretty
+      run: |
+        gem install xcpretty
         
     - name: Create temporary keychain
       run: |
