@@ -51,7 +51,7 @@ jobs:
         # Clear any problematic cache
         rm -rf Pods/
         rm -f Podfile.lock
-        pod install --repo-update --deployment
+        pod install --repo-update
         cd ..
 
     - name: Run tests
