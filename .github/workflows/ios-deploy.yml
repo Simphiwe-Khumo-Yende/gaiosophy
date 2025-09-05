@@ -65,9 +65,54 @@ jobs:
         echo "Setting up automatic code signing..."
         echo "Xcode will handle certificate and provisioning profile creation automatically"
         
+    - name: Clean and prepare iOS build
+      run: |
+        # Clean any previous builds
+        flutter clean
+        flutter pub get
+        
+        # Clean iOS build artifacts
+        cd ios
+        rm -rf build/
+        rm -rf Pods/
+        rm -f Podfile.lock
+        
+        # Install CocoaPods dependencies
+        pod install
+        cd ..
+        
+        # Ensure Flutter frameworks are properly linked
+        flutter precache --ios
+        
+    - name: Verify Flutter integration
+      run: |
+        echo "Checking Flutter iOS integration..."
+        cd ios
+        
+        # Check if Flutter framework is properly linked
+        ls -la Flutter/
+        
+        # Verify Pods integration
+        if [ -d "Pods" ]; then
+          echo "✅ CocoaPods installed successfully"
+          find Pods -name "*Flutter*" -type d | head -5
+        else
+          echo "❌ CocoaPods not found"
+        fi
+        
+        # Check workspace
+        if [ -f "Runner.xcworkspace/contents.xcworkspacedata" ]; then
+          echo "✅ Xcode workspace exists"
+          cat Runner.xcworkspace/contents.xcworkspacedata
+        else
+          echo "❌ Xcode workspace not found"
+        fi
+        cd ..
+        
     - name: Build iOS app
       run: |
-        flutter build ios --release --no-codesign
+        # Build with verbose output to debug any issues
+        flutter build ios --release --no-codesign --verbose
         
     - name: Test API Connection
       run: |
