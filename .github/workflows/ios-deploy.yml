@@ -54,6 +54,42 @@ jobs:
         pod install --repo-update
         cd ..
 
+    - name: Verify CocoaPods integration
+      run: |
+        cd ios
+        echo "Checking CocoaPods configuration files..."
+        ls -la Pods/Target\ Support\ Files/Pods-Runner/ || echo "Pods target support files not found"
+        echo "Verifying Flutter xcconfig files include CocoaPods..."
+        grep -n "Pods-Runner" Flutter/Debug.xcconfig || echo "CocoaPods include missing in Debug.xcconfig"
+        grep -n "Pods-Runner" Flutter/Release.xcconfig || echo "CocoaPods include missing in Release.xcconfig"
+        
+        # Ensure xcconfig files are properly configured for CocoaPods
+        echo "Ensuring CocoaPods xcconfig integration..."
+        if [ -f "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig" ]; then
+          echo "Found Debug CocoaPods config, ensuring integration..."
+          if ! grep -q "Pods-Runner.debug.xcconfig" Flutter/Debug.xcconfig; then
+            echo "Adding CocoaPods debug config include..."
+            echo "" >> Flutter/Debug.xcconfig
+            echo "#include \"../Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig\"" >> Flutter/Debug.xcconfig
+          fi
+        fi
+        
+        if [ -f "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig" ]; then
+          echo "Found Release CocoaPods config, ensuring integration..."
+          if ! grep -q "Pods-Runner.release.xcconfig" Flutter/Release.xcconfig; then
+            echo "Adding CocoaPods release config include..."
+            echo "" >> Flutter/Release.xcconfig
+            echo "#include \"../Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig\"" >> Flutter/Release.xcconfig
+          fi
+        fi
+        
+        echo "Final xcconfig file contents:"
+        echo "=== Debug.xcconfig ==="
+        cat Flutter/Debug.xcconfig
+        echo "=== Release.xcconfig ==="
+        cat Flutter/Release.xcconfig
+        cd ..
+
     - name: Run tests
       run: flutter test
       continue-on-error: true
