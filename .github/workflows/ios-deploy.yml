@@ -92,10 +92,19 @@ jobs:
         </plist>
         EOF
 
+    - name: Check Flutter iOS configuration
+      run: |
+        echo "Flutter version and configuration:"
+        flutter --version
+        flutter config --list
+        echo "iOS available devices:"
+        flutter devices --machine | jq '.' || flutter devices
+
     - name: Build Flutter iOS
       run: |
-        # Build specifically for iOS device (not simulator)
-        flutter build ios --release --no-codesign --verbose --device || {
+        # Force iOS build for device by setting environment
+        export FLUTTER_BUILD_MODE=release
+        flutter build ios --release --no-codesign --verbose || {
           echo "⚠️ First build failed, retrying with fresh pods..."
           flutter clean
           flutter pub get
@@ -104,7 +113,8 @@ jobs:
           rm -f Podfile.lock
           pod install --repo-update
           cd ..
-          flutter build ios --release --no-codesign --verbose --device
+          export FLUTTER_BUILD_MODE=release
+          flutter build ios --release --no-codesign --verbose
         }
 
     - name: Install xcpretty
