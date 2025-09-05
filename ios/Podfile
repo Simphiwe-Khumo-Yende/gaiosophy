@@ -41,7 +41,7 @@ target 'Runner' do
 end
 
 post_install do |installer|
-  flutter_additional_ios_build_settings(installer)
+  flutter_post_install(installer) if respond_to?(:flutter_post_install)
   
   # Fix deployment targets and CI/CD issues for all pods
   installer.pods_project.targets.each do |target|
@@ -58,6 +58,10 @@ post_install do |installer|
         config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
         config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'GRPC_BAZEL_BUILD'
       end
+      
+      # Additional Flutter compatibility fixes
+      config.build_settings['SWIFT_VERSION'] = '5.0'
+      config.build_settings['ARCHS[sdk=iphonesimulator*]'] = '$(ARCHS_STANDARD_64_BIT)'
     end
   end
   
