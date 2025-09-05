@@ -1,4 +1,4 @@
-name: Build and Deploy to TestFlight
+name: Build and Deploy to TestFlight (No Local Mac Required)
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
       
     - name: Run tests
       run: flutter test
-      continue-on-error: true # Continue even if tests fail
+      continue-on-error: true
       
     - name: Check for required secrets
       run: |
@@ -54,42 +54,32 @@ jobs:
         echo '${{ secrets.APPSTORE_PRIVATE_KEY }}' > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
         chmod 600 ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
         
-    - name: Check if certificates are available
-      id: check_certs
+    - name: Setup iOS Certificates (Automatic)
       run: |
-        if [ -n "${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}" ]; then
-          echo "has_certs=true" >> $GITHUB_OUTPUT
-        else
-          echo "has_certs=false" >> $GITHUB_OUTPUT
-        fi
+        # Create a temporary keychain
+        security create-keychain -p "temp123" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "temp123" build.keychain
+        security set-keychain-settings -t 3600 -u build.keychain
         
-    - name: Import certificates
-      if: steps.check_certs.outputs.has_certs == 'true'
-      uses: apple-actions/import-codesign-certs@v2
-      with:
-        p12-file-base64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE }}
-        p12-password: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
-        
-    - name: Download provisioning profiles (manual approach)
-      continue-on-error: true
-      run: |
-        # Try to download provisioning profiles using xcrun
-        xcrun sccache --stop-server || true
-        
-        # Alternative: Create a basic provisioning profile setup
-        echo "Setting up provisioning profiles..."
-        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles/
-        
-        # Note: For automatic signing, Xcode will handle provisioning profiles
-        echo "Using automatic code signing - Xcode will manage provisioning profiles"
+        echo "Setting up automatic code signing..."
+        echo "Xcode will handle certificate and provisioning profile creation automatically"
         
     - name: Build iOS app
       run: |
         flutter build ios --release --no-codesign
         
-    - name: Build and archive with Xcode (Automatic Signing)
-      if: steps.check_certs.outputs.has_certs == 'true'
+    - name: Test API Connection
       run: |
+        echo "Testing App Store Connect API..."
+        xcrun altool --list-apps \
+          --apiKey ${{ secrets.APPSTORE_KEY_ID }} \
+          --apiIssuer ${{ secrets.APPSTORE_ISSUER_ID }} \
+          --verbose
+          
+    - name: Build and Archive with Automatic Signing
+      run: |
+        echo "Building with automatic code signing..."
         xcodebuild -workspace ios/Runner.xcworkspace \
           -scheme Runner \
           -configuration Release \
@@ -100,8 +90,7 @@ jobs:
           DEVELOPMENT_TEAM=Z9WJ3V7JV3 \
           archive
           
-    - name: Export IPA
-      if: steps.check_certs.outputs.has_certs == 'true'
+    - name: Export IPA for App Store
       run: |
         xcodebuild -exportArchive \
           -archivePath build/Runner.xcarchive \
@@ -109,9 +98,9 @@ jobs:
           -exportOptionsPlist ios/ExportOptions.plist \
           -allowProvisioningUpdates
           
-    - name: Upload to TestFlight using xcrun altool
-      if: steps.check_certs.outputs.has_certs == 'true'
+    - name: Upload to TestFlight
       run: |
+        echo "Uploading to TestFlight..."
         xcrun altool --upload-app \
           --type ios \
           --file build/Runner.ipa \
@@ -120,25 +109,26 @@ jobs:
           --verbose
           
     - name: Upload build artifacts
-      if: steps.check_certs.outputs.has_certs == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: ios-build
         path: build/Runner.ipa
         
-    - name: Clean up API key
+    - name: Clean up
       if: always()
       run: |
         rm -f ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
+        security delete-keychain build.keychain || true
         
-    - name: Build summary
+    - name: Build Summary
       run: |
         echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Flutter build completed" >> $GITHUB_STEP_SUMMARY
-        if [ "${{ steps.check_certs.outputs.has_certs }}" = "true" ]; then
-          echo "- ✅ Code signing configured" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ IPA generated and uploaded to TestFlight" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "- ⚠️ Code signing not configured (add IOS_DISTRIBUTION_CERTIFICATE secret)" >> $GITHUB_STEP_SUMMARY
-          echo "- ℹ️ Build completed but cannot upload to TestFlight without certificates" >> $GITHUB_STEP_SUMMARY
-        fi
+        echo "- ✅ Used automatic code signing (no local certificates required)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ IPA exported successfully" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Uploaded to TestFlight" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Check TestFlight in App Store Connect for your build" >> $GITHUB_STEP_SUMMARY
+        echo "2. The build will need to be processed by Apple (usually 10-30 minutes)" >> $GITHUB_STEP_SUMMARY
+        echo "3. Once processed, you can distribute to internal testers" >> $GITHUB_STEP_SUMMARY
