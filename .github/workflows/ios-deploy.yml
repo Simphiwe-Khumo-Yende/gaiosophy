@@ -42,15 +42,16 @@ jobs:
     - name: Install dependencies
       run: flutter pub get
 
-    - name: Install CocoaPods via Gemfile
+    - name: Install CocoaPods (system version)
       run: |
+        # Use system CocoaPods to avoid Ruby version conflicts
+        sudo gem update --system
+        sudo gem install cocoapods -v 1.14.3
         cd ios
-        if [ ! -f Gemfile ]; then
-          echo 'source "https://rubygems.org"' > Gemfile
-          echo 'gem "cocoapods", "1.16.2"' >> Gemfile
-        fi
-        bundle install
-        bundle exec pod install --repo-update
+        # Clear any problematic cache
+        rm -rf Pods/
+        rm -f Podfile.lock
+        pod install --repo-update --deployment
         cd ..
 
     - name: Run tests

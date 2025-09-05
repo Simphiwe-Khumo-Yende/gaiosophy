@@ -1,4 +1,10 @@
 source "https://rubygems.org"
 
-gem "cocoapods", "~> 1.15.0"
-gem "activesupport", ">= 6.1.7.3", "< 7.1.0"
+# Ruby compatibility for CI/CD
+ruby ">= 3.0"
+
+# CocoaPods and dependencies with version constraints for stability
+gem "cocoapods", "~> 1.14.0"
+gem "activesupport", "~> 6.1.0"
+gem "concurrent-ruby", "~> 1.1"
+gem "i18n", "~> 1.12"
