@@ -32,38 +32,14 @@ jobs:
       run: flutter test
       continue-on-error: true
       
-    - name: Check for required secrets
-      run: |
-        if [ -z "${{ secrets.APPSTORE_ISSUER_ID }}" ]; then
-          echo "Missing APPSTORE_ISSUER_ID secret"
-          exit 1
-        fi
-        if [ -z "${{ secrets.APPSTORE_KEY_ID }}" ]; then
-          echo "Missing APPSTORE_KEY_ID secret"
-          exit 1
-        fi
-        if [ -z "${{ secrets.APPSTORE_PRIVATE_KEY }}" ]; then
-          echo "Missing APPSTORE_PRIVATE_KEY secret"
-          exit 1
-        fi
-        echo "✅ App Store Connect API secrets are configured"
-        
     - name: Create App Store Connect API Key
       env:
         APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
         APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
         APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
       run: |
-        # Create the private key file
         mkdir -p ~/private_keys
         echo -n "$APP_STORE_CONNECT_API_KEY_KEY" > ~/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_KEY_ID}.p8
-        
-        # Create xcconfig file for API authentication
-        cat > ~/api_key.xcconfig <<EOF
-        APP_STORE_CONNECT_API_KEY_ISSUER_ID = ${APP_STORE_CONNECT_API_KEY_ISSUER_ID}
-        APP_STORE_CONNECT_API_KEY_KEY_ID = ${APP_STORE_CONNECT_API_KEY_KEY_ID}
-        APP_STORE_CONNECT_API_KEY_KEY_FILEPATH = $(pwd)/~/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_KEY_ID}.p8
-        EOF
         
     - name: Create ExportOptions.plist
       run: |
@@ -72,47 +48,47 @@ jobs:
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
         <dict>
+          <key>destination</key>
+          <string>export</string>
           <key>method</key>
           <string>app-store-connect</string>
-          <key>teamID</key>
-          <string>Z9WJ3V7JV3</string>
-          <key>uploadBitcode</key>
-          <false/>
-          <key>compileBitcode</key>
-          <false/>
-          <key>uploadSymbols</key>
-          <true/>
           <key>signingStyle</key>
           <string>automatic</string>
           <key>generateAppStoreInformation</key>
           <true/>
           <key>stripSwiftSymbols</key>
           <true/>
-          <key>manageAppVersionAndBuildNumber</key>
+          <key>teamID</key>
+          <string>Z9WJ3V7JV3</string>
+          <key>uploadSymbols</key>
           <true/>
+          <key>provisioningProfiles</key>
+          <dict>
+            <key>com.gaiosophy.app</key>
+            <string>Automatic</string>
+          </dict>
         </dict>
         </plist>
         EOF
         
-    - name: Build Flutter iOS
+    - name: Build Flutter iOS (generates config files)
       run: flutter build ios --release --no-codesign
-      
+        
+    - name: Create temporary keychain
+      run: |
+        security create-keychain -p "" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "" build.keychain
+        security set-keychain-settings -lut 7200 build.keychain
+        
     - name: Build and Archive with Cloud Signing
       env:
         APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
         APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-        APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
       run: |
         cd ios
         
-        # Create a temporary keychain (required by Xcode)
-        security create-keychain -p "" temporary
-        security default-keychain -s temporary
-        security unlock-keychain -p "" temporary
-        security set-keychain-settings -lut 7200 temporary
-        
-        # Build archive with App Store Connect API authentication
-        xcodebuild archive \
+        xcodebuild clean archive \
           -workspace Runner.xcworkspace \
           -scheme Runner \
           -configuration Release \
@@ -122,7 +98,8 @@ jobs:
           -authenticationKeyID ${APP_STORE_CONNECT_API_KEY_KEY_ID} \
           -authenticationKeyIssuerID ${APP_STORE_CONNECT_API_KEY_ISSUER_ID} \
           DEVELOPMENT_TEAM=Z9WJ3V7JV3 \
-          -allowProvisioningUpdates
+          -allowProvisioningUpdates \
+          | xcpretty --simple --color
           
     - name: Export IPA
       env:
@@ -143,22 +120,40 @@ jobs:
         APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
         APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
       run: |
+        echo "Uploading IPA to TestFlight..."
         xcrun altool --upload-app \
           --type ios \
           --file build/Runner.ipa \
           --apiKey ${APP_STORE_CONNECT_API_KEY_KEY_ID} \
-          --apiIssuer ${APP_STORE_CONNECT_API_KEY_ISSUER_ID}
+          --apiIssuer ${APP_STORE_CONNECT_API_KEY_ISSUER_ID} \
+          --verbose
           
     - name: Upload build artifacts
+      if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: ios-build
+        name: ios-build-artifacts
         path: |
           build/Runner.ipa
           build/Runner.xcarchive
+          
+    - name: Build Summary
+      if: success()
+      run: |
+        echo "## 🎉 Build Successful!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Build Details:" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Flutter iOS build completed" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Signed with App Store Connect cloud signing" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ IPA uploaded to TestFlight" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Check [App Store Connect](https://appstoreconnect.apple.com) for your build" >> $GITHUB_STEP_SUMMARY
+        echo "2. Wait for processing (typically 10-30 minutes)" >> $GITHUB_STEP_SUMMARY
+        echo "3. Once processed, distribute to testers" >> $GITHUB_STEP_SUMMARY
           
     - name: Clean up
       if: always()
       run: |
         rm -rf ~/private_keys
-        security delete-keychain temporary || true
+        security delete-keychain build.keychain || true
