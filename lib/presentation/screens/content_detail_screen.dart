@@ -7,6 +7,8 @@ import '../../data/models/content.dart' as content_model;
 import '../theme/typography.dart';
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
+import '../widgets/rich_content_text.dart';
+import '../widgets/content_icon_mapper.dart';
 import 'audio_player_screen.dart';
 import 'plant_allies_detail_screen.dart';
 import 'recipe_screen.dart';
@@ -21,7 +23,6 @@ class ContentScreen extends ConsumerStatefulWidget {
 
 class _ContentScreenState extends ConsumerState<ContentScreen> {
   late PageController _pageController;
-  int _currentPage = 0;
 
   @override
   void initState() {
@@ -73,8 +74,6 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
   }
 
   Widget _buildErrorView(Object error) {
-    print('Content loading error: $error');
-    
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -98,14 +97,6 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
               'The content you\'re looking for could not be loaded.',
               style: context.secondaryBodyMedium.copyWith(
                 color: const Color(0xFF1A1612).withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Error: $error',
-              style: context.secondaryBodySmall.copyWith(
-                color: Colors.red.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -136,22 +127,6 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
     
     // For seasonal wisdom and other content types, use the original layout
     final blocks = content.contentBlocks;
-    
-    // Debug: Print content info from Firestore
-    print('=== CONTENT DEBUG ===');
-    print('Content ID: ${content.id}');
-    print('Content Type: ${content.type}');
-    print('Title: ${content.title}');
-    print('Summary: ${content.summary}');
-    print('Body length: ${content.body?.length ?? 0}');
-    print('Content blocks count: ${blocks.length}');
-    print('Media count: ${content.media.length}');
-    print('Tags: ${content.tags}');
-    if (blocks.isNotEmpty) {
-      print('First block: ${blocks.first.type} - ${blocks.first.data.title}');
-      print('First block content length: ${blocks.first.data.content?.length ?? 0}');
-    }
-    print('=== END CONTENT DEBUG ===');
     
     if (blocks.isEmpty) {
       return _buildLegacyContentView(content);
@@ -238,7 +213,6 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
     );
   }
 
-  // Content preview text matching Figma design
   Widget _buildContentPreview(content_model.Content content) {
     String? fullText;
     
@@ -278,143 +252,6 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
         ),
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-
-  Widget _buildContentHeader(content_model.Content content) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Content Type Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              _getContentTypeName(content.type),
-              style: context.secondaryLabelSmall.copyWith(
-                color: const Color(0xFF8B6B47),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          
-          // Title
-          Text(
-            content.title,
-            style: context.primaryTitleLarge.copyWith(
-              color: const Color(0xFF1A1612),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          
-          // Summary
-          if (content.summary != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              content.summary!,
-              style: context.secondaryBodyMedium.copyWith(
-                color: const Color(0xFF1A1612).withValues(alpha: 0.8),
-              ),
-            ),
-          ],
-          
-          // Reading Time & Metadata
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Icon(
-                Icons.schedule,
-                size: 16,
-                color: const Color(0xFF8B6B47).withValues(alpha: 0.7),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${_calculateReadingTime(content)} min read',
-                style: context.secondaryLabelSmall.copyWith(
-                  color: const Color(0xFF8B6B47).withValues(alpha: 0.7),
-                ),
-              ),
-              if (content.season != null) ...[
-                const SizedBox(width: 16),
-                Icon(
-                  Icons.spa,
-                  size: 16,
-                  color: const Color(0xFF8B6B47).withValues(alpha: 0.7),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  content.season!,
-                  style: context.secondaryLabelSmall.copyWith(
-                    color: const Color(0xFF8B6B47).withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContentBlock(content_model.ContentBlock block) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Block Header
-          if (block.data.title != null) ...[
-            Text(
-              block.data.title!,
-              style: context.primaryTitleMedium.copyWith(
-                color: const Color(0xFF1A1612),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-          
-          if (block.data.subtitle != null) ...[
-            Text(
-              block.data.subtitle!,
-              style: context.secondaryBodyLarge.copyWith(
-                color: const Color(0xFF1A1612).withValues(alpha: 0.8),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          
-          // Featured Image
-          if (block.data.featuredImageId != null) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: FirebaseStorageImage(
-                imageId: block.data.featuredImageId!,
-                width: double.infinity,
-                height: 200,
-                fit: BoxFit.cover,
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          
-          // Content
-          if (block.data.content != null) _buildHtmlContent(block.data.content!),
-          
-          // Gallery Images
-          if (block.data.galleryImageIds.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _buildGallery(block.data.galleryImageIds),
-          ],
-        ],
       ),
     );
   }
@@ -481,91 +318,133 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
     );
   }
 
-  Widget _buildGallery(List<String> imageIds) {
-    return SizedBox(
-      height: 120,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: imageIds.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: EdgeInsets.only(right: index < imageIds.length - 1 ? 12 : 0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: FirebaseStorageImage(
-                imageId: imageIds[index],
-                width: 120,
-                height: 120,
-                fit: BoxFit.cover,
-              ),
+  // Method to handle content with icon keys - will try rich content first, fallback to HTML
+  Widget _buildContentWithIcons(String content) {
+    // Check if content contains icon keys [key]
+    final RegExp iconRegex = RegExp(r'\[([^\]]+)\]');
+    final hasIcons = iconRegex.hasMatch(content);
+    
+    if (hasIcons) {
+      // If it looks like HTML content (contains tags), we need special handling
+      if (content.contains('<') && content.contains('>')) {
+        return _buildHtmlContentWithIcons(content);
+      } else {
+        // Use rich content text for plain text with icon parsing
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: RichContentText(
+            content,
+            textStyle: context.secondaryFont(
+              fontSize: 16,
+              color: const Color(0xFF1A1612),
+              height: 1.6,
             ),
-          );
-        },
-      ),
+            iconSize: 20,
+            iconColor: const Color(0xFF8B6B47),
+          ),
+        );
+      }
+    } else {
+      // Fallback to HTML rendering
+      return _buildHtmlContent(content);
+    }
+  }
+
+  // Special method to handle HTML content that contains icon keys
+  Widget _buildHtmlContentWithIcons(String htmlContent) {
+    // Preprocess the HTML to replace icon keys with placeholder text that we can style
+    String processedHtml = _replaceIconKeysInHtml(htmlContent);
+    
+    return Html(
+      data: processedHtml,
+      style: {
+        "body": Style(
+          margin: Margins.zero,
+          padding: HtmlPaddings.zero,
+          color: const Color(0xFF1A1612),
+          fontSize: FontSize(16),
+          lineHeight: LineHeight(1.6),
+        ),
+        "p": Style(
+          margin: Margins.only(bottom: 16),
+          color: const Color(0xFF1A1612),
+        ),
+        "ul": Style(
+          margin: Margins.only(bottom: 16),
+        ),
+        "li": Style(
+          margin: Margins.only(bottom: 4),
+        ),
+        ".icon": Style(
+          color: const Color(0xFF8B6B47),
+          fontWeight: FontWeight.bold,
+        ),
+      },
     );
   }
 
-  Widget _buildNavigationControls(int totalPages) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Previous Button
-          IconButton(
-            onPressed: _currentPage > 0
-                ? () {
-                    _pageController.previousPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  }
-                : null,
-            icon: Icon(
-              Icons.arrow_back_ios,
-              color: _currentPage > 0
-                  ? const Color(0xFF8B6B47)
-                  : const Color(0xFF8B6B47).withValues(alpha: 0.3),
-            ),
-          ),
-          
-          // Page Indicators
-          Row(
-            children: List.generate(totalPages, (index) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: index == _currentPage
-                      ? const Color(0xFF8B6B47)
-                      : const Color(0xFF8B6B47).withValues(alpha: 0.3),
-                ),
-              );
-            }),
-          ),
-          
-          // Next Button
-          IconButton(
-            onPressed: _currentPage < totalPages - 1
-                ? () {
-                    _pageController.nextPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  }
-                : null,
-            icon: Icon(
-              Icons.arrow_forward_ios,
-              color: _currentPage < totalPages - 1
-                  ? const Color(0xFF8B6B47)
-                  : const Color(0xFF8B6B47).withValues(alpha: 0.3),
-            ),
-          ),
-        ],
-      ),
-    );
+  // Helper method to replace icon keys with styled spans in HTML
+  String _replaceIconKeysInHtml(String htmlContent) {
+    final RegExp iconRegex = RegExp(r'\[([^\]]+)\]');
+    return htmlContent.replaceAllMapped(iconRegex, (match) {
+      final iconKey = match.group(1)!.toLowerCase();
+      if (ContentIconMapper.hasIcon(iconKey)) {
+        // Replace with a styled span that includes an icon symbol
+        // Using Unicode symbols as a fallback since we can't embed Flutter icons in HTML
+        final iconSymbol = _getIconSymbol(iconKey);
+        return '<span class="icon">$iconSymbol</span>';
+      } else {
+        // Keep original text if icon not found
+        return match.group(0)!;
+      }
+    });
+  }
+
+  // Helper method to get Unicode symbols for icons (fallback for HTML rendering)
+  String _getIconSymbol(String iconKey) {
+    const Map<String, String> iconSymbols = {
+      'mountain': '⛰️',
+      'tree': '🌲',
+      'flower': '🌸',
+      'herb': '🌿',
+      'leaf': '🍃',
+      'sun': '☀️',
+      'morning': '🌅',
+      'evening': '🌆',
+      'night': '🌙',
+      'water': '💧',
+      'tea': '🍵',
+      'healing': '💚',
+      'safe': '✅',
+      'caution': '⚠️',
+      'danger': '⚠️',
+      'toxic': '☠️',
+      'medicine': '💊',
+      'forest': '🌲',
+      'meadow': '🌾',
+      'garden': '🏡',
+      'harvest': '🌾',
+      'fresh': '🌱',
+      'dried': '🍂',
+      'oil': '🫗',
+      'powder': '🥄',
+      'compress': '🩹',
+      'massage': '💆',
+      'scalp': '👤',
+      'hair': '💇',
+      'wash': '🚿',
+      'rinse': '💧',
+      'store': '📦',
+      'fridge': '🧊',
+      'days': '📅',
+      'time': '⏰',
+      'best': '⭐',
+      'results': '✅',
+      'traditional': '📜',
+      'usage': 'ℹ️',
+    };
+    
+    return iconSymbols[iconKey] ?? '🔹';
   }
 
   Widget _buildActionButtons(content_model.Content content) {
@@ -679,47 +558,13 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
                 ],
                 
                 // Body Content
-                if (content.body != null) _buildHtmlContent(content.body!),
+                if (content.body != null) _buildContentWithIcons(content.body!),
               ],
             ),
           ),
         ),
       ],
     );
-  }
-
-  String _getContentTypeName(content_model.ContentType type) {
-    switch (type) {
-      case content_model.ContentType.seasonal:
-        return 'Seasonal';
-      case content_model.ContentType.plant:
-        return 'Plant Guide';
-      case content_model.ContentType.recipe:
-        return 'Recipe';
-    }
-  }
-
-  int _calculateReadingTime(content_model.Content content) {
-    int wordCount = 0;
-    
-    // Count words in content blocks
-    for (final block in content.contentBlocks) {
-      if (block.data.content != null) {
-        // Remove HTML tags and count words
-        final plainText = block.data.content!.replaceAll(RegExp(r'<[^>]*>'), '');
-        wordCount += plainText.split(RegExp(r'\s+')).where((word) => word.isNotEmpty).length;
-      }
-    }
-    
-    // Fallback to body content for legacy content
-    if (wordCount == 0 && content.body != null) {
-      final plainText = content.body!.replaceAll(RegExp(r'<[^>]*>'), '');
-      wordCount = plainText.split(RegExp(r'\s+')).where((word) => word.isNotEmpty).length;
-    }
-    
-    // Average reading speed: 200 words per minute
-    final readingTime = (wordCount / 200).ceil();
-    return readingTime.clamp(1, 999);
   }
 }
 

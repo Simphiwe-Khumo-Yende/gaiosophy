@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/typography.dart';
 import '../../data/services/disclaimer_service.dart';
@@ -299,17 +300,20 @@ By using this app, you acknowledge that you are solely responsible for your heal
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () async {
-                            final service = ref.read(disclaimerServiceProvider);
-                            await service.resetDisclaimerAcceptance();
-                            ref.invalidate(disclaimerAcceptedProvider);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('Disclaimer acceptance reset. App will show disclaimer on next launch.'),
-                                  backgroundColor: const Color(0xFF8B4513),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
+                            final user = FirebaseAuth.instance.currentUser;
+                            if (user != null) {
+                              final service = ref.read(disclaimerServiceProvider);
+                              await service.resetDisclaimerAcceptance(user.uid);
+                              ref.invalidate(disclaimerAcceptedProvider);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('Disclaimer acceptance reset. App will show disclaimer on next launch.'),
+                                    backgroundColor: const Color(0xFF8B4513),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
                             }
                           },
                           style: ElevatedButton.styleFrom(

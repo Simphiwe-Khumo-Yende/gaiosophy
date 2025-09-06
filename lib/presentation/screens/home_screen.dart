@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../application/providers/home_sections_provider.dart';
-import '../routing/app_router.dart';
+import '../../data/services/disclaimer_service.dart';
 import '../widgets/home_hero_header.dart';
 import '../widgets/content_section_horizontal.dart';
 import '../theme/typography.dart';

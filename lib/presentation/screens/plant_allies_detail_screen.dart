@@ -161,27 +161,11 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
   }
   
   Widget _buildContentBlockItem(content_model.ContentBlock block) {
-    // Debug logging for content blocks
-    print('=== CONTENT BLOCK DEBUG ===');
-    print('Block ID: ${block.id}');
-    print('Block Type: ${block.type}');
-    print('Block Title: ${block.data.title}');
-    print('Sub-blocks count: ${block.data.subBlocks.length}');
-    if (block.data.subBlocks.isNotEmpty) {
-      print('Sub-blocks: ${block.data.subBlocks.map((sb) => sb.plantPartName).toList()}');
-    }
-    print('========================');
-    
     // Create simple menu items for all content blocks
     return _buildMenuItem(
       title: block.data.title ?? 'Untitled',
       subtitle: block.data.subtitle ?? '',
       onTap: () {
-        print('=== NAVIGATION DEBUG ===');
-        print('Tapped on content block: ${block.data.title}');
-        print('Parent content ID: ${widget.content.id}');
-        print('Block type: ${block.type}');
-        
         // Route to specialized screens based on content block type or title
         Widget destinationScreen;
         
@@ -354,20 +338,12 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
   }
   
   Widget _buildPlantPartCircle(content_model.SubBlock subBlock, content_model.ContentBlock parentBlock) {
-    print('=== PLANT PART DEBUG ===');
-    print('Plant part: ${subBlock.plantPartName}');
-    print('Image URL: ${subBlock.imageUrl}');
-    print('ID: ${subBlock.id}');
-    print('=====================');
-    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
         children: [
           GestureDetector(
             onTap: () {
-              print('Navigate to folk medicine for plant part: ${subBlock.plantPartName}');
-              
               // Create a modified content block that focuses on this specific plant part
               final focusedBlock = content_model.ContentBlock(
                 id: parentBlock.id,

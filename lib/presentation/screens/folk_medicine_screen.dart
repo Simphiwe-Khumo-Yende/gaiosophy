@@ -114,17 +114,6 @@ class FolkMedicineScreen extends StatelessWidget {
   }
 
   Widget _buildFolkMedicineContent() {
-    // Debug logging
-    print('=== FOLK MEDICINE CONTENT DEBUG ===');
-    print('ContentBlock ID: ${contentBlock.id}');
-    print('ContentBlock Type: ${contentBlock.type}');
-    print('ContentBlock Order: ${contentBlock.order}');
-    print('Has subBlocks: ${contentBlock.data.subBlocks.isNotEmpty}');
-    print('SubBlocks count: ${contentBlock.data.subBlocks.length}');
-    print('Has HTML content: ${contentBlock.data.content != null && contentBlock.data.content!.isNotEmpty}');
-    print('HTML content length: ${contentBlock.data.content?.length ?? 0}');
-    print('=====================================');
-
     // Check if we have sub-blocks (specific plant parts)
     if (contentBlock.data.subBlocks.isNotEmpty) {
       return _buildSubBlocksContent();

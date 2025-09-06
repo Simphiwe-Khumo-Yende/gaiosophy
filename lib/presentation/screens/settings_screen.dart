@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/typography.dart';
 import '../../data/models/user_profile.dart';
+import '../../data/services/disclaimer_service.dart';
 
 final userProfileProvider = StreamProvider<UserProfile?>((ref) {
   final user = FirebaseAuth.instance.currentUser;
@@ -17,11 +18,17 @@ final userProfileProvider = StreamProvider<UserProfile?>((ref) {
       .map((doc) => doc.exists ? UserProfile.fromFirestore(doc) : null);
 });
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+
+  @override
+  Widget build(BuildContext context) {
     final userProfileAsync = ref.watch(userProfileProvider);
     final user = FirebaseAuth.instance.currentUser;
 
@@ -253,6 +260,45 @@ class SettingsScreen extends ConsumerWidget {
                 onTap: () => context.push('/legal'),
               ),
               const Divider(height: 1, color: Color(0xFFE5E5E5)),
+              // Developer options (only in debug mode)
+              if (const bool.fromEnvironment('dart.vm.product') == false) ...[
+                _buildSettingsItem(
+                  context,
+                  icon: Icons.auto_awesome,
+                  title: 'Content Icon Demo',
+                  subtitle: 'Preview icon mapping system',
+                  onTap: () => context.push('/content-icon-demo'),
+                ),
+                const Divider(height: 1, color: Color(0xFFE5E5E5)),
+                _buildSettingsItem(
+                  context,
+                  icon: Icons.refresh,
+                  title: 'Reset Disclaimer',
+                  subtitle: 'Reset disclaimer acceptance for testing',
+                  onTap: () async {
+                    try {
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (user != null) {
+                        final service = ref.read(disclaimerServiceProvider);
+                        await service.resetDisclaimerAcceptance(user.uid);
+                        ref.invalidate(disclaimerAcceptedProvider);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Disclaimer reset successfully')),
+                          );
+                        }
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error resetting disclaimer: $e')),
+                        );
+                      }
+                    }
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFE5E5E5)),
+              ],
               _buildSettingsItem(
                 context,
                 icon: Icons.logout,

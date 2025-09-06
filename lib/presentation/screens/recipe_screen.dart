@@ -3,6 +3,8 @@ import 'package:flutter_html/flutter_html.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
+import '../widgets/rich_content_text.dart';
+import '../widgets/content_icon_mapper.dart';
 import '../theme/typography.dart';
 
 class RecipeScreen extends StatelessWidget {
@@ -307,45 +309,172 @@ class RecipeScreen extends StatelessWidget {
   Widget _buildTextContent(BuildContext context, content_model.ContentBlock block) {
     String content = block.data.content ?? '';
     
-    // If it's HTML content, render as HTML
-    if (content.contains('<') && content.contains('>')) {
-      return Html(
-        data: content,
-        style: {
-          "body": Style(
-            margin: Margins.zero,
-            padding: HtmlPaddings.zero,
-            color: const Color(0xFF5A5A5A),
-            fontSize: FontSize(13),
-            lineHeight: LineHeight(1.5),
+    // Check if content contains icon keys [key]
+    final RegExp iconRegex = RegExp(r'\[([^\]]+)\]');
+    final hasIcons = iconRegex.hasMatch(content);
+    
+    if (hasIcons) {
+      // If it looks like HTML content (contains tags), we need special handling
+      if (content.contains('<') && content.contains('>')) {
+        return _buildHtmlContentWithIcons(content);
+      } else {
+        // Use rich content text for plain text with icon parsing
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: RichContentText(
+            content,
+            textStyle: context.secondaryBodyMedium.copyWith(
+              height: 1.5,
+              color: const Color(0xFF5A5A5A),
+            ),
+            iconSize: 16,
+            iconColor: const Color(0xFF8B6B47),
           ),
-          "p": Style(
-            margin: Margins.only(bottom: 8),
-          ),
-          "h1, h2, h3": Style(
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-          "ul": Style(
-            margin: Margins.zero,
-            padding: HtmlPaddings.zero,
-          ),
-          "li": Style(
-            margin: Margins.only(bottom: 4),
-            listStyleType: ListStyleType.disc,
-          ),
-        },
-      );
+        );
+      }
     } else {
-      // Plain text
-      return Text(
-        _cleanText(content),
-        style: context.secondaryBodyMedium.copyWith(
-          height: 1.5,
-          color: const Color(0xFF5A5A5A),
-        ),
-      );
+      // If it's HTML content, render as HTML
+      if (content.contains('<') && content.contains('>')) {
+        return Html(
+          data: content,
+          style: {
+            "body": Style(
+              margin: Margins.zero,
+              padding: HtmlPaddings.zero,
+              color: const Color(0xFF5A5A5A),
+              fontSize: FontSize(13),
+              lineHeight: LineHeight(1.5),
+            ),
+            "p": Style(
+              margin: Margins.only(bottom: 8),
+            ),
+            "h1, h2, h3": Style(
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
+            "ul": Style(
+              margin: Margins.zero,
+              padding: HtmlPaddings.zero,
+            ),
+            "li": Style(
+              margin: Margins.only(bottom: 4),
+              listStyleType: ListStyleType.disc,
+            ),
+          },
+        );
+      } else {
+        // Plain text
+        return Text(
+          _cleanText(content),
+          style: context.secondaryBodyMedium.copyWith(
+            height: 1.5,
+            color: const Color(0xFF5A5A5A),
+          ),
+        );
+      }
     }
+  }
+
+  // Special method to handle HTML content that contains icon keys
+  Widget _buildHtmlContentWithIcons(String htmlContent) {
+    // Preprocess the HTML to replace icon keys with placeholder text that we can style
+    String processedHtml = _replaceIconKeysInHtml(htmlContent);
+    
+    return Html(
+      data: processedHtml,
+      style: {
+        "body": Style(
+          margin: Margins.zero,
+          padding: HtmlPaddings.zero,
+          color: const Color(0xFF5A5A5A),
+          fontSize: FontSize(13),
+          lineHeight: LineHeight(1.5),
+        ),
+        "p": Style(
+          margin: Margins.only(bottom: 8),
+        ),
+        "h1, h2, h3": Style(
+          color: Colors.black87,
+          fontWeight: FontWeight.w500,
+        ),
+        "ul": Style(
+          margin: Margins.zero,
+          padding: HtmlPaddings.zero,
+        ),
+        "li": Style(
+          margin: Margins.only(bottom: 4),
+          listStyleType: ListStyleType.disc,
+        ),
+        ".icon": Style(
+          color: const Color(0xFF8B6B47),
+          fontWeight: FontWeight.bold,
+        ),
+      },
+    );
+  }
+
+  // Helper method to replace icon keys with styled spans in HTML
+  String _replaceIconKeysInHtml(String htmlContent) {
+    final RegExp iconRegex = RegExp(r'\[([^\]]+)\]');
+    return htmlContent.replaceAllMapped(iconRegex, (match) {
+      final iconKey = match.group(1)!.toLowerCase();
+      if (ContentIconMapper.hasIcon(iconKey)) {
+        // Replace with a styled span that includes an icon symbol
+        // Using Unicode symbols as a fallback since we can't embed Flutter icons in HTML
+        final iconSymbol = _getIconSymbol(iconKey);
+        return '<span class="icon">$iconSymbol</span>';
+      } else {
+        // Keep original text if icon not found
+        return match.group(0)!;
+      }
+    });
+  }
+
+  // Helper method to get Unicode symbols for icons (fallback for HTML rendering)
+  String _getIconSymbol(String iconKey) {
+    const Map<String, String> iconSymbols = {
+      'mountain': '⛰️',
+      'tree': '🌲',
+      'flower': '🌸',
+      'herb': '🌿',
+      'leaf': '🍃',
+      'sun': '☀️',
+      'morning': '🌅',
+      'evening': '🌆',
+      'night': '🌙',
+      'water': '💧',
+      'tea': '🍵',
+      'healing': '💚',
+      'safe': '✅',
+      'caution': '⚠️',
+      'danger': '⚠️',
+      'toxic': '☠️',
+      'medicine': '💊',
+      'forest': '🌲',
+      'meadow': '🌾',
+      'garden': '🏡',
+      'harvest': '🌾',
+      'fresh': '🌱',
+      'dried': '🍂',
+      'oil': '🫗',
+      'powder': '🥄',
+      'compress': '🩹',
+      'massage': '💆',
+      'scalp': '👤',
+      'hair': '💇',
+      'wash': '🚿',
+      'rinse': '💧',
+      'store': '📦',
+      'fridge': '🧊',
+      'days': '📅',
+      'time': '⏰',
+      'best': '⭐',
+      'results': '✅',
+      'traditional': '📜',
+      'usage': 'ℹ️',
+    };
+    
+    return iconSymbols[iconKey] ?? '🔹';
   }
 
   Widget _buildSaveButton(BuildContext context) {

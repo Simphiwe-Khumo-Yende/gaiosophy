@@ -81,14 +81,6 @@ class FirestoreContentRepository {
 
   // Parse content using the same logic as Content.fromFirestore
   Content _parseContentFromData(String docId, Map<String, dynamic> data) {
-    // Debug logging for audio_id
-    print('=== REPOSITORY PARSING DEBUG ===');
-    print('Document ID: $docId');
-    print('Raw data keys: ${data.keys.toList()}');
-    print('audio_id value: ${data['audio_id']}');
-    print('audio_id type: ${data['audio_id'].runtimeType}');
-    print('=== END REPOSITORY DEBUG ===');
-    
     DateTime? parseDate(dynamic v) {
       if (v == null) return null;
       if (v is Timestamp) return v.toDate();
@@ -147,11 +139,6 @@ class FirestoreContentRepository {
                         const [],
                     subBlocks: () {
                       final subBlocksData = blockData['data']?['sub_blocks'] as List?;
-                      print('=== SUB BLOCKS PARSING ===');
-                      print('Block ID: ${blockData['id']}');
-                      print('Block Type: ${blockData['type']}');
-                      print('Sub blocks data: $subBlocksData');
-                      print('========================');
                       if (subBlocksData == null) return <SubBlock>[];
                       return subBlocksData
                           .whereType<Map<String, dynamic>>()

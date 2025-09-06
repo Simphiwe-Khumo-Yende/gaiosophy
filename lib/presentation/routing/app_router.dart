@@ -17,11 +17,8 @@ import '../screens/saved_content_screen.dart';
 import '../screens/search_screen.dart';
 import '../screens/disclaimer_screen.dart';
 import '../screens/legal_screen.dart';
+import '../screens/content_icon_demo_screen.dart';
 import '../../data/services/disclaimer_service.dart';
-
-final firebaseAuthProvider = StreamProvider<User?>((ref) {
-  return FirebaseAuth.instance.authStateChanges();
-});
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(firebaseAuthProvider);
@@ -49,17 +46,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return null;
       }
       
-      // If disclaimer not accepted and not on disclaimer page, go to disclaimer
-      if (!hasAcceptedDisclaimer && !onDisclaimer) {
-        return '/disclaimer';
-      }
-      
-      // If not authenticated, go to login
-      if (!loggedIn && !loggingIn && !registering && !onDisclaimer) {
+      // If not authenticated, go to login (but not if already on login/register)
+      if (!loggedIn && !loggingIn && !registering) {
         return '/login';
       }
       
-      // If logged in, check profile completion
+      // If logged in, check profile completion first
       if (loggedIn && !onProfileSetup && !loggingIn && !registering && !onDisclaimer) {
         try {
           final userDoc = await FirebaseFirestore.instance
@@ -74,6 +66,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         } catch (e) {
           // If error checking profile, allow through
         }
+      }
+      
+      // After profile is complete, check disclaimer acceptance for authenticated users
+      if (loggedIn && !hasAcceptedDisclaimer && !onDisclaimer && !onProfileSetup && !loggingIn && !registering) {
+        return '/disclaimer';
       }
       
       // If logged in and on auth pages, go to home
@@ -98,6 +95,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/help-support', builder: (c, s) => const HelpSupportScreen()),
       GoRoute(path: '/saved-content', builder: (c, s) => const SavedContentScreen()),
       GoRoute(path: '/legal', builder: (c, s) => const LegalScreen()),
+      GoRoute(path: '/content-icon-demo', builder: (c, s) => const ContentIconDemoScreen()),
       GoRoute(
         path: '/content/:id',
         builder: (c, s) => ContentScreen(contentId: s.pathParameters['id']!),
@@ -105,5 +103,3 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-
-// Removed custom refresh stream (using ValueNotifier instead).

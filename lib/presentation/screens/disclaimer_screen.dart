@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/typography.dart';
 import '../../data/services/disclaimer_service.dart';
@@ -34,8 +35,13 @@ By using this app, you acknowledge that you are solely responsible for your heal
     });
 
     try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+      
       final service = ref.read(disclaimerServiceProvider);
-      await service.acceptDisclaimer();
+      await service.acceptDisclaimer(user.uid);
       
       if (mounted) {
         // Refresh the disclaimer accepted provider
