@@ -1,4 +1,4 @@
-name: Build and Deploy to TestFlight (Final Version)
+name: Build and Deploy to TestFlight (Definitive Version)
 
 on:
   push:
@@ -7,17 +7,17 @@ on:
 
 env:
   FLUTTER_VERSION: '3.32.0'
-  XCODE_WORKSPACE: 'ios/Runner.xcworkspace'
-  XCODE_SCHEME: 'Runner'
 
 jobs:
   build-and-deploy-ios:
-    # Use a stable runner environment
     runs-on: macos-13
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Select stable Xcode version (15.2)
+      run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
 
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
@@ -36,16 +36,20 @@ jobs:
         echo "version_name=${version_name}" >> $GITHUB_OUTPUT
         echo "build_number=${build_number}" >> $GITHUB_OUTPUT
 
-    # --- Secure Configuration Setup ---
-    - name: Decode and Create GoogleService-Info.plist
-      run: |
-        echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > "${{ github.workspace }}/ios/Runner/GoogleService-Info.plist"
-        echo "✅ GoogleService-Info.plist created."
+    # --- Secure Configuration & Authentication ---
+    - name: Decode GoogleService-Info.plist
+      run: echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > "${{ github.workspace }}/ios/Runner/GoogleService-Info.plist"
 
     - name: Create App Store Connect API Key file
       run: |
         mkdir -p ~/.appstoreconnect/private_keys/
         echo '${{ secrets.APPSTORE_PRIVATE_KEY }}' > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
+
+    - name: Verify App Store Connect API Authentication
+      run: |
+        echo "Attempting to authenticate with App Store Connect..."
+        xcrun altool --list-providers -u "irrelevant@example.com" -p "@key:${{ secrets.APPSTORE_KEY_ID }}" --verbose
+        echo "✅ App Store Connect API key is valid and has permissions."
 
     # --- Build Preparation ---
     - name: Clean, Get Dependencies, and Install Pods
@@ -56,8 +60,12 @@ jobs:
         pod install --repo-update
         cd ..
 
-    - name: Run tests
-      run: flutter test
+    - name: Create custom keychain
+      run: |
+        security create-keychain -p "github_actions_keychain" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "github_actions_keychain" build.keychain
+        security set-keychain-settings -t 3600
 
     - name: Create ExportOptions.plist
       run: |
@@ -78,47 +86,25 @@ jobs:
         </plist>
         EOF
 
-    # --- Build, Archive, and Upload ---
-    - name: Build and Archive
+    # --- Build and Upload ---
+    - name: Build and Sign IPA
       run: |
-        xcodebuild -workspace ${{ env.XCODE_WORKSPACE }} \
-          -scheme ${{ env.XCODE_SCHEME }} \
-          -configuration Release \
-          -destination 'generic/platform=iOS' \
-          -archivePath "$GITHUB_WORKSPACE/build/Runner.xcarchive" \
-          -allowProvisioningUpdates \
-          FLUTTER_BUILD_NAME=${{ steps.get_version.outputs.version_name }} \
-          FLUTTER_BUILD_NUMBER=${{ steps.get_version.outputs.build_number }} \
-          DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
-          CODE_SIGN_STYLE=Automatic \
-          archive
-
-    - name: Export IPA
-      run: |
-        xcodebuild -exportArchive \
-          -archivePath "$GITHUB_WORKSPACE/build/Runner.xcarchive" \
-          -exportPath "$GITHUB_WORKSPACE/build/ios/ipa" \
-          -exportOptionsPlist ios/ExportOptions.plist
+        flutter build ipa --release \
+          --build-name=${{ steps.get_version.outputs.version_name }} \
+          --build-number=${{ steps.get_version.outputs.build_number }} \
+          --export-options-plist=ios/ExportOptions.plist
 
     - name: Upload to TestFlight
       run: |
         xcrun altool --upload-app \
           --type ios \
-          --file "$GITHUB_WORKSPACE/build/ios/ipa/Runner.ipa" \
+          --file "build/ios/ipa/*.ipa" \
           --apiKey ${{ secrets.APPSTORE_KEY_ID }} \
           --apiIssuer ${{ secrets.APPSTORE_ISSUER_ID }} \
           --verbose
-
-    # --- Post-Build Steps ---
-    - name: Upload IPA Artifact for Records
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: runner-ipa
-        path: "$GITHUB_WORKSPACE/build/ios/ipa/Runner.ipa"
-        retention-days: 7
-
-    - name: Clean up API key
+          
+    - name: Clean up keychain and API key
       if: always()
       run: |
+        security delete-keychain build.keychain || true
         rm -f ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
