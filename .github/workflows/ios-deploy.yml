@@ -47,8 +47,13 @@ jobs:
 
     - name: Verify App Store Connect API Authentication
       run: |
+        echo "--- VERIFYING SECRETS ---"
+        echo "Using Key ID: ${{ secrets.APPSTORE_KEY_ID }}"
+        echo "Using Issuer ID: ${{ secrets.APPSTORE_ISSUER_ID }}"
+        echo "--------------------------"
         echo "Attempting to authenticate with App Store Connect..."
-        xcrun altool --list-providers -u "irrelevant@example.com" -p "@key:${{ secrets.APPSTORE_KEY_ID }}" --verbose
+        # Use a command that directly tests the API key, key ID, and issuer ID.
+        xcrun altool --list-apps --apiKey ${{ secrets.APPSTORE_KEY_ID }} --apiIssuer ${{ secrets.APPSTORE_ISSUER_ID }} --verbose
         echo "✅ App Store Connect API key is valid and has permissions."
 
     # --- Build Preparation ---
