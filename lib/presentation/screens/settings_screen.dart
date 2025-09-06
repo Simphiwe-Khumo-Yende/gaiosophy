@@ -43,7 +43,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,6 +243,14 @@ class SettingsScreen extends ConsumerWidget {
                 title: 'Help & Support',
                 subtitle: 'Get help and contact support',
                 onTap: () => context.push('/help-support'),
+              ),
+              const Divider(height: 1, color: Color(0xFFE5E5E5)),
+              _buildSettingsItem(
+                context,
+                icon: Icons.gavel,
+                title: 'Legal & Disclaimer',
+                subtitle: 'View important legal information',
+                onTap: () => context.push('/legal'),
               ),
               const Divider(height: 1, color: Color(0xFFE5E5E5)),
               _buildSettingsItem(

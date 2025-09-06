@@ -16,11 +16,12 @@ class AuthService {
       final googleProvider = GoogleAuthProvider();
       return _auth.signInWithPopup(googleProvider);
     }
-    final googleUser = await GoogleSignIn().signIn();
+    final GoogleSignIn googleSignIn = GoogleSignIn();
+    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
     if (googleUser == null) {
       throw Exception('Sign in aborted');
     }
-    final googleAuth = await googleUser.authentication;
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
     final credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
       accessToken: googleAuth.accessToken,
@@ -32,7 +33,8 @@ class AuthService {
     await _auth.signOut();
     if (!kIsWeb) {
       try {
-        await GoogleSignIn().signOut();
+        final GoogleSignIn googleSignIn = GoogleSignIn();
+        await googleSignIn.signOut();
       } catch (_) {}
     }
   }

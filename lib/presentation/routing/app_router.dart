@@ -15,6 +15,9 @@ import '../screens/privacy_settings_screen.dart';
 import '../screens/help_support_screen.dart';
 import '../screens/saved_content_screen.dart';
 import '../screens/search_screen.dart';
+import '../screens/disclaimer_screen.dart';
+import '../screens/legal_screen.dart';
+import '../../data/services/disclaimer_service.dart';
 
 final firebaseAuthProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
@@ -22,28 +25,42 @@ final firebaseAuthProvider = StreamProvider<User?>((ref) {
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(firebaseAuthProvider);
+  final disclaimerAccepted = ref.watch(disclaimerAcceptedProvider);
   
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) async {
       // Show loading during auth state determination
-      if (authState.isLoading) {
+      if (authState.isLoading || disclaimerAccepted.isLoading) {
         return '/splash';
       }
       
       final user = authState.value;
       final loggedIn = user != null;
+      final hasAcceptedDisclaimer = disclaimerAccepted.value ?? false;
       final loggingIn = state.matchedLocation == '/login';
       final registering = state.matchedLocation == '/register';
       final onProfileSetup = state.matchedLocation == '/profile-setup';
+      final onDisclaimer = state.matchedLocation == '/disclaimer';
+      final onLegal = state.matchedLocation == '/legal';
+      
+      // Always allow access to legal page
+      if (onLegal) {
+        return null;
+      }
+      
+      // If disclaimer not accepted and not on disclaimer page, go to disclaimer
+      if (!hasAcceptedDisclaimer && !onDisclaimer) {
+        return '/disclaimer';
+      }
       
       // If not authenticated, go to login
-      if (!loggedIn && !loggingIn && !registering) {
+      if (!loggedIn && !loggingIn && !registering && !onDisclaimer) {
         return '/login';
       }
       
       // If logged in, check profile completion
-      if (loggedIn && !onProfileSetup && !loggingIn && !registering) {
+      if (loggedIn && !onProfileSetup && !loggingIn && !registering && !onDisclaimer) {
         try {
           final userDoc = await FirebaseFirestore.instance
               .collection('users')
@@ -68,6 +85,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/splash', builder: (c, s) => const SplashScreen()),
+      GoRoute(path: '/disclaimer', builder: (c, s) => const DisclaimerScreen()),
       GoRoute(path: '/', builder: (c, s) => const HomeScreen()),
       GoRoute(path: '/search', builder: (c, s) => const SearchScreen()),
       GoRoute(path: '/login', builder: (c, s) => const LoginScreen()),
@@ -79,6 +97,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/privacy-settings', builder: (c, s) => const PrivacySettingsScreen()),
       GoRoute(path: '/help-support', builder: (c, s) => const HelpSupportScreen()),
       GoRoute(path: '/saved-content', builder: (c, s) => const SavedContentScreen()),
+      GoRoute(path: '/legal', builder: (c, s) => const LegalScreen()),
       GoRoute(
         path: '/content/:id',
         builder: (c, s) => ContentScreen(contentId: s.pathParameters['id']!),
