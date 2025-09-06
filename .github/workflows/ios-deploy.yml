@@ -1,4 +1,4 @@
-name: Build and Deploy to TestFlight (Production Ready)
+name: Build and Deploy to TestFlight (Final Version)
 
 on:
   push:
@@ -12,7 +12,8 @@ env:
 
 jobs:
   build-and-deploy-ios:
-    runs-on: macos-latest
+    # Use a stable runner environment instead of the latest beta
+    runs-on: macos-13
 
     steps:
     - name: Checkout repository
@@ -44,7 +45,6 @@ jobs:
     # --- Secure Configuration Setup ---
     - name: Decode and Create GoogleService-Info.plist
       run: |
-        echo "Creating GoogleService-Info.plist..."
         echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > "${{ github.workspace }}/ios/Runner/GoogleService-Info.plist"
         echo "✅ GoogleService-Info.plist created."
 
@@ -54,16 +54,11 @@ jobs:
         echo '${{ secrets.APPSTORE_PRIVATE_KEY }}' > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
 
     # --- Build Preparation ---
-    - name: Setup CocoaPods Cache
-      uses: actions/cache@v4
-      with:
-        path: ./ios/Pods
-        key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-pods-
-
-    - name: Install iOS Dependencies
+    - name: Clean and Install iOS Dependencies
       run: |
+        flutter clean
+        rm -rf ios/Pods
+        rm -f ios/Podfile.lock
         cd ios
         pod install --repo-update
         cd ..
@@ -81,8 +76,6 @@ jobs:
             <string>${{ secrets.APPLE_TEAM_ID }}</string>
             <key>uploadSymbols</key>
             <true/>
-            <key>uploadBitcode</key>
-            <false/>
             <key>signingStyle</key>
             <string>automatic</string>
         </dict>
@@ -114,10 +107,11 @@ jobs:
     - name: Upload to TestFlight
       run: |
         xcrun altool --upload-app \
-          -t ios \
-          -f "$GITHUB_WORKSPACE/build/ios/ipa/Runner.ipa" \
-          -k ${{ secrets.APPSTORE_KEY_ID }} \
-          -i ${{ secrets.APPSTORE_ISSUER_ID }}
+          --type ios \
+          --file "$GITHUB_WORKSPACE/build/ios/ipa/Runner.ipa" \
+          --apiKey ${{ secrets.APPSTORE_KEY_ID }} \
+          --apiIssuer ${{ secrets.APPSTORE_ISSUER_ID }} \
+          --verbose
 
     # --- Post-Build Steps ---
     - name: Upload IPA Artifact for Records
