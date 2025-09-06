@@ -28,18 +28,12 @@ jobs:
     - name: Get App Version from pubspec.yaml
       id: get_version
       run: |
-        # Read the version line from pubspec.yaml and trim whitespace
         version_line=$(grep 'version:' pubspec.yaml | xargs)
-        # Extract the full version string (e.g., "1.0.0+1") by removing "version: "
         full_version=${version_line#*version: }
-        # Separate the version name and build number
         version_name=${full_version%+*}
         build_number=${full_version#*+}
-        # Set the outputs for subsequent steps
         echo "version_name=${version_name}" >> $GITHUB_OUTPUT
         echo "build_number=${build_number}" >> $GITHUB_OUTPUT
-        echo "✅ Parsed Version: ${version_name}"
-        echo "✅ Parsed Build Number: ${build_number}"
 
     - name: Install Flutter dependencies
       run: flutter pub get
@@ -47,22 +41,19 @@ jobs:
     - name: Run tests
       run: flutter test
 
-    - name: Check for required secrets
+    # --- Secure Configuration Setup ---
+    - name: Decode and Create GoogleService-Info.plist
       run: |
-        if [ -z "${{ secrets.APPSTORE_ISSUER_ID }}" ] || \
-           [ -z "${{ secrets.APPSTORE_KEY_ID }}" ] || \
-           [ -z "${{ secrets.APPSTORE_PRIVATE_KEY }}" ] || \
-           [ -z "${{ secrets.APPLE_TEAM_ID }}" ]; then
-          echo "Error: One or more required secrets (APPSTORE_*, APPLE_TEAM_ID) are not set."
-          exit 1
-        fi
-        echo "✅ All required secrets are configured."
+        echo "Creating GoogleService-Info.plist..."
+        echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > "${{ github.workspace }}/ios/Runner/GoogleService-Info.plist"
+        echo "✅ GoogleService-Info.plist created."
 
     - name: Create App Store Connect API Key file
       run: |
         mkdir -p ~/.appstoreconnect/private_keys/
         echo '${{ secrets.APPSTORE_PRIVATE_KEY }}' > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
 
+    # --- Build Preparation ---
     - name: Setup CocoaPods Cache
       uses: actions/cache@v4
       with:
@@ -98,6 +89,7 @@ jobs:
         </plist>
         EOF
 
+    # --- Build, Archive, and Upload ---
     - name: Build and Archive
       run: |
         xcodebuild -workspace ${{ env.XCODE_WORKSPACE }} \
@@ -110,7 +102,7 @@ jobs:
           FLUTTER_BUILD_NUMBER=${{ steps.get_version.outputs.build_number }} \
           DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
           CODE_SIGN_STYLE=Automatic \
-          archive
+          archive | xcpretty
 
     - name: Export IPA
       run: |
@@ -122,12 +114,12 @@ jobs:
     - name: Upload to TestFlight
       run: |
         xcrun altool --upload-app \
-          --type ios \
-          --file "$GITHUB_WORKSPACE/build/ios/ipa/Runner.ipa" \
-          --apiKey ${{ secrets.APPSTORE_KEY_ID }} \
-          --apiIssuer ${{ secrets.APPSTORE_ISSUER_ID }} \
-          --verbose
+          -t ios \
+          -f "$GITHUB_WORKSPACE/build/ios/ipa/Runner.ipa" \
+          -k ${{ secrets.APPSTORE_KEY_ID }} \
+          -i ${{ secrets.APPSTORE_ISSUER_ID }}
 
+    # --- Post-Build Steps ---
     - name: Upload IPA Artifact for Records
       if: always()
       uses: actions/upload-artifact@v4
