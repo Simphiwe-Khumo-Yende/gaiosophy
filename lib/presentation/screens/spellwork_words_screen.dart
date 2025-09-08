@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import '../../data/models/content.dart' as content_model;
+import '../widgets/content_box_parser.dart';
 
 class SpellworkWordsScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -91,18 +91,7 @@ class SpellworkWordsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: Html(
-                          data: contentBlock.data.content,
-                          style: {
-                            "body": Style(
-                              color: const Color(0xFF5A4E3C),
-                              fontSize: FontSize(16),
-                              lineHeight: const LineHeight(1.8),
-                              margin: Margins.zero,
-                              padding: HtmlPaddings.zero,
-                            ),
-                          },
-                        ),
+                        child: _buildContentWithIconsAndBoxes(contentBlock.data.content ?? ''),
                       ),
                     
                     const SizedBox(height: 24),
@@ -266,6 +255,17 @@ class SpellworkWordsScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildContentWithIconsAndBoxes(String content) {
+    return BoxedContentText(
+      content,
+      textStyle: const TextStyle(
+        color: Color(0xFF5A4E3C),
+        fontSize: 16,
+        height: 1.8,
       ),
     );
   }

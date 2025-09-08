@@ -220,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Handle forgot password
+                        context.push('/forgot-password');
                       },
                       child: Text(
                         'Forgot Password?',

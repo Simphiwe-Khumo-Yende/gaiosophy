@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:math';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
+import '../widgets/enhanced_html_renderer.dart';
 
 class FolkMedicineScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -30,9 +30,9 @@ class FolkMedicineScreen extends StatelessWidget {
     print('=====================================');
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F0E8),
+      backgroundColor: const Color(0xFFFCF9F2),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F0E8),
+        backgroundColor: const Color(0xFFFCF9F2),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3C3C3C)),
@@ -127,126 +127,20 @@ class FolkMedicineScreen extends StatelessWidget {
       return _buildDefaultContent();
     }
 
-    print('Rendering HTML content');
+    print('Rendering HTML content with icon and box support');
+    
+    // Use enhanced HTML renderer for all content
     return Container(
-      constraints: const BoxConstraints(minHeight: 200), // Ensure minimum height
-      child: Html(
-        data: htmlContent,
-        style: {
-          "body": Style(
-            fontSize: FontSize(15),
-            color: const Color(0xFF3C3C3C),
-            lineHeight: LineHeight(1.6),
-            margin: Margins.zero,
-            padding: HtmlPaddings.zero,
-          ),
-          "p": Style(
-            fontSize: FontSize(15),
-            color: const Color(0xFF3C3C3C),
-            lineHeight: LineHeight(1.6),
-            margin: Margins.only(bottom: 16),
-          ),
-          "h1": Style(
-            fontSize: FontSize(18),
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF3C3C3C),
-            margin: Margins.only(bottom: 16, top: 24),
-          ),
-          "h2": Style(
-            fontSize: FontSize(16),
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF3C3C3C),
-            margin: Margins.only(bottom: 12, top: 24),
-          ),
-          "h3": Style(
-            fontSize: FontSize(15),
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF3C3C3C),
-            margin: Margins.only(bottom: 12, top: 20),
-          ),
-          "ul": Style(
-            margin: Margins.only(left: 20, bottom: 16),
-            padding: HtmlPaddings.zero,
-          ),
-          "ol": Style(
-            margin: Margins.only(left: 20, bottom: 16),
-            padding: HtmlPaddings.zero,
-          ),
-          "li": Style(
-            fontSize: FontSize(15),
-            color: const Color(0xFF3C3C3C),
-            lineHeight: LineHeight(1.6),
-            margin: Margins.only(bottom: 8),
-          ),
-          "strong": Style(
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF3C3C3C),
-          ),
-          "b": Style(
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF3C3C3C),
-          ),
-          "em": Style(
-            fontStyle: FontStyle.italic,
-            color: const Color(0xFF3C3C3C),
-          ),
-          "i": Style(
-            fontStyle: FontStyle.italic,
-            color: const Color(0xFF3C3C3C),
-          ),
-        },
-        onLinkTap: (url, _, __) {
-          // Handle link taps if needed
-          print('Link tapped: $url');
-        },
-        extensions: [
-          TagExtension(
-            tagsToExtend: {"li"},
-            builder: (extensionContext) {
-              final element = extensionContext.element;
-              if (element == null) return const SizedBox.shrink();
-
-              // Simple list item rendering without complex icons for now
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '• ',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Color(0xFF3C3C3C),
-                        height: 1.6,
-                      ),
-                    ),
-                    Expanded(
-                      child: Html(
-                        data: element.innerHtml,
-                        style: {
-                          "body": Style(
-                            fontSize: FontSize(15),
-                            color: const Color(0xFF3C3C3C),
-                            lineHeight: LineHeight(1.6),
-                            margin: Margins.zero,
-                            padding: HtmlPaddings.zero,
-                          ),
-                          "p": Style(
-                            fontSize: FontSize(15),
-                            color: const Color(0xFF3C3C3C),
-                            lineHeight: LineHeight(1.6),
-                            margin: Margins.zero,
-                            padding: HtmlPaddings.zero,
-                          ),
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
+      constraints: const BoxConstraints(minHeight: 200),
+      child: EnhancedHtmlRenderer(
+        content: htmlContent,
+        textStyle: const TextStyle(
+          fontSize: 15,
+          color: Color(0xFF3C3C3C),
+          height: 1.6,
+        ),
+        iconSize: 18,
+        iconColor: const Color(0xFF8B6B47),
       ),
     );
   }

@@ -1,12 +1,12 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../screens/splash_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/content_detail_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
+import '../screens/forgot_password_screen.dart';
 import '../screens/profile_setup_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/profile_edit_screen.dart';
@@ -37,6 +37,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final hasAcceptedDisclaimer = disclaimerAccepted.value ?? false;
       final loggingIn = state.matchedLocation == '/login';
       final registering = state.matchedLocation == '/register';
+      final forgotPassword = state.matchedLocation == '/forgot-password';
       final onProfileSetup = state.matchedLocation == '/profile-setup';
       final onDisclaimer = state.matchedLocation == '/disclaimer';
       final onLegal = state.matchedLocation == '/legal';
@@ -46,8 +47,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return null;
       }
       
-      // If not authenticated, go to login (but not if already on login/register)
-      if (!loggedIn && !loggingIn && !registering) {
+      // If not authenticated, go to login (but not if already on login/register/forgot-password)
+      if (!loggedIn && !loggingIn && !registering && !forgotPassword) {
         return '/login';
       }
       
@@ -87,6 +88,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/search', builder: (c, s) => const SearchScreen()),
       GoRoute(path: '/login', builder: (c, s) => const LoginScreen()),
       GoRoute(path: '/register', builder: (c, s) => const RegisterScreen()),
+      GoRoute(path: '/forgot-password', builder: (c, s) => const ForgotPasswordScreen()),
       GoRoute(path: '/profile-setup', builder: (c, s) => const ProfileSetupScreen()),
       GoRoute(path: '/settings', builder: (c, s) => const SettingsScreen()),
       GoRoute(path: '/profile-edit', builder: (c, s) => const ProfileEditScreen()),

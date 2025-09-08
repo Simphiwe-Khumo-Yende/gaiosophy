@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
+import '../widgets/enhanced_html_renderer.dart';
 
 class PlantHarvestingScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -108,135 +108,7 @@ class PlantHarvestingScreen extends StatelessWidget {
               
               // Main Content from Firestore
               if (contentBlock.data.content != null) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: boxColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Html(
-                    data: contentBlock.data.content!,
-                    style: {
-                      "body": Style(
-                        color: textColor,
-                        fontSize: FontSize(16),
-                        lineHeight: const LineHeight(1.5),
-                        margin: Margins.zero,
-                        padding: HtmlPaddings.zero,
-                      ),
-                      "h1, h2, h3, h4, h5, h6": Style(
-                        color: textColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: FontSize(18),
-                        margin: Margins.only(top: 16, bottom: 8),
-                      ),
-                      "p": Style(
-                        color: textColor,
-                        margin: Margins.only(bottom: 12),
-                        fontSize: FontSize(14),
-                      ),
-                      "ul, ol": Style(
-                        color: textColor,
-                        margin: Margins.zero,
-                        padding: HtmlPaddings.only(left: 16),
-                      ),
-                      "li": Style(
-                        color: textColor,
-                        margin: Margins.zero,
-                        fontSize: FontSize(14),
-                        lineHeight: const LineHeight(1.1),
-                      ),
-                      "b, strong": Style(
-                        color: textColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      "span": Style(
-                        color: textColor,
-                      ),
-                    },
-                    onLinkTap: (url, _, __) {
-                      // Handle link taps if needed
-                      print('Link tapped: $url');
-                    },
-                    extensions: [
-                      TagExtension(
-                        tagsToExtend: {"li"},
-                        builder: (extensionContext) {
-                          final element = extensionContext.element;
-                          if (element == null) return const SizedBox.shrink();
-
-                          final parent = element.parent;
-                          final isOrdered = parent?.localName == 'ol';
-                          final index = parent != null ? parent.children.indexOf(element) : 0;
-
-                          IconData icon;
-                          if (isOrdered) {
-                            // Use numbered icons for ordered lists
-                            switch (index) {
-                              case 0: icon = Icons.looks_one_outlined; break;
-                              case 1: icon = Icons.looks_two_outlined; break;
-                              case 2: icon = Icons.looks_3_outlined; break;
-                              case 3: icon = Icons.looks_4_outlined; break;
-                              case 4: icon = Icons.looks_5_outlined; break;
-                              default: icon = Icons.circle_outlined; break;
-                            }
-                          } else {
-                            // Determine icon based on content keywords
-                            final text = element.text.toLowerCase();
-                            if (text.contains('harvest') || text.contains('collect')) {
-                              icon = Icons.agriculture_outlined;
-                            } else if (text.contains('season') || text.contains('time')) {
-                              icon = Icons.schedule_outlined;
-                            } else if (text.contains('prepare') || text.contains('process')) {
-                              icon = Icons.build_outlined;
-                            } else if (text.contains('store') || text.contains('preserve')) {
-                              icon = Icons.inventory_outlined;
-                            } else if (text.contains('dry') || text.contains('drying')) {
-                              icon = Icons.wb_sunny_outlined;
-                            } else if (text.contains('caution') || text.contains('warning')) {
-                              icon = Icons.warning_outlined;
-                            } else {
-                              icon = Icons.eco_outlined;
-                            }
-                          }
-
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(icon, size: 16, color: textColor),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Html(
-                                    data: element.innerHtml,
-                                    style: {
-                                      "body": Style(
-                                        fontSize: FontSize(14),
-                                        color: textColor,
-                                        lineHeight: LineHeight(1.5),
-                                        margin: Margins.zero,
-                                        padding: HtmlPaddings.zero,
-                                      ),
-                                      "p": Style(
-                                        fontSize: FontSize(14),
-                                        color: textColor,
-                                        lineHeight: LineHeight(1.5),
-                                        margin: Margins.zero,
-                                        padding: HtmlPaddings.zero,
-                                      ),
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                _buildContentWithIconsAndBoxes(contentBlock.data.content!),
                 const SizedBox(height: 30),
               ],
             ],
@@ -266,6 +138,14 @@ class PlantHarvestingScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildContentWithIconsAndBoxes(String content) {
+    return EnhancedHtmlRenderer(
+      content: content,
+      iconSize: 20,
+      iconColor: textColor,
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
+import '../widgets/content_box_parser.dart';
 
 class ContentBlockDetailScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -64,37 +64,7 @@ class ContentBlockDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Html(
-                    data: contentBlock.data.content,
-                    style: {
-                      "body": Style(
-                        color: const Color(0xFF5A4E3C),
-                        fontSize: FontSize(16),
-                        lineHeight: const LineHeight(1.6),
-                        margin: Margins.zero,
-                        padding: HtmlPaddings.zero,
-                      ),
-                      "p": Style(
-                        color: const Color(0xFF5A4E3C),
-                        fontSize: FontSize(16),
-                        lineHeight: const LineHeight(1.6),
-                        margin: Margins.only(bottom: 12),
-                      ),
-                      "h1, h2, h3, h4, h5, h6": Style(
-                        color: const Color(0xFF5A4E3C),
-                        fontWeight: FontWeight.bold,
-                        margin: Margins.only(top: 16, bottom: 8),
-                      ),
-                      "ul, ol": Style(
-                        margin: Margins.only(bottom: 12),
-                        padding: HtmlPaddings.only(left: 20),
-                      ),
-                      "li": Style(
-                        color: const Color(0xFF5A4E3C),
-                        margin: Margins.only(bottom: 4),
-                      ),
-                    },
-                  ),
+                  child: _buildContentWithIconsAndBoxes(contentBlock.data.content!),
                 ),
               ] else ...[
                 Container(
@@ -133,6 +103,19 @@ class ContentBlockDetailScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildContentWithIconsAndBoxes(String content) {
+    // Always use BoxedContentText as it handles both box sections and icons
+    return BoxedContentText(
+      content,
+      textStyle: const TextStyle(
+        fontFamily: 'Crimson Text',
+        fontSize: 16,
+        color: Color(0xFF5A4E3C),
+        height: 1.6,
       ),
     );
   }

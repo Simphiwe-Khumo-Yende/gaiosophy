@@ -7,8 +7,9 @@ import '../../data/models/content.dart' as content_model;
 import '../theme/typography.dart';
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
-import '../widgets/rich_content_text.dart';
+import '../widgets/content_box_parser.dart';
 import '../widgets/content_icon_mapper.dart';
+import '../widgets/enhanced_html_renderer.dart';
 import 'audio_player_screen.dart';
 import 'plant_allies_detail_screen.dart';
 import 'recipe_screen.dart';
@@ -318,36 +319,21 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
     );
   }
 
-  // Method to handle content with icon keys - will try rich content first, fallback to HTML
+  // Method to handle content with icon keys and HTML - now using enhanced renderer
   Widget _buildContentWithIcons(String content) {
-    // Check if content contains icon keys [key]
-    final RegExp iconRegex = RegExp(r'\[([^\]]+)\]');
-    final hasIcons = iconRegex.hasMatch(content);
-    
-    if (hasIcons) {
-      // If it looks like HTML content (contains tags), we need special handling
-      if (content.contains('<') && content.contains('>')) {
-        return _buildHtmlContentWithIcons(content);
-      } else {
-        // Use rich content text for plain text with icon parsing
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: RichContentText(
-            content,
-            textStyle: context.secondaryFont(
-              fontSize: 16,
-              color: const Color(0xFF1A1612),
-              height: 1.6,
-            ),
-            iconSize: 20,
-            iconColor: const Color(0xFF8B6B47),
-          ),
-        );
-      }
-    } else {
-      // Fallback to HTML rendering
-      return _buildHtmlContent(content);
-    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: ContentDetailHtmlRenderer(
+        content: content,
+        textStyle: context.secondaryFont(
+          fontSize: 16,
+          color: const Color(0xFF1A1612),
+          height: 1.6,
+        ),
+        iconSize: 20,
+        iconColor: const Color(0xFF8B6B47),
+      ),
+    );
   }
 
   // Special method to handle HTML content that contains icon keys

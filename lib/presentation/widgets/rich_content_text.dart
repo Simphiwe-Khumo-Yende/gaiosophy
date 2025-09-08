@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/typography.dart';
 import 'content_icon_mapper.dart';
+import 'content_box_parser.dart';
 
 class RichContentText extends StatelessWidget {
   final String content;
@@ -182,11 +183,9 @@ class ContentPreview extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // Content with rich text
-            RichContentText(
+            // Content with rich text and box support
+            BoxedContentText(
               content,
-              maxLines: maxLines,
-              overflow: TextOverflow.ellipsis,
               textStyle: context.secondaryFont(
                 fontSize: 14,
                 color: const Color(0xFF5A4E3C),

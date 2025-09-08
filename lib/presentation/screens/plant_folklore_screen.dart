@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
+import '../widgets/enhanced_html_renderer.dart';
 import 'audio_player_screen.dart';
 
 class PlantFolkloreScreen extends StatelessWidget {
@@ -375,139 +375,10 @@ class PlantFolkloreDetailedView extends StatelessWidget {
     );
   }
   Widget _buildDetailedHtmlContent(String htmlContent, ThemeData theme) {
-    return Html(
-      data: htmlContent,
-      style: {
-        "body": Style(
-          margin: Margins.zero,
-          padding: HtmlPaddings.zero,
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(16),
-          lineHeight: LineHeight(1.8),
-        ),
-        "h1": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(26),
-          fontWeight: FontWeight.w600,
-          margin: Margins.only(top: 24, bottom: 16),
-          textAlign: TextAlign.center,
-        ),
-        "h2": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(22),
-          fontWeight: FontWeight.w500,
-          margin: Margins.only(top: 20, bottom: 12),
-          textAlign: TextAlign.center,
-        ),
-        "h3": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(18),
-          fontWeight: FontWeight.w500,
-          margin: Margins.only(top: 16, bottom: 8),
-          textAlign: TextAlign.center,
-        ),
-        "p": Style(
-          margin: Margins.only(bottom: 16),
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(16),
-          lineHeight: LineHeight(1.8),
-        ),
-        "a": Style(
-          color: const Color(0xFF8B6B47),
-          textDecoration: TextDecoration.underline,
-        ),
-        "blockquote": Style(
-          backgroundColor: const Color(0xFF8B6B47).withValues(alpha: 0.05),
-          border: Border(
-            left: BorderSide(color: const Color(0xFF8B6B47), width: 3),
-          ),
-          padding: HtmlPaddings.all(16),
-          margin: Margins.symmetric(vertical: 16),
-          fontStyle: FontStyle.italic,
-        ),
-        "ul": Style(
-          color: const Color(0xFF1A1612),
-          margin: Margins.only(left: 16, bottom: 12),
-          padding: HtmlPaddings.zero,
-        ),
-        "ol": Style(
-          color: const Color(0xFF1A1612),
-          margin: Margins.only(left: 16, bottom: 12),
-          padding: HtmlPaddings.zero,
-        ),
-        "li": Style(
-          color: const Color(0xFF1A1612),
-          margin: Margins.only(bottom: 8),
-          padding: HtmlPaddings.zero,
-        ),
-      },
-      extensions: [
-        TagExtension(
-          tagsToExtend: {"li"},
-          builder: (extensionContext) {
-            final element = extensionContext.element;
-            final text = element?.text ?? '';
-            
-            IconData icon = Icons.circle;
-            if (text.toLowerCase().contains('magic') || 
-                text.toLowerCase().contains('ritual') ||
-                text.toLowerCase().contains('spell')) {
-              icon = Icons.auto_fix_high;
-            } else if (text.toLowerCase().contains('herb') || 
-                       text.toLowerCase().contains('plant') ||
-                       text.toLowerCase().contains('flower')) {
-              icon = Icons.grass;
-            } else if (text.toLowerCase().contains('moon') || 
-                       text.toLowerCase().contains('night') ||
-                       text.toLowerCase().contains('dark')) {
-              icon = Icons.nightlight;
-            } else if (text.toLowerCase().contains('sun') || 
-                       text.toLowerCase().contains('day') ||
-                       text.toLowerCase().contains('light')) {
-              icon = Icons.wb_sunny;
-            } else if (text.toLowerCase().contains('water') || 
-                       text.toLowerCase().contains('river') ||
-                       text.toLowerCase().contains('sea')) {
-              icon = Icons.water;
-            } else if (text.toLowerCase().contains('fire') || 
-                       text.toLowerCase().contains('flame')) {
-              icon = Icons.local_fire_department;
-            } else if (text.toLowerCase().contains('earth') || 
-                       text.toLowerCase().contains('ground') ||
-                       text.toLowerCase().contains('soil')) {
-              icon = Icons.terrain;
-            } else if (text.toLowerCase().contains('air') || 
-                       text.toLowerCase().contains('wind') ||
-                       text.toLowerCase().contains('sky')) {
-              icon = Icons.air;
-            }
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    icon,
-                    size: 16,
-                    color: const Color(0xFF8B6B47),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      text,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF1A1612),
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
+    return EnhancedHtmlRenderer(
+      content: htmlContent,
+      iconSize: 20,
+      iconColor: const Color(0xFF8B6B47),
     );
   }
 }

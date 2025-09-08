@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import '../../data/models/content.dart' as content_model;
-import '../widgets/firebase_storage_image.dart';
+import '../widgets/content_box_parser.dart';
 
 class BrambleOverviewScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -123,24 +122,7 @@ class BrambleOverviewScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           if (contentBlock.data.content != null)
-                            Html(
-                              data: contentBlock.data.content,
-                              style: {
-                                "body": Style(
-                                  color: const Color(0xFF5A4E3C),
-                                  fontSize: FontSize(16),
-                                  lineHeight: const LineHeight(1.8),
-                                  margin: Margins.zero,
-                                  padding: HtmlPaddings.zero,
-                                ),
-                                "p": Style(
-                                  color: const Color(0xFF5A4E3C),
-                                  fontSize: FontSize(16),
-                                  lineHeight: const LineHeight(1.8),
-                                  margin: Margins.only(bottom: 16),
-                                ),
-                              },
-                            )
+                            _buildContentWithIconsAndBoxes(contentBlock.data.content!)
                           else
                             Text(
                               'Welcome to the world of brambles - thorny yet bountiful plants that have provided sustenance and medicine for countless generations.',
@@ -259,6 +241,17 @@ class BrambleOverviewScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildContentWithIconsAndBoxes(String content) {
+    return BoxedContentText(
+      content,
+      textStyle: const TextStyle(
+        color: Color(0xFF5A4E3C),
+        fontSize: 16,
+        height: 1.8,
       ),
     );
   }

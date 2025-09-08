@@ -5,6 +5,7 @@ import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
 import '../widgets/rich_content_text.dart';
 import '../widgets/content_icon_mapper.dart';
+import '../widgets/enhanced_html_renderer.dart';
 import '../theme/typography.dart';
 
 class RecipeScreen extends StatelessWidget {
@@ -309,70 +310,18 @@ class RecipeScreen extends StatelessWidget {
   Widget _buildTextContent(BuildContext context, content_model.ContentBlock block) {
     String content = block.data.content ?? '';
     
-    // Check if content contains icon keys [key]
-    final RegExp iconRegex = RegExp(r'\[([^\]]+)\]');
-    final hasIcons = iconRegex.hasMatch(content);
-    
-    if (hasIcons) {
-      // If it looks like HTML content (contains tags), we need special handling
-      if (content.contains('<') && content.contains('>')) {
-        return _buildHtmlContentWithIcons(content);
-      } else {
-        // Use rich content text for plain text with icon parsing
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: RichContentText(
-            content,
-            textStyle: context.secondaryBodyMedium.copyWith(
-              height: 1.5,
-              color: const Color(0xFF5A5A5A),
-            ),
-            iconSize: 16,
-            iconColor: const Color(0xFF8B6B47),
-          ),
-        );
-      }
-    } else {
-      // If it's HTML content, render as HTML
-      if (content.contains('<') && content.contains('>')) {
-        return Html(
-          data: content,
-          style: {
-            "body": Style(
-              margin: Margins.zero,
-              padding: HtmlPaddings.zero,
-              color: const Color(0xFF5A5A5A),
-              fontSize: FontSize(13),
-              lineHeight: LineHeight(1.5),
-            ),
-            "p": Style(
-              margin: Margins.only(bottom: 8),
-            ),
-            "h1, h2, h3": Style(
-              color: Colors.black87,
-              fontWeight: FontWeight.w500,
-            ),
-            "ul": Style(
-              margin: Margins.zero,
-              padding: HtmlPaddings.zero,
-            ),
-            "li": Style(
-              margin: Margins.only(bottom: 4),
-              listStyleType: ListStyleType.disc,
-            ),
-          },
-        );
-      } else {
-        // Plain text
-        return Text(
-          _cleanText(content),
-          style: context.secondaryBodyMedium.copyWith(
-            height: 1.5,
-            color: const Color(0xFF5A5A5A),
-          ),
-        );
-      }
-    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: RecipeHtmlRenderer(
+        content: content,
+        textStyle: context.secondaryBodyMedium.copyWith(
+          height: 1.5,
+          color: const Color(0xFF5A5A5A),
+        ),
+        iconSize: 16,
+        iconColor: const Color(0xFF8B6B47),
+      ),
+    );
   }
 
   // Special method to handle HTML content that contains icon keys

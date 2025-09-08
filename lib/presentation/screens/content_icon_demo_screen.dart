@@ -17,6 +17,14 @@ class ContentIconDemoScreen extends StatelessWidget {
       'content': '[spring] brings fresh [growth] in [meadow] areas. [summer] offers abundant [fruit] and [berry] collection. [autumn] is perfect for [root] gathering, while [winter] requires careful [bark] harvesting.',
     },
     {
+      'title': 'Box Section Demo - Recipe with Ingredients',
+      'content': 'This recipe combines traditional wisdom with modern preparation methods.\n\n[box-start]\n[herb] Chamomile flowers - 2 tablespoons\n[leaf] Peppermint leaves - 1 tablespoon\n[water] Filtered water - 2 cups\n[honey] Raw honey - to taste (optional)\n[box-end]\n\n[tea] Steep the [herb] mixture in hot [water] for 5-8 minutes. This [healing] blend is perfect for [evening] relaxation and [digestive] support.',
+    },
+    {
+      'title': 'Box Section Demo - Safety Instructions',
+      'content': 'General foraging guidelines for [safe] plant collection.\n\n[box-start]\n[caution] Never consume unidentified plants\n[research] Always cross-reference multiple sources\n[guide] Bring a field identification guide\n[camera] Take photos for later verification\n[expert] Consult with experienced foragers\n[box-end]\n\nFollowing these [safety] protocols ensures [protection] during [wild] plant collection in [forest] and [meadow] environments.',
+    },
+    {
       'title': 'Plant Preparation Methods',
       'content': 'Create healing [tea] from dried [herb] materials. [fresh] plants can be used for [topical] applications. [oil] extractions require [scientific] methods for [medicine] preparation.',
     },

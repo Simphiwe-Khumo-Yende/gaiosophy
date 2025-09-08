@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
 import 'audio_player_screen.dart';
 import '../widgets/firebase_storage_image.dart';
+import '../widgets/enhanced_html_renderer.dart';
 
 class PlantOverviewScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -377,16 +378,11 @@ class PlantOverviewDetailedView extends StatelessWidget {
   }
 
   Widget _buildDetailedHtmlContent(String htmlContent) {
-    return Html(
-      data: htmlContent,
-      style: {
-        "body": Style(
-          margin: Margins.zero,
-          padding: HtmlPaddings.zero,
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(16),
-          lineHeight: LineHeight(1.8),
-        ),
+    return EnhancedHtmlRenderer(
+      content: htmlContent,
+      iconSize: 20,
+      iconColor: const Color(0xFF8B6B47),
+      customStyles: {
         "h1": Style(
           color: const Color(0xFF1A1612),
           fontSize: FontSize(26),
@@ -407,16 +403,6 @@ class PlantOverviewDetailedView extends StatelessWidget {
           fontWeight: FontWeight.w500,
           margin: Margins.only(top: 16, bottom: 8),
           textAlign: TextAlign.center,
-        ),
-        "p": Style(
-          margin: Margins.only(bottom: 16),
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(16),
-          lineHeight: LineHeight(1.8),
-        ),
-        "a": Style(
-          color: const Color(0xFF8B6B47),
-          textDecoration: TextDecoration.underline,
         ),
         "blockquote": Style(
           backgroundColor: const Color(0xFF8B6B47).withValues(alpha: 0.05),

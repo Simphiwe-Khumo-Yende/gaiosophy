@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
+import '../../data/services/email_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../data/services/auth_service.dart';
 import '../theme/typography.dart';
@@ -53,6 +54,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'profileCompleted': false,
       });
       
+      // Send welcome email
+      final userName = _emailController.text.trim().split('@')[0]; // Extract name from email
+      final emailSent = await EmailService.sendWelcomeEmail(
+        userEmail: _emailController.text.trim(),
+        userName: userName,
+      );
+      
+      if (emailSent) {
+        print('Welcome email sent successfully to ${_emailController.text.trim()}');
+      } else {
+        print('Failed to send welcome email');
+      }
+      
       if (mounted) context.go('/profile-setup');
     } on FirebaseAuthException catch (e) {
       setState(() { _error = e.message; });
@@ -66,14 +80,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _google() async {
     setState(() { _loading = true; _error = null; });
     try {
-      await AuthService(FirebaseAuth.instance).signInWithGoogle();
-      // Check if user profile is complete, if not redirect to profile setup
-      final user = FirebaseAuth.instance.currentUser;
+      final userCredential = await AuthService(FirebaseAuth.instance).signInWithGoogle();
+      final user = userCredential.user;
+      
       if (user != null && mounted) {
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
+        
+        // Check if this is a new user (document doesn't exist)
+        final isNewUser = !userDoc.exists;
+        
+        if (isNewUser) {
+          // Create user document for new Google users
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set({
+            'email': user.email ?? '',
+            'displayName': user.displayName ?? '',
+            'createdAt': FieldValue.serverTimestamp(),
+            'profileCompleted': false,
+          });
+          
+          // Send welcome email for new Google users
+          final userName = user.displayName ?? user.email?.split('@')[0] ?? 'Friend';
+          final emailSent = await EmailService.sendWelcomeEmail(
+            userEmail: user.email ?? '',
+            userName: userName,
+          );
+          
+          if (emailSent) {
+            print('Welcome email sent successfully to ${user.email}');
+          } else {
+            print('Failed to send welcome email');
+          }
+        }
         
         if (userDoc.exists && userDoc.data()?['profileCompleted'] == true) {
           context.go('/');
