@@ -3,6 +3,7 @@ import '../../application/providers/home_sections_provider.dart';
 import '../../data/models/content.dart';
 import '../theme/typography.dart';
 import 'content_card.dart';
+import 'plant_ally_card.dart';
 
 class ContentSectionHorizontal extends StatelessWidget {
   const ContentSectionHorizontal({super.key, required this.section});
@@ -15,8 +16,8 @@ class ContentSectionHorizontal extends StatelessWidget {
         section.items.every((item) => item.type == ContentType.plant);
     
     // Dynamic height based on section type
-    // Plant cards: 180px width * 1.43 aspect ratio (0.7 inverse) + ~60px for text = ~320px
-    final sectionHeight = isPlantSection ? 230.0 : 200.0;
+    // Plant cards have fixed height of 280px
+    final sectionHeight = isPlantSection ? 290.0 : 200.0;
     
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -62,10 +63,14 @@ class ContentSectionHorizontal extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               itemBuilder: (context, index) {
                 final item = section.items[index];
+                // Use PlantAllyCard for plant sections
+                if (isPlantSection) {
+                  return PlantAllyCard(content: item);
+                }
                 return ContentCard(content: item);
               },
               separatorBuilder: (_, __) => SizedBox(
-                width: isPlantSection ? 30 : 12,
+                width: isPlantSection ? 24 : 12,
               ),
               itemCount: section.items.length,
             ),

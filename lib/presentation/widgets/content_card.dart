@@ -114,26 +114,27 @@ Widget _buildPlantAllyCard(BuildContext context) {
   return GestureDetector(
     onTap: () => context.push('/content/${content.id}'),
     child: Container(
-      width: 200, // Much wider!
+      width: 180, // Much wider than standard cards (130px)
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16), // Slightly more rounded
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Full portrait artwork
+          // Taller portrait artwork
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: AspectRatio(
-              aspectRatio: 0.7, // Tall portrait like tarot cards
+              aspectRatio: 0.8, // Portrait ratio (5:6)
               child: content.featuredImageId != null
                   ? FirebaseStorageImage(
                       imageId: content.featuredImageId!,
@@ -144,9 +145,9 @@ Widget _buildPlantAllyCard(BuildContext context) {
                   : _buildPlantPlaceholder(),
             ),
           ),
-          // Title and subtitle
-          Container(
-            padding: const EdgeInsets.all(12),
+          // Text section
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -161,15 +162,15 @@ Widget _buildPlantAllyCard(BuildContext context) {
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (subtitleText != null && subtitleText.isNotEmpty) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
                     subtitleText,
                     style: context.secondaryFont(
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
-                      color: const Color(0xFF1A1612).withOpacity(0.75),
+                      color: const Color(0xFF6B6B6B),
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
