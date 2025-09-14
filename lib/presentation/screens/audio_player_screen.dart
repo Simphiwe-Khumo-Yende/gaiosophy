@@ -445,65 +445,8 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                   const SizedBox(height: 20),
                   
                   // Audio status or additional info
-                  if (!hasAudio) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            size: 16,
-                            color: Colors.orange.shade700,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Audio not available for this content',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.orange.shade700,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  
                     const SizedBox(height: 12),
-                  ] else if (widget.content.audioId != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFF8B6B47).withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.audiotrack,
-                            size: 16,
-                            color: const Color(0xFF8B6B47),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Audio ID: ${widget.content.audioId!.substring(0, 8)}...',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF8B6B47),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
                   
                   // Additional info
                   if (widget.content.summary != null) ...[
