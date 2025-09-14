@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
@@ -26,6 +27,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   bool isPlaying = false;
   bool isLoading = false;
   bool hasAudio = false;
+  String? _resolvedAudioUrl;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
 
@@ -39,7 +41,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     print('Audio Player initialized - Audio ID: ${widget.content.audioId}, Has Audio: $hasAudio');
     
     if (hasAudio) {
-      _initializeAudio();
+      _resolveAndInitializeAudio();
     }
     
     // Listen to audio player state changes
@@ -69,26 +71,44 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     });
   }
   
-  Future<void> _initializeAudio() async {
+  Future<void> _resolveAndInitializeAudio() async {
     try {
       setState(() {
         isLoading = true;
       });
-      
-      // For now, we'll construct a hypothetical URL from the audioId
-      // You'll need to replace this with your actual audio URL construction logic
-      final audioUrl = _getAudioUrl(widget.content.audioId!);
-      print('Attempting to load audio from: $audioUrl');
-      
-      await _audioPlayer.setUrl(audioUrl);
+
+      String baseId = widget.content.audioId!;
+      String audioPathM4a = baseId.startsWith('media/content-audio/')
+          ? (baseId.endsWith('.m4a') ? baseId : baseId + '.m4a')
+          : 'media/content-audio/' + (baseId.endsWith('.m4a') ? baseId : baseId + '.m4a');
+      String audioPathMp4 = baseId.startsWith('media/content-audio/')
+          ? (baseId.endsWith('.mp4') ? baseId : baseId + '.mp4')
+          : 'media/content-audio/' + (baseId.endsWith('.mp4') ? baseId : baseId + '.mp4');
+
+      String? foundUrl;
+      try {
+        final refM4a = FirebaseStorage.instance.ref().child(audioPathM4a);
+        foundUrl = await refM4a.getDownloadURL();
+        print('Resolved audio URL (.m4a): $foundUrl');
+      } catch (e) {
+        print('No .m4a found, trying .mp4...');
+        try {
+          final refMp4 = FirebaseStorage.instance.ref().child(audioPathMp4);
+          foundUrl = await refMp4.getDownloadURL();
+          print('Resolved audio URL (.mp4): $foundUrl');
+        } catch (e2) {
+          print('No .mp4 found either.');
+          throw e2;
+        }
+      }
+      _resolvedAudioUrl = foundUrl;
+      await _audioPlayer.setUrl(foundUrl!);
       print('Audio loaded successfully');
-      
     } catch (e) {
       print('Error loading audio: $e');
       setState(() {
         hasAudio = false;
       });
-      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -103,18 +123,6 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
         isLoading = false;
       });
     }
-  }
-  
-  String _getAudioUrl(String audioId) {
-    // Construct Firebase Storage URL for M4A audio files
-    // Using the actual Firebase Storage bucket from your project
-    const String firebaseStorageBucket = 'i7y932.firebasestorage.app';
-    
-    // Construct the path - assuming audio files are stored in an 'audio' folder
-    // and using M4A format
-    final String encodedPath = Uri.encodeComponent('audio/$audioId.m4a');
-    
-    return 'https://firebasestorage.googleapis.com/v0/b/$firebaseStorageBucket/o/$encodedPath?alt=media';
   }
 
   @override
