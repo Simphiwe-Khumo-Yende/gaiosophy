@@ -173,10 +173,10 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
           child: Text(
             content.title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Color(0xFF1A1612),
+            style: context.primaryFont(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF1A1612),
             ),
           ),
         ),
@@ -270,10 +270,10 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Text(
         previewText,
-        style: const TextStyle(
+        style: context.secondaryFont(
           fontSize: 16,
           height: 1.5,
-          color: Color(0xFF1A1612),
+          color: const Color(0xFF1A1612),
         ),
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
@@ -478,9 +478,9 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
                   borderRadius: BorderRadius.circular(50),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Read More',
-                style: TextStyle(
+                style: context.primaryFont(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -506,9 +506,9 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
                   borderRadius: BorderRadius.circular(50),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Listen to Audio',
-                style: TextStyle(
+                style: context.primaryFont(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),

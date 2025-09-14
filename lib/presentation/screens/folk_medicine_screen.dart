@@ -4,6 +4,7 @@ import 'dart:math';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/enhanced_html_renderer.dart';
+import '../theme/typography.dart';
 
 class FolkMedicineScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -55,10 +56,10 @@ class FolkMedicineScreen extends StatelessWidget {
               Center(
                 child: Text(
                   contentBlock.data.title ?? parentTitle,
-                  style: const TextStyle(
+                  style: context.primaryFont(
                     fontSize: 22,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF3C3C3C),
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF3C3C3C),
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -101,7 +102,7 @@ class FolkMedicineScreen extends StatelessWidget {
               ],
 
               // Content
-              _buildFolkMedicineContent(),
+              _buildFolkMedicineContent(context),
             ],
           ),
         ),
@@ -109,10 +110,10 @@ class FolkMedicineScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFolkMedicineContent() {
+  Widget _buildFolkMedicineContent(BuildContext context) {
     // Check if we have sub-blocks (specific plant parts)
     if (contentBlock.data.subBlocks.isNotEmpty) {
-      return _buildSubBlocksContent();
+      return _buildSubBlocksContent(context);
     }
 
     // Fall back to HTML content if no sub-blocks
@@ -120,7 +121,7 @@ class FolkMedicineScreen extends StatelessWidget {
 
     if (htmlContent == null || htmlContent.isEmpty) {
       print('No content available, showing default content');
-      return _buildDefaultContent();
+      return _buildDefaultContent(context);
     }
 
     print('Rendering HTML content with icon and box support');
@@ -130,9 +131,9 @@ class FolkMedicineScreen extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 200),
       child: EnhancedHtmlRenderer(
         content: htmlContent,
-        textStyle: const TextStyle(
+        textStyle: context.secondaryFont(
           fontSize: 15,
-          color: Color(0xFF3C3C3C),
+          color: const Color(0xFF3C3C3C),
           height: 1.6,
         ),
         iconSize: 18,
@@ -141,7 +142,7 @@ class FolkMedicineScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSubBlocksContent() {
+  Widget _buildSubBlocksContent(BuildContext context) {
     print('=== BUILDING SUB BLOCKS CONTENT ===');
     print('Number of sub-blocks: ${contentBlock.data.subBlocks.length}');
 
@@ -160,10 +161,10 @@ class FolkMedicineScreen extends StatelessWidget {
             if (subBlock.plantPartName != null && subBlock.plantPartName!.isNotEmpty) ...[
               Text(
                 subBlock.plantPartName!,
-                style: const TextStyle(
+                style: context.primaryFont(
                   fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF3C3C3C),
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF3C3C3C),
                 ),
               ),
               const SizedBox(height: 16),
@@ -171,46 +172,46 @@ class FolkMedicineScreen extends StatelessWidget {
 
             // Medicinal uses
             if (subBlock.medicinalUses.isNotEmpty) ...[
-              const Text(
+              Text(
                 'Medicinal Uses',
-                style: TextStyle(
+                style: context.primaryFont(
                   fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF3C3C3C),
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF3C3C3C),
                 ),
               ),
               const SizedBox(height: 12),
-              _buildSimpleUsesList(subBlock.medicinalUses),
+              _buildSimpleUsesList(context, subBlock.medicinalUses),
               const SizedBox(height: 24),
             ],
 
             // Skincare uses
             if (subBlock.skincareUses.isNotEmpty) ...[
-              const Text(
+              Text(
                 'Skincare Uses',
-                style: TextStyle(
+                style: context.primaryFont(
                   fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF3C3C3C),
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF3C3C3C),
                 ),
               ),
               const SizedBox(height: 12),
-              _buildSimpleUsesList(subBlock.skincareUses),
+              _buildSimpleUsesList(context, subBlock.skincareUses),
               const SizedBox(height: 24),
             ],
 
             // Energetic uses (or Seed Oil as shown in design)
             if (subBlock.energeticUses.isNotEmpty) ...[
-              Text(
+                Text(
                 subBlock.plantPartName?.contains('Seed') == true ? 'Seed Oil' : 'Energetic Uses',
-                style: const TextStyle(
+                style: context.primaryFont(
                   fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF3C3C3C),
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF3C3C3C),
                 ),
               ),
               const SizedBox(height: 12),
-              _buildSimpleUsesList(subBlock.energeticUses),
+              _buildSimpleUsesList(context, subBlock.energeticUses),
               const SizedBox(height: 24),
             ],
           ],
@@ -219,7 +220,7 @@ class FolkMedicineScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSimpleUsesList(List<String> uses) {
+  Widget _buildSimpleUsesList(BuildContext context, List<String> uses) {
     return Padding(
       padding: const EdgeInsets.only(left: 16),
       child: Column(
@@ -233,24 +234,24 @@ class FolkMedicineScreen extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.only(top: 2),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
                   child: Text(
                     '•',
-                    style: TextStyle(
+                    style: context.primaryFont(
                       fontSize: 14,
-                      color: Color(0xFF3C3C3C),
                       fontWeight: FontWeight.w500,
+                      color: const Color(0xFF3C3C3C),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
+                    child: Text(
                     cleanedUse,
-                    style: const TextStyle(
+                    style: context.secondaryFont(
                       fontSize: 14,
-                      color: Color(0xFF3C3C3C),
+                      color: const Color(0xFF3C3C3C),
                       height: 1.5,
                     ),
                   ),
@@ -290,33 +291,33 @@ class FolkMedicineScreen extends StatelessWidget {
     return stripped;
   }
 
-  Widget _buildDefaultContent() {
+  Widget _buildDefaultContent(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 40),
-      child: const Center(
+      child: Center(
         child: Column(
           children: [
             Icon(
               Icons.spa_outlined,
               size: 48,
-              color: Color(0xFF8B6B47),
+              color: const Color(0xFF8B6B47),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'Folk medicine content is being prepared.\nPlease check back later.',
-              style: TextStyle(
-                color: Color(0xFF3C3C3C),
+              style: context.secondaryFont(
                 fontSize: 15,
+                color: const Color(0xFF3C3C3C),
                 height: 1.6,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'If you continue to see this message,\nthe content may not be available yet.',
-              style: TextStyle(
-                color: Color(0xFF8B6B47),
+              style: context.secondaryFont(
                 fontSize: 13,
+                color: const Color(0xFF8B6B47),
                 height: 1.4,
               ),
               textAlign: TextAlign.center,

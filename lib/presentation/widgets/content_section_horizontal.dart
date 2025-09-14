@@ -16,7 +16,7 @@ class ContentSectionHorizontal extends StatelessWidget {
     
     // Dynamic height based on section type
     // Plant cards: 180px width * 1.43 aspect ratio (0.7 inverse) + ~60px for text = ~320px
-    final sectionHeight = isPlantSection ? 210.0 : 170.0;
+    final sectionHeight = isPlantSection ? 230.0 : 200.0;
     
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -65,7 +65,7 @@ class ContentSectionHorizontal extends StatelessWidget {
                 return ContentCard(content: item);
               },
               separatorBuilder: (_, __) => SizedBox(
-                width: isPlantSection ? 20 : 12,
+                width: isPlantSection ? 30 : 12,
               ),
               itemCount: section.items.length,
             ),

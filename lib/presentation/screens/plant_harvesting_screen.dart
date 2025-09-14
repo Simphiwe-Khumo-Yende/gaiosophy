@@ -74,21 +74,96 @@ class PlantHarvestingScreen extends StatelessWidget {
               const SizedBox(height: 20),
               
               // Timeline
+// Replace the Timeline section with this:
+
+// Timeline
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
                   children: [
-                    Text('Jan', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: textColor)),
-                    Expanded(
-                      child: Slider(
-                        value: 0.7,
-                        onChanged: (value) {},
-                        activeColor: Colors.brown[400],
-                        inactiveColor: Colors.brown[200],
-                      ),
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Background line
+                        Container(
+                          height: 2,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8DCC6), // Light beige color for the line
+                            borderRadius: BorderRadius.circular(1),
+                          ),
+                        ),
+                        // Dots positioned on the line
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Spring dot (around March)
+                            Expanded(
+                              flex: 3,
+                              child: Container(),
+                            ),
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF8B7355), // Brown color for dots
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            // Summer dot (around June)
+                            Expanded(
+                              flex: 3,
+                              child: Container(),
+                            ),
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF8B7355),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            // Autumn dot (around September)
+                            Expanded(
+                              flex: 3,
+                              child: Container(),
+                            ),
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF8B7355),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Container(),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    Text('Dec', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: textColor)),
+                    const SizedBox(height: 8),
+                    // Month labels
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Jan',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: textColor,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          'Dec',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: textColor,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

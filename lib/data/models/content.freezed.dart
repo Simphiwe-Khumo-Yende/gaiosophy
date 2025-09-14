@@ -1101,7 +1101,8 @@ mixin _$Content {
   String? get featuredImageId => throw _privateConstructorUsedError;
   String? get audioId => throw _privateConstructorUsedError;
   String? get templateType => throw _privateConstructorUsedError;
-  String? get status =>
+  String? get status => throw _privateConstructorUsedError;
+  String? get subtitle =>
       throw _privateConstructorUsedError; // Recipe-specific fields
   String? get prepTime => throw _privateConstructorUsedError;
   String? get infusionTime => throw _privateConstructorUsedError;
@@ -1139,6 +1140,7 @@ abstract class $ContentCopyWith<$Res> {
       String? audioId,
       String? templateType,
       String? status,
+      String? subtitle,
       String? prepTime,
       String? infusionTime,
       String? difficulty,
@@ -1176,6 +1178,7 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
     Object? audioId = freezed,
     Object? templateType = freezed,
     Object? status = freezed,
+    Object? subtitle = freezed,
     Object? prepTime = freezed,
     Object? infusionTime = freezed,
     Object? difficulty = freezed,
@@ -1230,6 +1233,10 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
       status: freezed == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      subtitle: freezed == subtitle
+          ? _value.subtitle
+          : subtitle // ignore: cast_nullable_to_non_nullable
               as String?,
       prepTime: freezed == prepTime
           ? _value.prepTime
@@ -1290,6 +1297,7 @@ abstract class _$$ContentImplCopyWith<$Res> implements $ContentCopyWith<$Res> {
       String? audioId,
       String? templateType,
       String? status,
+      String? subtitle,
       String? prepTime,
       String? infusionTime,
       String? difficulty,
@@ -1325,6 +1333,7 @@ class __$$ContentImplCopyWithImpl<$Res>
     Object? audioId = freezed,
     Object? templateType = freezed,
     Object? status = freezed,
+    Object? subtitle = freezed,
     Object? prepTime = freezed,
     Object? infusionTime = freezed,
     Object? difficulty = freezed,
@@ -1379,6 +1388,10 @@ class __$$ContentImplCopyWithImpl<$Res>
       status: freezed == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      subtitle: freezed == subtitle
+          ? _value.subtitle
+          : subtitle // ignore: cast_nullable_to_non_nullable
               as String?,
       prepTime: freezed == prepTime
           ? _value.prepTime
@@ -1435,6 +1448,7 @@ class _$ContentImpl implements _Content {
       this.audioId,
       this.templateType,
       this.status,
+      this.subtitle,
       this.prepTime,
       this.infusionTime,
       this.difficulty,
@@ -1473,6 +1487,8 @@ class _$ContentImpl implements _Content {
   final String? templateType;
   @override
   final String? status;
+  @override
+  final String? subtitle;
 // Recipe-specific fields
   @override
   final String? prepTime;
@@ -1517,7 +1533,7 @@ class _$ContentImpl implements _Content {
 
   @override
   String toString() {
-    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, prepTime: $prepTime, infusionTime: $infusionTime, difficulty: $difficulty, published: $published, tags: $tags, media: $media, contentBlocks: $contentBlocks, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, subtitle: $subtitle, prepTime: $prepTime, infusionTime: $infusionTime, difficulty: $difficulty, published: $published, tags: $tags, media: $media, contentBlocks: $contentBlocks, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -1538,6 +1554,8 @@ class _$ContentImpl implements _Content {
             (identical(other.templateType, templateType) ||
                 other.templateType == templateType) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.subtitle, subtitle) ||
+                other.subtitle == subtitle) &&
             (identical(other.prepTime, prepTime) ||
                 other.prepTime == prepTime) &&
             (identical(other.infusionTime, infusionTime) ||
@@ -1571,6 +1589,7 @@ class _$ContentImpl implements _Content {
         audioId,
         templateType,
         status,
+        subtitle,
         prepTime,
         infusionTime,
         difficulty,
@@ -1611,6 +1630,7 @@ abstract class _Content implements Content {
       final String? audioId,
       final String? templateType,
       final String? status,
+      final String? subtitle,
       final String? prepTime,
       final String? infusionTime,
       final String? difficulty,
@@ -1644,7 +1664,9 @@ abstract class _Content implements Content {
   @override
   String? get templateType;
   @override
-  String? get status; // Recipe-specific fields
+  String? get status;
+  @override
+  String? get subtitle; // Recipe-specific fields
   @override
   String? get prepTime;
   @override

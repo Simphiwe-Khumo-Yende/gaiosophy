@@ -23,6 +23,14 @@ class ContentCard extends StatelessWidget {
   }
 
   Widget _buildStandardCard(BuildContext context) {
+    String? subtitleText = (content.subtitle ?? content.summary)?.trim();
+    if (subtitleText == null || subtitleText.isEmpty) {
+      if (content.contentBlocks.isNotEmpty) {
+        final first = content.contentBlocks.first;
+        subtitleText = (first.data.subtitle ?? first.data.title ?? first.data.content)?.trim();
+      }
+    }
+
   return GestureDetector(
     onTap: () => context.push('/content/${content.id}'),
     child: Container(
@@ -56,18 +64,36 @@ class ContentCard extends StatelessWidget {
                   : _buildStandardPlaceholder(),
             ),
           ),
-          // Title below image
+          // Title and optional subtitle below image
           Container(
             padding: const EdgeInsets.all(8),
-            child: Text(
-              content.title,
-              style: context.primaryFont(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1A1612),
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  content.title,
+                  style: context.primaryFont(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1A1612),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (subtitleText != null && subtitleText.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitleText,
+                    style: context.secondaryFont(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF1A1612).withOpacity(0.75),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
             ),
           ),
         ],
@@ -77,10 +103,18 @@ class ContentCard extends StatelessWidget {
 }
 
 Widget _buildPlantAllyCard(BuildContext context) {
+  String? subtitleText = (content.subtitle ?? content.summary)?.trim();
+  if (subtitleText == null || subtitleText.isEmpty) {
+    if (content.contentBlocks.isNotEmpty) {
+      final first = content.contentBlocks.first;
+      subtitleText = (first.data.subtitle ?? first.data.title ?? first.data.content)?.trim();
+    }
+  }
+
   return GestureDetector(
     onTap: () => context.push('/content/${content.id}'),
     child: Container(
-      width: 180, // Much wider!
+      width: 200, // Much wider!
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: Colors.white,
@@ -126,15 +160,16 @@ Widget _buildPlantAllyCard(BuildContext context) {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (content.summary != null) ...[
-                  const SizedBox(height: 2),
+                if (subtitleText != null && subtitleText.isNotEmpty) ...[
+                  const SizedBox(height: 6),
                   Text(
-                    content.summary!,
-                    style: TextStyle(
-                      color: const Color(0xFF1A1612).withOpacity(0.7),
+                    subtitleText,
+                    style: context.secondaryFont(
                       fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF1A1612).withOpacity(0.75),
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],

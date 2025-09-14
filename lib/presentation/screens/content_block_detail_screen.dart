@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/content_box_parser.dart';
+import '../theme/typography.dart';
 
 class ContentBlockDetailScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -28,9 +29,10 @@ class ContentBlockDetailScreen extends StatelessWidget {
               if (contentBlock.data.title != null) ...[
                 Text(
                   contentBlock.data.title!,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  style: context.primaryFont(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
                     color: const Color(0xFF5A4E3C),
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -40,10 +42,10 @@ class ContentBlockDetailScreen extends StatelessWidget {
               if (contentBlock.data.subtitle != null) ...[
                 Text(
                   contentBlock.data.subtitle!,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: context.secondaryFont(
+                    fontSize: 16,
                     color: const Color(0xFF5A4E3C).withOpacity(0.8),
-                    fontStyle: FontStyle.italic,
-                  ),
+                  ).copyWith(fontStyle: FontStyle.italic),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -64,7 +66,7 @@ class ContentBlockDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: _buildContentWithIconsAndBoxes(contentBlock.data.content!),
+                  child: _buildContentWithIconsAndBoxes(context, contentBlock.data.content!),
                 ),
               ] else ...[
                 Container(
@@ -91,7 +93,8 @@ class ContentBlockDetailScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       Text(
                         'No detailed content available for this section.',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        style: context.secondaryFont(
+                          fontSize: 16,
                           color: const Color(0xFF5A4E3C).withOpacity(0.7),
                         ),
                         textAlign: TextAlign.center,
@@ -107,14 +110,13 @@ class ContentBlockDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContentWithIconsAndBoxes(String content) {
+  Widget _buildContentWithIconsAndBoxes(BuildContext context, String content) {
     // Always use BoxedContentText as it handles both box sections and icons
     return BoxedContentText(
       content,
-      textStyle: const TextStyle(
-        fontFamily: 'Crimson Text',
+      textStyle: context.secondaryFont(
         fontSize: 16,
-        color: Color(0xFF5A4E3C),
+        color: const Color(0xFF5A4E3C),
         height: 1.6,
       ),
     );

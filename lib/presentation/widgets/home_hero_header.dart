@@ -7,43 +7,55 @@ class HomeHeroHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 280, // Reduced height since AppBar handles the top area
+      height: 280, // Fixed height
       child: Stack(
         fit: StackFit.expand,
         children: [
+          // Background Image
           Image.asset(
             'assets/images/autumn.png',
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => Container(color: Colors.brown.shade200),
           ),
+          
+          // Gradient overlay for better text readability
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.transparent, Colors.black54],
+                colors: [
+                  Colors.black.withOpacity(0.3),
+                  Colors.black.withOpacity(0.5),
+                ],
               ),
             ),
           ),
-          // Removed the top positioned widget since AppBar handles navigation now
-          Positioned(
-            bottom: 24,
-            left: 16,
-            right: 16,
+          
+          // Centered text content
+          Center(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   'Season: Autumn',
-                  style: context.secondaryBodyMedium.copyWith(color: Colors.white70),
+                  style: context.primaryHeadlineMedium.copyWith(
+                    color: const Color(0xFFFCF9F2),
+                  ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
-                  'Seasonal Autumn\nDirection: West\nElement: Water',
-                  style: context.primaryHeadlineSmall.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    height: 1.2,
+                  'Direction: West',
+                  style: context.primaryHeadlineMedium.copyWith(
+                    color: const Color(0xFFFCF9F2),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Element: Water',
+                  style: context.primaryHeadlineMedium.copyWith(
+                    color: const Color(0xFFFCF9F2),
                   ),
                 ),
               ],

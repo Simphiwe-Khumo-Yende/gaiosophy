@@ -73,6 +73,7 @@ class Content with _$Content {
     String? audioId,
     String? templateType,
     String? status,
+    String? subtitle,
     // Recipe-specific fields
     String? prepTime,
     String? infusionTime,
