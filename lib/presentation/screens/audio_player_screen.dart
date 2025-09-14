@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
@@ -35,15 +36,10 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   void initState() {
     super.initState();
     _audioPlayer = AudioPlayer();
-    
-    // Check if we have audio available
-    hasAudio = widget.content.audioId != null && widget.content.audioId!.isNotEmpty;
-    print('Audio Player initialized - Audio ID: ${widget.content.audioId}, Has Audio: $hasAudio');
-    
-    if (hasAudio) {
-      _resolveAndInitializeAudio();
-    }
-    
+
+    // Sign in anonymously to Firebase Auth (if not already signed in)
+    _signInAndInitAudio();
+
     // Listen to audio player state changes
     _audioPlayer.playerStateStream.listen((state) {
       setState(() {
@@ -52,7 +48,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                    state.processingState == ProcessingState.buffering;
       });
     });
-    
+
     // Listen to position changes
     _audioPlayer.positionStream.listen((position) {
       setState(() {
@@ -62,13 +58,30 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
         }
       });
     });
-    
+
     // Listen to duration changes
     _audioPlayer.durationStream.listen((duration) {
       setState(() {
         _duration = duration ?? Duration.zero;
       });
     });
+  }
+
+  Future<void> _signInAndInitAudio() async {
+    try {
+      if (FirebaseAuth.instance.currentUser == null) {
+        await FirebaseAuth.instance.signInAnonymously();
+        print('Signed in anonymously');
+      }
+    } catch (e) {
+      print('Firebase Auth sign-in failed: $e');
+    }
+    // Check if we have audio available
+    hasAudio = widget.content.audioId != null && widget.content.audioId!.isNotEmpty;
+    print('Audio Player initialized - Audio ID: \\${widget.content.audioId}, Has Audio: \\${hasAudio}');
+    if (hasAudio) {
+      _resolveAndInitializeAudio();
+    }
   }
   
   Future<void> _resolveAndInitializeAudio() async {
