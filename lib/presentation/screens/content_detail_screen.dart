@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_import
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -15,8 +16,11 @@ import 'plant_allies_detail_screen.dart';
 import 'recipe_screen.dart';
 
 class ContentScreen extends ConsumerStatefulWidget {
-  const ContentScreen({super.key, required this.contentId});
+  const ContentScreen({super.key, required this.contentId, this.initialContent});
   final String contentId;
+  // Optional initial content passed via routing `extra` to avoid re-fetching
+  // when we already have the content object (e.g., from search results).
+  final content_model.Content? initialContent;
 
   @override
   ConsumerState<ContentScreen> createState() => _ContentScreenState();
@@ -39,6 +43,26 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // If an initialContent was provided via navigation `extra`, only use it
+    // directly when it's sufficiently populated (has content blocks or body/summary).
+    // Otherwise fall back to fetching the full content via the provider so
+    // the detail screens receive the complete data they expect.
+    final initial = widget.initialContent;
+    final bool hasUsefulInitial = initial != null && (
+      (initial.contentBlocks.isNotEmpty) ||
+      ((initial.body ?? '').trim().isNotEmpty) ||
+      ((initial.summary ?? '').trim().isNotEmpty)
+    );
+
+    if (hasUsefulInitial) {
+      final content = initial;
+      return Scaffold(
+        backgroundColor: const Color(0xFFFCF9F2),
+        appBar: _buildAppBar(context),
+        body: _buildContentView(content),
+      );
+    }
+
     final contentAsync = ref.watch(contentDetailProvider(widget.contentId));
 
     return Scaffold(

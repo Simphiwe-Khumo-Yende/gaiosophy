@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../application/providers/home_sections_provider.dart';
+import '../../data/models/content.dart';
 import '../theme/typography.dart';
 import 'content_card.dart';
 
@@ -9,11 +10,20 @@ class ContentSectionHorizontal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if this is a plant allies section
+    final isPlantSection = section.title.toLowerCase().contains('plant allies') ||
+        section.items.every((item) => item.type == ContentType.plant);
+    
+    // Dynamic height based on section type
+    // Plant cards: 180px width * 1.43 aspect ratio (0.7 inverse) + ~60px for text = ~320px
+    final sectionHeight = isPlantSection ? 210.0 : 170.0;
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Section header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
@@ -24,6 +34,7 @@ class ContentSectionHorizontal extends StatelessWidget {
                   style: context.primaryTitleMedium.copyWith(
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF1A1612),
+                    fontSize: 18,
                   ),
                 ),
                 if (section.subtitle != null)
@@ -32,16 +43,20 @@ class ContentSectionHorizontal extends StatelessWidget {
                     child: Text(
                       section.subtitle!,
                       style: context.secondaryBodySmall.copyWith(
-                        color: const Color(0xFF1A1612).withValues(alpha: 0.7),
+                        color: const Color(0xFF5A5A5A),
+                        fontSize: 13,
                       ),
                     ),
                   ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          
+          const SizedBox(height: 12),
+          
+          // Horizontal scrolling list
           SizedBox(
-            height: 170,
+            height: sectionHeight,
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
@@ -49,7 +64,9 @@ class ContentSectionHorizontal extends StatelessWidget {
                 final item = section.items[index];
                 return ContentCard(content: item);
               },
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, __) => SizedBox(
+                width: isPlantSection ? 20 : 12,
+              ),
               itemCount: section.items.length,
             ),
           ),

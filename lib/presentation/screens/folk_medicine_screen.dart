@@ -65,38 +65,34 @@ class FolkMedicineScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Image if available
+              // Circular Image if available
               if (contentBlock.data.featuredImageId != null && contentBlock.data.featuredImageId!.isNotEmpty) ...[
                 Center(
-                  child: FirebaseStorageImage(
-                    imageId: contentBlock.data.featuredImageId!,
-                    width: 180,
-                    height: 180,
-                    fit: BoxFit.cover,
-                    placeholder: Container(
+                  child: ClipOval(
+                    child: FirebaseStorageImage(
+                      imageId: contentBlock.data.featuredImageId!,
                       width: 180,
                       height: 180,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
+                      fit: BoxFit.cover,
+                      placeholder: Container(
+                        width: 180,
+                        height: 180,
+                        color: const Color(0xFF8B6B47).withOpacity(0.1),
+                        child: const Icon(
+                          Icons.spa_outlined,
+                          size: 48,
+                          color: Color(0xFF8B6B47),
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.spa_outlined,
-                        size: 48,
-                        color: Color(0xFF8B6B47),
-                      ),
-                    ),
-                    errorWidget: Container(
-                      width: 180,
-                      height: 180,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
-                      ),
-                      child: const Icon(
-                        Icons.broken_image_outlined,
-                        size: 48,
-                        color: Color(0xFF8B6B47),
+                      errorWidget: Container(
+                        width: 180,
+                        height: 180,
+                        color: const Color(0xFF8B6B47).withOpacity(0.1),
+                        child: const Icon(
+                          Icons.broken_image_outlined,
+                          size: 48,
+                          color: Color(0xFF8B6B47),
+                        ),
                       ),
                     ),
                   ),
@@ -160,13 +156,26 @@ class FolkMedicineScreen extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Show plant part name if available (e.g., "Fruit")
+            if (subBlock.plantPartName != null && subBlock.plantPartName!.isNotEmpty) ...[
+              Text(
+                subBlock.plantPartName!,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF3C3C3C),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
             // Medicinal uses
             if (subBlock.medicinalUses.isNotEmpty) ...[
               const Text(
                 'Medicinal Uses',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
                   color: Color(0xFF3C3C3C),
                 ),
               ),
@@ -180,8 +189,8 @@ class FolkMedicineScreen extends StatelessWidget {
               const Text(
                 'Skincare Uses',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
                   color: Color(0xFF3C3C3C),
                 ),
               ),
@@ -195,8 +204,8 @@ class FolkMedicineScreen extends StatelessWidget {
               Text(
                 subBlock.plantPartName?.contains('Seed') == true ? 'Seed Oil' : 'Energetic Uses',
                 style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
                   color: Color(0xFF3C3C3C),
                 ),
               ),
@@ -212,7 +221,7 @@ class FolkMedicineScreen extends StatelessWidget {
 
   Widget _buildSimpleUsesList(List<String> uses) {
     return Padding(
-      padding: const EdgeInsets.only(left: 20),
+      padding: const EdgeInsets.only(left: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: uses.map((use) {
@@ -220,25 +229,29 @@ class FolkMedicineScreen extends StatelessWidget {
           final cleanedUse = _stripHtml(use);
           
           return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '• ',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF3C3C3C),
-                    height: 1.6,
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Text(
+                    '•',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF3C3C3C),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     cleanedUse,
                     style: const TextStyle(
-                      fontSize: 15,
+                      fontSize: 14,
                       color: Color(0xFF3C3C3C),
-                      height: 1.6,
+                      height: 1.5,
                     ),
                   ),
                 ),
@@ -267,7 +280,9 @@ class FolkMedicineScreen extends StatelessWidget {
         .replaceAll('&ldquo;', '"')
         .replaceAll('&rdquo;', '"')
         .replaceAll('&lsquo;', "'")
-        .replaceAll('&rsquo;', "'");
+        .replaceAll('&rsquo;', "'")
+        .replaceAll('&ndash;', '–')
+        .replaceAll('&mdash;', '—');
     
     // Clean up extra whitespace
     stripped = stripped.trim().replaceAll(RegExp(r'\s+'), ' ');

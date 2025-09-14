@@ -6,7 +6,9 @@ import '../theme/typography.dart';
 import '../../data/models/content.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
-  const SearchScreen({super.key});
+  final String initialQuery;
+
+  SearchScreen({super.key, this.initialQuery = ''});
 
   @override
   ConsumerState<SearchScreen> createState() => _SearchScreenState();
@@ -19,8 +21,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   void initState() {
     super.initState();
-    // Auto-focus search field when screen opens
+    // If an initial query was provided (via route query params), set it
+    // and ensure the provider is updated; then auto-focus the field.
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.initialQuery.trim().isNotEmpty) {
+        _searchController.text = widget.initialQuery;
+        // Update provider so search results refresh
+        ref.read(searchQueryProvider.notifier).state = widget.initialQuery;
+      }
       _focusNode.requestFocus();
     });
   }
@@ -231,15 +239,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      child: InkWell(
+          child: InkWell(
         onTap: () {
-          // Navigate to content detail based on type
-          final routeName = switch (content.type) {
-            ContentType.recipe => '/content/${content.id}',
-            ContentType.plant => '/content/${content.id}',
-            ContentType.seasonal => '/content/${content.id}',
-          };
-          context.push(routeName);
+          // Navigate to the canonical content route and pass the content
+          // object as `extra` so the detail screen can render it directly
+          // (avoids Firestore lookup mismatch when search uses a local/mock repo).
+          context.push('/content/${content.id}', extra: content);
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(

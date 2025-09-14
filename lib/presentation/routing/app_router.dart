@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../screens/splash_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/content_detail_screen.dart';
+import '../../data/models/content.dart' as content_model;
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/forgot_password_screen.dart';
@@ -85,7 +86,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (c, s) => const SplashScreen()),
       GoRoute(path: '/disclaimer', builder: (c, s) => const DisclaimerScreen()),
       GoRoute(path: '/', builder: (c, s) => const HomeScreen()),
-      GoRoute(path: '/search', builder: (c, s) => const SearchScreen()),
+      GoRoute(
+        path: '/search',
+        builder: (c, s) {
+          final q = s.uri.queryParameters['q'] ?? '';
+          return SearchScreen(initialQuery: q);
+        },
+      ),
       GoRoute(path: '/login', builder: (c, s) => const LoginScreen()),
       GoRoute(path: '/register', builder: (c, s) => const RegisterScreen()),
       GoRoute(path: '/forgot-password', builder: (c, s) => const ForgotPasswordScreen()),
@@ -100,7 +107,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/content-icon-demo', builder: (c, s) => const ContentIconDemoScreen()),
       GoRoute(
         path: '/content/:id',
-        builder: (c, s) => ContentScreen(contentId: s.pathParameters['id']!),
+        builder: (c, s) {
+          final id = s.pathParameters['id']!;
+          final extra = s.extra as content_model.Content?;
+          return ContentScreen(contentId: id, initialContent: extra);
+        },
       ),
     ],
   );
