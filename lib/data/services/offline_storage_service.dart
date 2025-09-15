@@ -78,12 +78,67 @@ class OfflineStorageService {
   Future<void> _saveContentOffline(String contentId, Content content) async {
     await init();
     
-    // Convert content to JSON and save as Map<String, dynamic>
-    final contentJson = content.toJson();
-    contentJson['savedAt'] = DateTime.now().toIso8601String();
-    
-    // Store as Map<String, dynamic> to avoid adapter issues
-    await _contentBox?.put(contentId, Map<String, dynamic>.from(contentJson));
+    try {
+      // Create a simplified version for storage
+      final simplifiedContent = {
+        'id': content.id,
+        'title': content.title,
+        'slug': content.slug,
+        'type': content.type.name, // Convert enum to string
+        'summary': content.summary,
+        'body': content.body,
+        'season': content.season,
+        'featuredImageId': content.featuredImageId,
+        'audioId': content.audioId,
+        'templateType': content.templateType,
+        'status': content.status,
+        'subtitle': content.subtitle,
+        'prepTime': content.prepTime,
+        'infusionTime': content.infusionTime,
+        'difficulty': content.difficulty,
+        'published': content.published,
+        'tags': content.tags,
+        'media': content.media,
+        'createdAt': content.createdAt?.toIso8601String(),
+        'updatedAt': content.updatedAt?.toIso8601String(),
+        'savedAt': DateTime.now().toIso8601String(),
+        // Serialize content blocks
+        'contentBlocks': content.contentBlocks.map((block) => {
+          'id': block.id,
+          'type': block.type,
+          'order': block.order,
+          'data': {
+            'title': block.data.title,
+            'subtitle': block.data.subtitle,
+            'content': block.data.content,
+            'featuredImageId': block.data.featuredImageId,
+            'galleryImageIds': block.data.galleryImageIds,
+            'listItems': block.data.listItems,
+            'listStyle': block.data.listStyle,
+            // Serialize subBlocks
+            'subBlocks': block.data.subBlocks.map((subBlock) => {
+              'id': subBlock.id,
+              'plantPartName': subBlock.plantPartName,
+              'imageUrl': subBlock.imageUrl,
+              'medicinalUses': subBlock.medicinalUses,
+              'energeticUses': subBlock.energeticUses,
+              'skincareUses': subBlock.skincareUses,
+            }).toList(),
+          },
+          'button': block.button != null ? {
+            'action': block.button!.action,
+            'show': block.button!.show,
+            'text': block.button!.text,
+          } : null,
+        }).toList(),
+      };
+      
+      // Store the simplified data
+      await _contentBox?.put(contentId, simplifiedContent);
+    } catch (e) {
+      print('Error saving content offline: $e');
+      rethrow;
+    }
   }
 
   // Get saved content
@@ -95,18 +150,35 @@ class OfflineStorageService {
     
     try {
       // Ensure it's a Map<String, dynamic>
-      final Map<String, dynamic> jsonData;
+      final Map<String, dynamic> data;
       if (contentData is Map<String, dynamic>) {
-        jsonData = contentData;
+        data = contentData;
       } else if (contentData is Map) {
-        jsonData = Map<String, dynamic>.from(contentData);
+        data = Map<String, dynamic>.from(contentData);
       } else {
         // Invalid data format, remove it
         await _contentBox?.delete(contentId);
         return null;
       }
       
-      return Content.fromJson(jsonData);
+      // Reconstruct Content from simplified data
+      return Content(
+        id: data['id']?.toString() ?? contentId,
+        title: data['title']?.toString() ?? '',
+        slug: data['slug']?.toString() ?? contentId, // Use contentId as fallback slug
+        type: _parseContentType(data['type']?.toString()),
+        summary: data['summary']?.toString(),
+        body: data['body']?.toString(),
+        contentBlocks: <ContentBlock>[], // Empty for offline content
+        tags: (data['tags'] as List<dynamic>?)?.cast<String>() ?? <String>[],
+        createdAt: data['createdAt'] != null 
+          ? DateTime.tryParse(data['createdAt'].toString()) 
+          : null,
+        updatedAt: data['updatedAt'] != null 
+          ? DateTime.tryParse(data['updatedAt'].toString()) 
+          : null,
+        published: data['published'] as bool? ?? true,
+      );
     } catch (e) {
       // If content format is invalid, remove it
       await _contentBox?.delete(contentId);
@@ -168,5 +240,19 @@ class OfflineStorageService {
   Future<bool> isContentAvailableOffline(String contentId) async {
     await init();
     return _contentBox?.containsKey(contentId) ?? false;
+  }
+
+  // Helper method to parse ContentType from string
+  ContentType _parseContentType(String? typeString) {
+    switch (typeString?.toLowerCase()) {
+      case 'seasonal':
+        return ContentType.seasonal;
+      case 'plant':
+        return ContentType.plant;
+      case 'recipe':
+        return ContentType.recipe;
+      default:
+        return ContentType.plant; // Default fallback
+    }
   }
 }

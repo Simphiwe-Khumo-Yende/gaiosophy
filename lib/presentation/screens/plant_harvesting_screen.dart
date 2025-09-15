@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/enhanced_html_renderer.dart';
+import '../theme/typography.dart';
 
 class PlantHarvestingScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -44,10 +45,12 @@ class PlantHarvestingScreen extends StatelessWidget {
               Center(
                 child: Text(
                   contentBlock.data.title ?? 'Harvesting $parentTitle',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  style: context.primaryFont(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
                     color: textColor,
-                    fontWeight: FontWeight.w500,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(height: 30),

@@ -670,7 +670,7 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           if (block.data.title != null) ...[
                 Text(

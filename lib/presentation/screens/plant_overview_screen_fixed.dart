@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
+import '../widgets/bookmark_button.dart';
+import '../theme/typography.dart';
 
 class PlantOverviewScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -30,10 +32,10 @@ class PlantOverviewScreen extends StatelessWidget {
             child: Text(
               contentBlock.data.title ?? 'Plant Overview',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF1A1612),
+              style: context.primaryFont(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1A1612),
               ),
             ),
           ),
@@ -42,7 +44,7 @@ class PlantOverviewScreen extends StatelessWidget {
           _buildFeaturedImage(),
           
           // Content Preview Text
-          _buildContentPreview(),
+          _buildContentPreview(context),
           
           // Action Buttons closer to content
           _buildActionButtons(context),
@@ -135,7 +137,7 @@ class PlantOverviewScreen extends StatelessWidget {
   }
 
   // Content preview text matching Figma design
-  Widget _buildContentPreview() {
+  Widget _buildContentPreview(BuildContext context) {
     String? fullText = contentBlock.data.content;
     
     // Extract first two lines and add "..."
@@ -158,10 +160,10 @@ class PlantOverviewScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Text(
         previewText,
-        style: const TextStyle(
+        style: context.secondaryFont(
           fontSize: 16,
           height: 1.5,
-          color: Color(0xFF1A1612),
+          color: const Color(0xFF1A1612),
         ),
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
@@ -279,32 +281,25 @@ class PlantOverviewDetailedView extends StatelessWidget {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.bookmark_outline, color: Color(0xFF1A1612)),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Bookmark functionality coming soon'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
+          BookmarkButton(
+            content: _createContentFromBlock(),
+            iconColor: const Color(0xFF1A1612),
           ),
         ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (contentBlock.data.title != null) ...[
               Text(
                 contentBlock.data.title!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: context.primaryFont(
                   fontSize: 28,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1612),
+                  color: const Color(0xFF1A1612),
                   height: 1.3,
                 ),
               ),
@@ -315,11 +310,10 @@ class PlantOverviewDetailedView extends StatelessWidget {
               Text(
                 contentBlock.data.subtitle!,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: context.secondaryFont(
                   fontSize: 18,
                   fontWeight: FontWeight.w300,
                   color: const Color(0xFF1A1612).withValues(alpha: 0.8),
-                  fontStyle: FontStyle.italic,
                   height: 1.5,
                 ),
               ),
@@ -412,6 +406,22 @@ class PlantOverviewDetailedView extends StatelessWidget {
           fontStyle: FontStyle.italic,
         ),
       },
+    );
+  }
+
+  // Helper method to create a Content object from ContentBlock for bookmark functionality
+  content_model.Content _createContentFromBlock() {
+    return content_model.Content(
+      id: contentBlock.id,
+      title: contentBlock.data.title ?? 'Plant Overview',
+      slug: 'plant-overview-fixed-${contentBlock.id}',
+      summary: contentBlock.data.subtitle ?? '',
+      body: contentBlock.data.content ?? '',
+      type: content_model.ContentType.plant,
+      featuredImageId: contentBlock.data.featuredImageId,
+      contentBlocks: [contentBlock],
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
   }
 }

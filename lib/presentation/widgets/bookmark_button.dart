@@ -108,11 +108,21 @@ class BookmarkButton extends ConsumerWidget {
       // Callback for additional actions
       onBookmarkChanged?.call();
     } catch (e) {
+      print('Bookmark toggle error: $e'); // For debugging
       if (ref.context.mounted) {
         ScaffoldMessenger.of(ref.context).showSnackBar(
           SnackBar(
-            content: Text('Error ${isCurrentlyBookmarked ? 'removing' : 'saving'} content: $e'),
+            content: Text(
+              isCurrentlyBookmarked 
+                  ? 'Could not remove bookmark. Please try again.' 
+                  : 'Could not save content. Please check your storage.',
+            ),
             backgroundColor: Colors.red.shade600,
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: () => _toggleBookmark(ref, content, isCurrentlyBookmarked),
+            ),
           ),
         );
       }

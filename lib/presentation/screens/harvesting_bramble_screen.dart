@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import '../../data/models/content.dart' as content_model;
+import '../theme/typography.dart';
 
 class HarvestingBrambleScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -35,17 +36,12 @@ class HarvestingBrambleScreen extends StatelessWidget {
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
                   'Harvesting Guide',
-                  style: const TextStyle(
-                    color: Color(0xFF5A4E3C),
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(0, 1),
-                        blurRadius: 3,
-                        color: Colors.black26,
-                      ),
-                    ],
+                  style: context.primaryFont(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF5A4E3C),
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 background: Container(
                   decoration: BoxDecoration(

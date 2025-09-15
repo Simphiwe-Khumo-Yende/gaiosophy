@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/enhanced_html_renderer.dart';
+import '../widgets/bookmark_button.dart';
+import '../theme/typography.dart';
 import 'audio_player_screen.dart';
 
 class PlantFolkloreScreen extends StatelessWidget {
@@ -33,9 +35,10 @@ class PlantFolkloreScreen extends StatelessWidget {
             child: Text(
               contentBlock.data.title ?? 'Folklore & Legends',
               textAlign: TextAlign.center,
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: context.primaryFont(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
                 color: const Color(0xFF1A1612),
-                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -44,7 +47,7 @@ class PlantFolkloreScreen extends StatelessWidget {
           _buildFeaturedImage(),
           
           // Content Preview Text
-          _buildContentPreview(theme),
+          _buildContentPreview(context),
           
           // Action Buttons closer to content
           _buildActionButtons(context, theme),
@@ -134,7 +137,7 @@ class PlantFolkloreScreen extends StatelessWidget {
   }
 
   // Content preview text matching Figma design
-  Widget _buildContentPreview(ThemeData theme) {
+  Widget _buildContentPreview(BuildContext context) {
     String? fullText = contentBlock.data.content;
     
     // Extract first two lines and add "..."
@@ -157,7 +160,8 @@ class PlantFolkloreScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Text(
         previewText,
-        style: theme.textTheme.bodyLarge?.copyWith(
+        style: context.secondaryFont(
+          fontSize: 16,
           height: 1.5,
           color: const Color(0xFF1A1612),
         ),
@@ -190,7 +194,7 @@ class PlantFolkloreScreen extends StatelessWidget {
               ),
               child: Text(
                 'Read More',
-                style: theme.textTheme.labelLarge?.copyWith(
+                style: context.primaryFont(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
@@ -219,7 +223,7 @@ class PlantFolkloreScreen extends StatelessWidget {
               ),
               child: Text(
                 'Listen to Audio',
-                style: theme.textTheme.labelLarge?.copyWith(
+                style: context.primaryFont(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
@@ -286,8 +290,6 @@ class PlantFolkloreDetailedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F2),
       appBar: AppBar(
@@ -300,29 +302,24 @@ class PlantFolkloreDetailedView extends StatelessWidget {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.bookmark_outline, color: Color(0xFF1A1612)),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Bookmark functionality coming soon'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
+          BookmarkButton(
+            content: _createContentFromBlock(),
+            iconColor: const Color(0xFF1A1612),
           ),
         ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (contentBlock.data.title != null) ...[
               Text(
                 contentBlock.data.title!,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.headlineMedium?.copyWith(
+                style: context.primaryFont(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
                   color: const Color(0xFF1A1612),
                   height: 1.3,
                 ),
@@ -334,9 +331,10 @@ class PlantFolkloreDetailedView extends StatelessWidget {
               Text(
                 contentBlock.data.subtitle!,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: context.secondaryFont(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w300,
                   color: const Color(0xFF1A1612).withValues(alpha: 0.8),
-                  fontStyle: FontStyle.italic,
                   height: 1.5,
                 ),
               ),
@@ -368,17 +366,33 @@ class PlantFolkloreDetailedView extends StatelessWidget {
               const SizedBox(height: 24),
             ],
 
-            if (contentBlock.data.content != null) _buildDetailedHtmlContent(contentBlock.data.content!, theme),
+            if (contentBlock.data.content != null) _buildDetailedHtmlContent(contentBlock.data.content!),
           ],
         ),
       ),
     );
   }
-  Widget _buildDetailedHtmlContent(String htmlContent, ThemeData theme) {
+  Widget _buildDetailedHtmlContent(String htmlContent) {
     return EnhancedHtmlRenderer(
       content: htmlContent,
       iconSize: 20,
       iconColor: const Color(0xFF8B6B47),
+    );
+  }
+
+  // Helper method to create a Content object from ContentBlock for bookmark functionality
+  content_model.Content _createContentFromBlock() {
+    return content_model.Content(
+      id: contentBlock.id,
+      title: contentBlock.data.title ?? 'Plant Folklore',
+      slug: 'plant-folklore-${contentBlock.id}',
+      summary: contentBlock.data.subtitle ?? '',
+      body: contentBlock.data.content ?? '',
+      type: content_model.ContentType.plant,
+      featuredImageId: contentBlock.data.featuredImageId,
+      contentBlocks: [contentBlock],
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
   }
 }
