@@ -282,7 +282,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
           .update({'notificationsEnabled': value});
     } catch (e) {
       // Handle error silently or show a snackbar
-      debugPrint('Error updating notification setting: $e');
+      
     }
   }
 }

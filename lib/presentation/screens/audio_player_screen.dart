@@ -71,14 +71,14 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     try {
       if (FirebaseAuth.instance.currentUser == null) {
         await FirebaseAuth.instance.signInAnonymously();
-        print('Signed in anonymously');
+        
       }
     } catch (e) {
-      print('Firebase Auth sign-in failed: $e');
+      
     }
     // Check if we have audio available
     hasAudio = widget.content.audioId != null && widget.content.audioId!.isNotEmpty;
-    print('Audio Player initialized - Audio ID: \\${widget.content.audioId}, Has Audio: \\${hasAudio}');
+    
     if (hasAudio) {
       _resolveAndInitializeAudio();
     }
@@ -102,23 +102,23 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
       try {
         final refM4a = FirebaseStorage.instance.ref().child(audioPathM4a);
         foundUrl = await refM4a.getDownloadURL();
-        print('Resolved audio URL (.m4a): $foundUrl');
+        
       } catch (e) {
-        print('No .m4a found, trying .mp4...');
+        
         try {
           final refMp4 = FirebaseStorage.instance.ref().child(audioPathMp4);
           foundUrl = await refMp4.getDownloadURL();
-          print('Resolved audio URL (.mp4): $foundUrl');
+          
         } catch (e2) {
-          print('No .mp4 found either.');
+          
           throw e2;
         }
       }
       _resolvedAudioUrl = foundUrl;
       await _audioPlayer.setUrl(foundUrl!);
-      print('Audio loaded successfully');
+      
     } catch (e) {
-      print('Error loading audio: $e');
+      
       setState(() {
         hasAudio = false;
       });
@@ -327,7 +327,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                           onChanged: hasAudio ? (value) async {
                             final newPosition = Duration(milliseconds: (value * _duration.inMilliseconds).round());
                             await _audioPlayer.seek(newPosition);
-                            print('Seeking to position: ${(value * 100).toStringAsFixed(1)}%');
+                            
                           } : null,
                         ),
                       ),
@@ -372,9 +372,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                           try {
                             final newPosition = _position - const Duration(seconds: 10);
                             await _audioPlayer.seek(newPosition.isNegative ? Duration.zero : newPosition);
-                            print('Rewinding 10 seconds');
+                            
                           } catch (e) {
-                            print('Error rewinding: $e');
+                            
                           }
                         } : null,
                         icon: Icon(
@@ -405,14 +405,14 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                           onPressed: hasAudio ? () async {
                             try {
                               if (!isPlaying) {
-                                print('Starting audio playback for ID: ${widget.content.audioId}');
+                                
                                 await _audioPlayer.play();
                               } else {
-                                print('Pausing audio playback');
+                                
                                 await _audioPlayer.pause();
                               }
                             } catch (e) {
-                              print('Error controlling audio playback: $e');
+                              
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Audio playback error: ${e.toString()}'),
@@ -449,9 +449,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                           try {
                             final newPosition = _position + const Duration(seconds: 10);
                             await _audioPlayer.seek(newPosition > _duration ? _duration : newPosition);
-                            print('Fast forwarding 10 seconds');
+                            
                           } catch (e) {
-                            print('Error fast forwarding: $e');
+                            
                           }
                         } : null,
                         icon: Icon(

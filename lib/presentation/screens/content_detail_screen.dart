@@ -673,16 +673,16 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (block.data.title != null) ...[
-            Text(
-              block.data.title!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1A1612),
-                height: 1.3,
-              ),
-            ),
+                Text(
+                  block.data.title!,
+                  textAlign: TextAlign.center,
+                  style: context.primaryFont(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1A1612),
+                    height: 1.3,
+                  ),
+                ),
             const SizedBox(height: 16),
           ],
 
@@ -690,11 +690,10 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
             Text(
               block.data.subtitle!,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: context.secondaryFont(
                 fontSize: 18,
                 fontWeight: FontWeight.w300,
                 color: const Color(0xFF1A1612).withValues(alpha: 0.8),
-                fontStyle: FontStyle.italic,
                 height: 1.5,
               ),
             ),

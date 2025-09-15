@@ -62,9 +62,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       
       if (emailSent) {
-        print('Welcome email sent successfully to ${_emailController.text.trim()}');
+        
       } else {
-        print('Failed to send welcome email');
+        
       }
       
       if (mounted) context.go('/profile-setup');
@@ -112,9 +112,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
           
           if (emailSent) {
-            print('Welcome email sent successfully to ${user.email}');
+            
           } else {
-            print('Failed to send welcome email');
+            
           }
         }
         

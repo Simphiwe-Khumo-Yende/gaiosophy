@@ -122,14 +122,14 @@ class EmailServiceFirebase {
       });
 
       if (result.data['success'] == true) {
-        print('✅ Welcome email sent successfully to $userEmail');
+        
         return true;
       } else {
-        print('❌ Failed to send email: ${result.data['message']}');
+        
         return false;
       }
     } catch (e) {
-      print('❌ Error sending welcome email: $e');
+      
       return false;
     }
   }

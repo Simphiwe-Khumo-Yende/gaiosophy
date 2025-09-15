@@ -19,16 +19,16 @@ class FolkMedicineScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Add comprehensive debugging
-    print('=== FOLK MEDICINE SCREEN BUILD ===');
-    print('ContentBlock ID: ${contentBlock.id}');
-    print('ContentBlock Type: ${contentBlock.type}');
-    print('ContentBlock Order: ${contentBlock.order}');
-    print('Has subBlocks: ${contentBlock.data.subBlocks.isNotEmpty}');
-    print('SubBlocks count: ${contentBlock.data.subBlocks.length}');
-    print('Has HTML content: ${contentBlock.data.content != null && contentBlock.data.content!.isNotEmpty}');
-    print('HTML content preview: ${contentBlock.data.content?.substring(0, min(100, contentBlock.data.content?.length ?? 0)) ?? "null"}');
-    print('Has featuredImageId: ${contentBlock.data.featuredImageId != null && contentBlock.data.featuredImageId!.isNotEmpty}');
-    print('=====================================');
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F2),
@@ -120,11 +120,11 @@ class FolkMedicineScreen extends StatelessWidget {
     String? htmlContent = contentBlock.data.content;
 
     if (htmlContent == null || htmlContent.isEmpty) {
-      print('No content available, showing default content');
+      
       return _buildDefaultContent(context);
     }
 
-    print('Rendering HTML content with icon and box support');
+    
     
     // Use enhanced HTML renderer for all content
     return Container(
@@ -143,16 +143,16 @@ class FolkMedicineScreen extends StatelessWidget {
   }
 
   Widget _buildSubBlocksContent(BuildContext context) {
-    print('=== BUILDING SUB BLOCKS CONTENT ===');
-    print('Number of sub-blocks: ${contentBlock.data.subBlocks.length}');
+    
+    
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: contentBlock.data.subBlocks.map((subBlock) {
-        print('Processing sub-block: ${subBlock.plantPartName}');
-        print('Medicinal uses: ${subBlock.medicinalUses.length}');
-        print('Skincare uses: ${subBlock.skincareUses.length}');
-        print('Energetic uses: ${subBlock.energeticUses.length}');
+        
+        
+        
+        
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -34,7 +34,7 @@ Future<void> _configureAuthPersistence() async {
     }
   } catch (e) {
     // Persistence setting failed, but app can still function
-    print('Failed to set auth persistence: $e');
+    
   }
 }
 

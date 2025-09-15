@@ -18,15 +18,6 @@ class PlantHarvestingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Debug logging
-    print('=== PLANT HARVESTING SCREEN ===');
-    print('ContentBlock ID: ${contentBlock.id}');
-    print('ContentBlock Type: ${contentBlock.type}');
-    print('ContentBlock Order: ${contentBlock.order}');
-    print('Has HTML content: ${contentBlock.data.content != null && contentBlock.data.content!.isNotEmpty}');
-    print('HTML content length: ${contentBlock.data.content?.length ?? 0}');
-    print('================================');
-
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(

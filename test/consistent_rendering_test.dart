@@ -57,7 +57,7 @@ Take no more than one-third from any patch.
       expect(find.textContaining('[box-start:info]'), findsNothing);
       expect(find.textContaining('[box-end]'), findsNothing);
       
-      print('✅ Both Elder and Bramble content render consistently without raw tags!');
+      
     });
 
     test('should parse both HTML and box content using same method', () {
@@ -74,7 +74,7 @@ Take no more than one-third from any patch.
       expect(boxSections.isNotEmpty, isTrue);
       expect(mixedSections.isNotEmpty, isTrue);
       
-      print('✅ All content types parsed consistently!');
+      
     });
   });
 }

@@ -29,10 +29,10 @@ void main() {
       // Print all text widgets to see what's actually being rendered
       final finder = find.byType(Text);
       final widgets = tester.widgetList(finder);
-      print('Text widgets found: ${widgets.length}');
+      
       for (final widget in widgets) {
         if (widget is Text) {
-          print('Text content: "${widget.data}"');
+          
         }
       }
     });

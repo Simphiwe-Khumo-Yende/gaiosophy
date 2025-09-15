@@ -69,7 +69,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
   }
 
   Widget _buildErrorView(Object error) {
-    print('Content loading error: $error');
+    
     
     return Center(
       child: Padding(
@@ -124,10 +124,10 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
     final blocks = content.contentBlocks;
     
     // Debug: Print content info
-    print('Content: ${content.title}');
-    print('Content blocks count: ${blocks.length}');
+    
+    
     if (blocks.isNotEmpty) {
-      print('First block: ${blocks.first.type} - ${blocks.first.data.title}');
+      
     }
     
     if (blocks.isEmpty) {

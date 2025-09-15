@@ -351,7 +351,7 @@ class PrivacySettingsScreen extends ConsumerWidget {
           .doc(user.uid)
           .update({settingKey: value});
     } catch (e) {
-      debugPrint('Error updating privacy setting: $e');
+      
     }
   }
 

@@ -1,25 +1,44 @@
 import 'package:flutter/material.dart';
 import '../theme/typography.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class HomeHeroHeader extends StatelessWidget {
   const HomeHeroHeader({super.key});
 
   Future<Map<String, dynamic>?> _fetchHeroData() async {
-    print('Fetching app_config/main from Firestore...');
+    
     final doc = await FirebaseFirestore.instance.collection('app_config').doc('main').get();
-    print('Document exists: \\${doc.exists}');
+    
     if (!doc.exists) return null;
     final data = doc.data();
-    print('Raw data: \\${data}');
+    
     if (data == null) return null;
+    // Resolve image: prefer canonical storage download URL from image id when possible
+    String? resolvedUrl = data['app_image']?['url'];
+    final imageId = data['app_image']?['id'];
+    if (imageId != null) {
+      // try common extensions
+      for (final ext in ['png', 'jpg', 'jpeg']) {
+        final candidate = 'media/uploads/$imageId.$ext';
+        try {
+          final url = await FirebaseStorage.instance.ref().child(candidate).getDownloadURL();
+          resolvedUrl = url;
+          
+          break;
+        } catch (e) {
+          // ignore and try next ext
+        }
+      }
+    }
+
     final heroData = {
-      'imageUrl': data['app_image']?['url'],
-      'seasonName': data['current_season'],
+      'imageUrl': resolvedUrl,
+      'seasonName': data['current_season_name'],
       'direction': data['app_direction'],
       'element': data['app_element'],
     };
-    print('Parsed heroData: \\${heroData}');
+    
     return heroData;
   }
 

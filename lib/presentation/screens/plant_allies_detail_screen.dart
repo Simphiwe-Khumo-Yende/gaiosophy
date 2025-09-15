@@ -88,7 +88,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                 // Dynamically build menu items from content blocks, sorted by order
                 ...widget.content.contentBlocks
                     .where((block) {
-                      print('Block ${block.data.title} (${block.type}) - order: ${block.order} - included in first section: ${block.order < 2}');
+                      
                       return block.order < 2;
                     }) // Show first 2 blocks
                     .map((block) => _buildContentBlockItem(block))
@@ -103,7 +103,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                 // Remaining content blocks after folk medicine
                 ...widget.content.contentBlocks
                     .where((block) {
-                      print('Block ${block.data.title} (${block.type}) - order: ${block.order} - included in last section: ${block.order >= 2 && block.type != 'folk_medicine'}');
+                      
                       return block.order >= 2 && block.type != 'folk_medicine';
                     })
                     .map((block) => _buildContentBlockItem(block))
@@ -180,7 +180,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
             contentBlock: block,
             parentTitle: widget.content.title,
           );
-          print('Navigating to PlantOverviewScreen...');
+          
         } else if (blockType == 'folklore' ||
                    blockType == 'plant_folklore' ||
                    blockTitle.contains('folklore')) {
@@ -188,7 +188,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
             contentBlock: block,
             parentTitle: widget.content.title,
           );
-          print('Navigating to PlantFolkloreScreen...');
+          
         } else if (blockType == 'ritual' ||
                    blockType == 'magic_ritual' ||
                    blockTitle.contains('ritual') ||
@@ -197,7 +197,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
             contentBlock: block,
             parentTitle: widget.content.title,
           );
-          print('Navigating to MagicRitualsScreen...');
+          
         } else if (blockType == 'spell' ||
                    blockType == 'spell_work' ||
                    blockTitle.contains('spell')) {
@@ -206,7 +206,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
             contentBlock: block,
             parentTitle: widget.content.title,
           );
-          print('Navigating to PlantFolkloreScreen for spell works...');
+          
         } else if (blockType == 'harvesting' || 
                    blockType == 'plant_harvesting' ||
                    blockType == 'preparation' ||
@@ -217,20 +217,20 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
             contentBlock: block,
             parentTitle: widget.content.title,
           );
-          print('Navigating to PlantHarvestingScreen...');
+          
         } else if (blockType == 'folk_medicine') {
           destinationScreen = FolkMedicineScreen(
             contentBlock: block,
             parentTitle: widget.content.title,
           );
-          print('Navigating to FolkMedicineScreen...');
+          
         } else {
           // Fallback to generic content block detail screen
           destinationScreen = ContentBlockDetailScreen(
             contentBlock: block,
             parentTitle: widget.content.title,
           );
-          print('Navigating to ContentBlockDetailScreen (fallback)...');
+          
         }
         
         Navigator.of(context).push(
@@ -407,8 +407,8 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                           );
                         },
                         errorBuilder: (context, error, stackTrace) {
-                          print('Error loading image: ${subBlock.imageUrl}');
-                          print('Error: $error');
+                          
+                          
                           return Container(
                             width: 80,
                             height: 80,

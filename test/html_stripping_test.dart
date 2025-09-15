@@ -36,9 +36,9 @@ void main() {
       expect(strippedContent.contains('Ancestral Communion'), true);
       expect(strippedContent.contains('Pour elderflower tea'), true);
       
-      print('Original content length: ${htmlContent.length}');
-      print('Stripped content length: ${strippedContent.length}');
-      print('Stripped content: $strippedContent');
+      
+      
+      
     });
 
     test('should handle content with box sections and HTML', () {
@@ -68,7 +68,7 @@ void main() {
       expect(strippedContent.contains('<div>'), false);
       expect(strippedContent.contains('<p>'), false);
       
-      print('Box section stripped content: $strippedContent');
+      
     });
   });
 }
