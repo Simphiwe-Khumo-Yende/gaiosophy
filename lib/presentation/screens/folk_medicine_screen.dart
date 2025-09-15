@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:math';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/enhanced_html_renderer.dart';
@@ -18,18 +17,6 @@ class FolkMedicineScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Add comprehensive debugging
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F2),
       appBar: AppBar(
@@ -120,12 +107,9 @@ class FolkMedicineScreen extends StatelessWidget {
     String? htmlContent = contentBlock.data.content;
 
     if (htmlContent == null || htmlContent.isEmpty) {
-      
       return _buildDefaultContent(context);
     }
 
-    
-    
     // Use enhanced HTML renderer for all content
     return Container(
       constraints: const BoxConstraints(minHeight: 200),
@@ -143,17 +127,9 @@ class FolkMedicineScreen extends StatelessWidget {
   }
 
   Widget _buildSubBlocksContent(BuildContext context) {
-    
-    
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: contentBlock.data.subBlocks.map((subBlock) {
-        
-        
-        
-        
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -170,8 +146,8 @@ class FolkMedicineScreen extends StatelessWidget {
               const SizedBox(height: 16),
             ],
 
-            // Medicinal uses
-            if (subBlock.medicinalUses.isNotEmpty) ...[
+            // Medicinal uses - only show if has valid content
+            if (_hasValidContent(subBlock.medicinalUses)) ...[
               Text(
                 'Medicinal Uses',
                 style: context.primaryFont(
@@ -185,8 +161,8 @@ class FolkMedicineScreen extends StatelessWidget {
               const SizedBox(height: 24),
             ],
 
-            // Skincare uses
-            if (subBlock.skincareUses.isNotEmpty) ...[
+            // Skincare uses - only show if has valid content
+            if (_hasValidContent(subBlock.skincareUses)) ...[
               Text(
                 'Skincare Uses',
                 style: context.primaryFont(
@@ -200,9 +176,9 @@ class FolkMedicineScreen extends StatelessWidget {
               const SizedBox(height: 24),
             ],
 
-            // Energetic uses (or Seed Oil as shown in design)
-            if (subBlock.energeticUses.isNotEmpty) ...[
-                Text(
+            // Energetic uses - only show if has valid content
+            if (_hasValidContent(subBlock.energeticUses)) ...[
+              Text(
                 subBlock.plantPartName?.contains('Seed') == true ? 'Seed Oil' : 'Energetic Uses',
                 style: context.primaryFont(
                   fontSize: 15,
@@ -221,11 +197,21 @@ class FolkMedicineScreen extends StatelessWidget {
   }
 
   Widget _buildSimpleUsesList(BuildContext context, List<String> uses) {
+    // Filter out empty or whitespace-only items
+    final validUses = uses.where((use) {
+      final cleaned = _stripHtml(use).trim();
+      return cleaned.isNotEmpty;
+    }).toList();
+
+    if (validUses.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
       padding: const EdgeInsets.only(left: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: uses.map((use) {
+        children: validUses.map((use) {
           // Clean the HTML content
           final cleanedUse = _stripHtml(use);
           
@@ -247,7 +233,7 @@ class FolkMedicineScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                    child: Text(
+                  child: Text(
                     cleanedUse,
                     style: context.secondaryFont(
                       fontSize: 14,
@@ -262,6 +248,17 @@ class FolkMedicineScreen extends StatelessWidget {
         }).toList(),
       ),
     );
+  }
+
+  // Updated helper method to check if a list has meaningful content
+  bool _hasValidContent(List<String> items) {
+    if (items.isEmpty) return false;
+    
+    // Check if any item has actual content after stripping HTML and trimming
+    return items.any((item) {
+      final cleaned = _stripHtml(item).trim();
+      return cleaned.isNotEmpty;
+    });
   }
 
   // Helper method to strip HTML tags and decode entities

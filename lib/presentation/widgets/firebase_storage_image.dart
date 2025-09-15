@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/services/image_cache_service.dart';
 
-class FirebaseStorageImage extends StatefulWidget {
+class FirebaseStorageImage extends ConsumerStatefulWidget {
   const FirebaseStorageImage({
     super.key,
     required this.imageId,
@@ -23,10 +23,10 @@ class FirebaseStorageImage extends StatefulWidget {
   final Widget? errorWidget;
 
   @override
-  State<FirebaseStorageImage> createState() => _FirebaseStorageImageState();
+  ConsumerState<FirebaseStorageImage> createState() => _FirebaseStorageImageState();
 }
 
-class _FirebaseStorageImageState extends State<FirebaseStorageImage> {
+class _FirebaseStorageImageState extends ConsumerState<FirebaseStorageImage> {
   String? _imageUrl;
   bool _isLoading = true;
   String? _error;
@@ -39,35 +39,9 @@ class _FirebaseStorageImageState extends State<FirebaseStorageImage> {
 
   Future<void> _loadImageUrl() async {
     try {
-      // Ensure we're signed in (anonymous) so storage rules that require auth pass
-      try {
-        if (FirebaseAuth.instance.currentUser == null) {
-          await FirebaseAuth.instance.signInAnonymously();
-          
-        }
-      } catch (e) {
-        // ignore auth errors; we'll still try to fetch URL
-        
-      }
-
-      // Try the content-images path with .webp first (most of your assets are webp)
-      final exts = ['webp', 'png', 'jpg', 'jpeg'];
-      String? foundUrl;
-      for (final ext in exts) {
-        final path = 'media/content-images/${widget.imageId}.$ext';
-        try {
-          
-          final url = await FirebaseStorage.instance.ref().child(path).getDownloadURL();
-          foundUrl = url;
-          
-          break;
-        } catch (e) {
-          // not found, try next extension
-          //
-        }
-      }
-
-      final url = foundUrl;
+      final imageCacheService = ref.read(imageCacheServiceProvider);
+      final url = await imageCacheService.getImageUrl(widget.imageId);
+      
       if (mounted) {
         setState(() {
           _imageUrl = url;
@@ -75,6 +49,9 @@ class _FirebaseStorageImageState extends State<FirebaseStorageImage> {
         });
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('Error loading image ${widget.imageId}: $e');
+      }
       if (mounted) {
         setState(() {
           _error = e.toString();

@@ -3,6 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/models/content.dart';
 import '../../data/repositories/firestore_content_repository.dart';
+import '../../data/services/offline_storage_service.dart';
+import '../../data/services/image_cache_service.dart';
+import 'network_connectivity_provider.dart';
 
 class PaginatedContentState {
   const PaginatedContentState({
@@ -35,8 +38,9 @@ class PaginatedContentState {
 }
 
 class ContentListNotifier extends StateNotifier<PaginatedContentState> {
-  ContentListNotifier(this._repo) : super(const PaginatedContentState());
+  ContentListNotifier(this._repo, this._imageCacheService) : super(const PaginatedContentState());
   final FirestoreContentRepository _repo;
+  final ImageCacheService _imageCacheService;
 
   Future<void> loadNext({ContentType? type}) async {
     if (state.isLoading || !state.hasMore) return;
@@ -46,6 +50,10 @@ class ContentListNotifier extends StateNotifier<PaginatedContentState> {
         startAfter: state.cursor,
         type: type,
       );
+      
+      // Preload images for the new content
+      _preloadImages(page.items);
+      
       state = state.copyWith(
         items: [...state.items, ...page.items],
         cursor: page.nextCursor,
@@ -61,6 +69,29 @@ class ContentListNotifier extends StateNotifier<PaginatedContentState> {
     state = const PaginatedContentState();
     await loadNext(type: type);
   }
+
+  /// Preload images for content in the background
+  void _preloadImages(List<Content> content) {
+    final imageIds = <String>[];
+    for (final item in content) {
+      // Add featured image
+      if (item.featuredImageId?.isNotEmpty == true) {
+        imageIds.add(item.featuredImageId!);
+      }
+      
+      // Add content block images
+      for (final block in item.contentBlocks) {
+        if (block.data.featuredImageId?.isNotEmpty == true) {
+          imageIds.add(block.data.featuredImageId!);
+        }
+      }
+    }
+    
+    // Preload images asynchronously (don't wait for completion)
+    if (imageIds.isNotEmpty) {
+      _imageCacheService.preloadImageUrls(imageIds);
+    }
+  }
 }
 
 final firestoreProvider = Provider<FirebaseFirestore>((_) => FirebaseFirestore.instance);
@@ -72,7 +103,8 @@ final firestoreContentRepositoryProvider = Provider<FirestoreContentRepository>(
 
 final contentListProvider = StateNotifierProvider<ContentListNotifier, PaginatedContentState>((ref) {
   final repo = ref.watch(firestoreContentRepositoryProvider);
-  return ContentListNotifier(repo);
+  final imageCacheService = ref.watch(imageCacheServiceProvider);
+  return ContentListNotifier(repo, imageCacheService);
 });
 
 final contentDetailProvider = FutureProvider.family<Content, String>((ref, id) async {
@@ -81,6 +113,19 @@ final contentDetailProvider = FutureProvider.family<Content, String>((ref, id) a
     throw Exception('Please sign in to view content');
   }
   
+  final isOffline = ref.watch(isOfflineProvider);
+  final offlineService = ref.watch(offlineStorageServiceProvider);
+  
+  // If offline, try to get content from offline storage first
+  if (isOffline) {
+    final offlineContent = await offlineService.getSavedContent(id);
+    if (offlineContent != null) {
+      return offlineContent;
+    }
+    throw Exception('Content not available offline. Please connect to the internet.');
+  }
+  
+  // If online, try Firestore first, with offline fallback
   try {
     final repo = ref.watch(firestoreContentRepositoryProvider);
     return await repo.fetchById(id);
@@ -88,6 +133,13 @@ final contentDetailProvider = FutureProvider.family<Content, String>((ref, id) a
     if (e.toString().contains('permission-denied')) {
       throw Exception('Access denied. Please check your login status.');
     }
+    
+    // Network error or other issue - try offline content as fallback
+    final offlineContent = await offlineService.getSavedContent(id);
+    if (offlineContent != null) {
+      return offlineContent;
+    }
+    
     rethrow;
   }
 });
