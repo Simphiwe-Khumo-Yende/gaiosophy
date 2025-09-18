@@ -49,19 +49,19 @@ class HomeHeroHeader extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
-            height: 280,
+            height: 380,
             child: Center(child: CircularProgressIndicator()),
           );
         }
         if (!snapshot.hasData || snapshot.data == null) {
           return const SizedBox(
-            height: 280,
+            height: 380,
             child: Center(child: Text('No hero data found')),
           );
         }
         final hero = snapshot.data!;
         return SizedBox(
-          height: 280,
+          height: 380,
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -85,44 +85,6 @@ class HomeHeroHeader extends StatelessWidget {
                       Colors.black.withOpacity(0.5),
                     ],
                   ),
-                ),
-              ),
-
-              // Centered text content
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    if (hero['seasonName'] != null)
-                      Text(
-                        'Season: ${hero['seasonName']}',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: const Color(0xFFFCF9F2),
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                    if (hero['direction'] != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        'Direction: ${hero['direction']}',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: const Color(0xFFFCF9F2),
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                    if (hero['element'] != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        'Element: ${hero['element']}',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: const Color(0xFFFCF9F2),
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ],
                 ),
               ),
             ],

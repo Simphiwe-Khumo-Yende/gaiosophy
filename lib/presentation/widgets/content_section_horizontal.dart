@@ -70,7 +70,7 @@ class ContentSectionHorizontal extends StatelessWidget {
                 return ContentCard(content: item);
               },
               separatorBuilder: (_, __) => SizedBox(
-                width: isPlantSection ? 24 : 12,
+                width: isPlantSection ? 8 : 8,
               ),
               itemCount: section.items.length,
             ),
