@@ -33,9 +33,9 @@ class ContentSectionHorizontal extends StatelessWidget {
                 Text(
                   section.title, 
                   style: context.primaryTitleMedium.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w800,
                     color: const Color(0xFF1A1612),
-                    fontSize: 18,
+                    fontSize: 24,
                   ),
                 ),
                 if (section.subtitle != null)
@@ -43,9 +43,11 @@ class ContentSectionHorizontal extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       section.subtitle!,
-                      style: context.secondaryBodySmall.copyWith(
-                        color: const Color(0xFF5A5A5A),
-                        fontSize: 13,
+                      style: const TextStyle(
+                        fontFamily: 'Public Sans',
+                        color: Color(0xFF676666),
+                        fontSize: 15,
+                        fontWeight: FontWeight.normal,
                       ),
                     ),
                   ),
