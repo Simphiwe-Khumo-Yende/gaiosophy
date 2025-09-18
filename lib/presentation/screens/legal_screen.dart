@@ -51,7 +51,7 @@ By using this app, you acknowledge that you are solely responsible for your heal
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xFFFCF9F2),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -109,7 +109,7 @@ By using this app, you acknowledge that you are solely responsible for your heal
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xFFFCF9F2),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -172,7 +172,7 @@ By using this app, you acknowledge that you are solely responsible for your heal
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xFFFCF9F2),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -244,7 +244,7 @@ By using this app, you acknowledge that you are solely responsible for your heal
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xFFFCF9F2),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(

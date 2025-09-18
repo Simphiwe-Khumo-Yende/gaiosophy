@@ -50,6 +50,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     )!;
     
     return Scaffold(
+      backgroundColor: const Color(0xFFFCF9F2),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,

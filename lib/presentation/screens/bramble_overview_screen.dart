@@ -81,7 +81,7 @@ class BrambleOverviewScreen extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: const Color(0xFFFCF9F2),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(

@@ -36,7 +36,7 @@ class SeasonalWisdomLayout extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xFFFCF9F2),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
@@ -58,7 +58,7 @@ class SeasonalWisdomLayout extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: const Color(0xFFFCF9F2).withOpacity(0.9),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(

@@ -59,7 +59,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: const Color(0xFFFCF9F2),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(

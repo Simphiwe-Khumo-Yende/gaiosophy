@@ -127,7 +127,7 @@ class PlantOverviewScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(25),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xFFFCF9F2),
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(

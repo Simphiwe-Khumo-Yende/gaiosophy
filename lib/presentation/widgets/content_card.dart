@@ -37,7 +37,7 @@ class ContentCard extends StatelessWidget {
       width: 130,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
+        color: const Color(0xFFFCF9F2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
@@ -117,7 +117,7 @@ Widget _buildPlantAllyCard(BuildContext context) {
       width: 180, // Much wider than standard cards (130px)
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16), // Slightly more rounded
-        color: Colors.white,
+        color: const Color(0xFFFCF9F2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
