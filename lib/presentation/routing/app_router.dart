@@ -18,6 +18,8 @@ import '../screens/saved_content_screen.dart';
 import '../screens/search_screen.dart';
 import '../screens/disclaimer_screen.dart';
 import '../screens/legal_screen.dart';
+import '../screens/about_screen.dart';
+import '../screens/references_gratitude_screen.dart';
 import '../screens/content_icon_demo_screen.dart';
 import '../../data/services/disclaimer_service.dart';
 
@@ -103,6 +105,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/privacy-settings', builder: (c, s) => const PrivacySettingsScreen()),
       GoRoute(path: '/help-support', builder: (c, s) => const HelpSupportScreen()),
       GoRoute(path: '/saved-content', builder: (c, s) => const SavedContentScreen()),
+      GoRoute(path: '/about', builder: (c, s) => const AboutScreen()),
+      GoRoute(path: '/references-gratitude', builder: (c, s) => const ReferencesGratitudeScreen()),
       GoRoute(path: '/legal', builder: (c, s) => const LegalScreen()),
       GoRoute(path: '/content-icon-demo', builder: (c, s) => const ContentIconDemoScreen()),
       GoRoute(

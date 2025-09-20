@@ -173,6 +173,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 ListTile(
                   leading: const Icon(
+                    Icons.favorite_outline,
+                    color: Color(0xFF8B6B47),
+                  ),
+                  title: Text(
+                    'A Message from the Creator',
+                    style: context.secondaryBodyLarge.copyWith(
+                      color: const Color(0xFF1A1612),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showCreatorMessage(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.menu_book_outlined,
+                    color: Color(0xFF8B6B47),
+                  ),
+                  title: Text(
+                    'References & Gratitude',
+                    style: context.secondaryBodyLarge.copyWith(
+                      color: const Color(0xFF1A1612),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/references-gratitude');
+                  },
+                ),
+                const Divider(
+                  height: 24,
+                  thickness: 1,
+                  color: Color(0xFFE5E5E5),
+                  indent: 16,
+                  endIndent: 16,
+                ),
+                ListTile(
+                  leading: const Icon(
                     Icons.settings_outlined,
                     color: Color(0xFF8B6B47),
                   ),
@@ -185,6 +224,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onTap: () {
                     Navigator.pop(context);
                     context.push('/settings');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.info_outline,
+                    color: Color(0xFF8B6B47),
+                  ),
+                  title: Text(
+                    'About',
+                    style: context.secondaryBodyLarge.copyWith(
+                      color: const Color(0xFF1A1612),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/about');
                   },
                 ),
                 ListTile(
@@ -272,6 +327,91 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showCreatorMessage(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: const Color(0xFFFCF9F2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.favorite,
+                          color: Color(0xFF8B6B47),
+                          size: 28,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'A Message from the Creator',
+                            style: context.primaryTitleLarge.copyWith(
+                              color: const Color(0xFF1A1612),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.of(context).pop(),
+                          color: const Color(0xFF8B6B47),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Message Content
+                    Text(
+                      'This app was born out of a prayer.\n\n'
+                      'A prayer that we might remember how to walk in rhythm with the seasons, the moon, and the cycles of the living Earth. A prayer that we might turn our gaze back to the land beneath our feet, to the hedgerows, fields, forests, and waters that hold us, and rediscover the magic waiting in our local woodlands.\n\n'
+                      'I offer this work humbly, not as an expert or authority, but as a fellow traveler who is still learning every day. My path has been shaped by teachers, mentors, books, lived experience and above all, by the plants and places themselves. This app is a weaving of those learnings, offered in the spirit of reverence, reciprocity, and curiosity.\n\n'
+                      'In a time when so much of spirituality is directed outward, chasing distant cultures, exotic traditions, and imported medicines, my deepest wish is that this space helps you re-member your own ancestral threads. May it invite you to cultivate a practice that is rooted, relevant, sustainable, and empowered, one that grows from the soil of your own lineage, your own body, and your local land.\n\n'
+                      'This app is not meant to be more lofty information to consume and set aside. It is a living transmission, something to be embodied, to stir your curiosity, to draw you outside onto the land, and to inspire your own relationships with the plants and seasons. May it guide you home to your own true nature.',
+                      style: context.secondaryBodyMedium.copyWith(
+                        color: const Color(0xFF1A1612),
+                        height: 1.6,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Signature
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'With gratitude and love,\nSophie Spiro',
+                            style: context.secondaryBodyMedium.copyWith(
+                              color: const Color(0xFF8B6B47),
+                              fontStyle: FontStyle.italic,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
