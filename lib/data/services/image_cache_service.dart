@@ -92,11 +92,11 @@ class ImageCacheService {
       final cacheData = await _storage.read(key: _urlCacheKey);
       if (cacheData == null) return null;
 
-      final Map<String, dynamic> cache = json.decode(cacheData);
+      final Map<String, dynamic> cache = json.decode(cacheData) as Map<String, dynamic>;
       final imageData = cache[imageId];
       if (imageData == null) return null;
 
-      final cachedAt = DateTime.parse(imageData['cachedAt']);
+      final cachedAt = DateTime.parse(imageData['cachedAt'] as String);
       final url = imageData['url'] as String;
 
       // Check if cache is still valid (unless ignoring expiry)
@@ -120,7 +120,7 @@ class ImageCacheService {
   Future<void> _cacheUrl(String imageId, String url) async {
     try {
       final cacheData = await _storage.read(key: _urlCacheKey) ?? '{}';
-      final Map<String, dynamic> cache = json.decode(cacheData);
+      final Map<String, dynamic> cache = json.decode(cacheData) as Map<String, dynamic>;
       
       cache[imageId] = {
         'url': url,
@@ -145,7 +145,7 @@ class ImageCacheService {
         batch.map((imageId) => getImageUrl(imageId)),
       );
       // Small delay between batches
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
     }
   }
 
@@ -155,13 +155,13 @@ class ImageCacheService {
       final cacheData = await _storage.read(key: _urlCacheKey);
       if (cacheData == null) return;
 
-      final Map<String, dynamic> cache = json.decode(cacheData);
+      final Map<String, dynamic> cache = json.decode(cacheData) as Map<String, dynamic>;
       final now = DateTime.now();
       
       // Remove expired entries
       cache.removeWhere((key, value) {
         try {
-          final cachedAt = DateTime.parse(value['cachedAt']);
+          final cachedAt = DateTime.parse(value['cachedAt'] as String);
           return now.difference(cachedAt) > _cacheDuration;
         } catch (e) {
           return true; // Remove invalid entries
@@ -200,7 +200,7 @@ class ImageCacheService {
         };
       }
 
-      final Map<String, dynamic> cache = json.decode(cacheData);
+      final Map<String, dynamic> cache = json.decode(cacheData) as Map<String, dynamic>;
       return {
         'totalCached': cache.length,
         'memoryCache': _memoryCache.length,

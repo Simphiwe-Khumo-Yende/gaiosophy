@@ -164,9 +164,9 @@ class PrivacySettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildPrivacyControls(BuildContext context, User? user, Map<String, dynamic>? settings) {
-    final dataCollection = settings?['dataCollectionEnabled'] ?? true;
-    final analytics = settings?['analyticsEnabled'] ?? true;
-    final personalization = settings?['personalizationEnabled'] ?? true;
+    final dataCollection = (settings?['dataCollectionEnabled'] as bool?) ?? true;
+    final analytics = (settings?['analyticsEnabled'] as bool?) ?? true;
+    final personalization = (settings?['personalizationEnabled'] as bool?) ?? true;
 
     return Container(
       decoration: BoxDecoration(
@@ -356,7 +356,7 @@ class PrivacySettingsScreen extends ConsumerWidget {
   }
 
   void _showPrivacyPolicy(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
@@ -434,7 +434,7 @@ class PrivacySettingsScreen extends ConsumerWidget {
   }
 
   void _showDeleteAccountDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
