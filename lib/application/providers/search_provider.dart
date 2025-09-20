@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/content.dart';
-import '../../data/repositories/content_repository.dart';
+import 'content_list_provider.dart';
 
 /// Simple search query state
 final searchQueryProvider = StateProvider<String>((ref) => '');
@@ -11,12 +11,12 @@ final isSearchActiveProvider = Provider<bool>((ref) {
   return query.trim().isNotEmpty;
 });
 
-/// Search results provider that delegates to ContentRepository
+/// Search results provider that uses FirestoreContentRepository
 final searchResultsProvider = FutureProvider<List<Content>>((ref) async {
   final query = ref.watch(searchQueryProvider);
 
   if (query.trim().isEmpty) return <Content>[];
 
-  final repository = ref.watch(contentRepositoryProvider);
+  final repository = ref.watch(firestoreContentRepositoryProvider);
   return repository.searchContent(query);
 });

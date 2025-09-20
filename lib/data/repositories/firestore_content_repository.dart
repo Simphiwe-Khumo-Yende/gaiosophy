@@ -20,7 +20,7 @@ class FirestoreContentRepository {
     String? query,
     DocumentSnapshot<Map<String, dynamic>>? startAfter,
   }) async {
-    Query<Map<String, dynamic>> q = _db.collection(_collection).where('status', isEqualTo: 'Published');
+    Query<Map<String, dynamic>> q = _db.collection(_collection).where('status', isEqualTo: 'published');
     if (type != null) {
       q = q.where('type', isEqualTo: _typeString(type));
     }
@@ -177,6 +177,91 @@ class FirestoreContentRepository {
       createdAt: parseDate(data['created_at'] ?? data['createdAt']),
       updatedAt: parseDate(data['updated_at'] ?? data['updatedAt']),
     );
+  }
+
+  Future<List<Content>> searchContent(String query) async {
+    if (query.trim().isEmpty) return [];
+    
+    final qLower = query.toLowerCase();
+    
+    // Search across all content collections
+    final collections = ['content', 'content_seasonal_wisdom', 'content_plant_allies', 'content_recipes'];
+    final List<Content> allResults = [];
+    
+    for (final collection in collections) {
+      try {
+        // Search by title and summary (no keywords field dependency)
+        final allDocs = await _db.collection(collection)
+            .where('status', isEqualTo: 'published')  // Use lowercase 'published'
+            .limit(50)
+            .get();
+            
+        for (final doc in allDocs.docs) {
+          final data = Map<String, dynamic>.from(doc.data());
+          final title = (data['title'] as String? ?? '').toLowerCase();
+          final summary = (data['summary'] as String? ?? '').toLowerCase();
+          final body = (data['body'] as String? ?? data['content'] as String? ?? '').toLowerCase();
+          final tags = (data['tags'] as List?)?.whereType<String>().map((t) => t.toLowerCase()).toList() ?? <String>[];
+          
+          // Check if query matches title, summary, body, or tags
+          if (title.contains(qLower) || 
+              summary.contains(qLower) || 
+              body.contains(qLower) ||
+              tags.any((tag) => tag.contains(qLower))) {
+            
+            // Ensure type field is set based on collection name
+            if (!data.containsKey('type')) {
+              switch (collection) {
+                case 'content_seasonal_wisdom':
+                  data['type'] = 'seasonal';
+                  break;
+                case 'content_plant_allies':
+                  data['type'] = 'plant';
+                  break;
+                case 'content_recipes':
+                  data['type'] = 'recipe';
+                  break;
+                default:
+                  data['type'] ??= 'seasonal';
+              }
+            }
+            
+            data['id'] = doc.id;
+            allResults.add(_parseContentFromData(doc.id, data));
+          }
+        }
+      } catch (e) {
+        // Continue with other collections if one fails
+        print('Error searching collection $collection: $e');
+        continue;
+      }
+    }
+    
+    // Remove duplicates and sort by relevance (title matches first, then summary)
+    final uniqueResults = <String, Content>{};
+    for (final content in allResults) {
+      if (!uniqueResults.containsKey(content.id)) {
+        uniqueResults[content.id] = content;
+      }
+    }
+    
+    final results = uniqueResults.values.toList();
+    results.sort((a, b) {
+      final aTitle = a.title.toLowerCase();
+      final bTitle = b.title.toLowerCase();
+      final aTitleMatch = aTitle.contains(qLower) ? 1 : 0;
+      final bTitleMatch = bTitle.contains(qLower) ? 1 : 0;
+      
+      // Title matches come first
+      if (aTitleMatch != bTitleMatch) {
+        return bTitleMatch.compareTo(aTitleMatch);
+      }
+      
+      // Then alphabetical
+      return aTitle.compareTo(bTitle);
+    });
+    
+    return results.take(20).toList();
   }
 
   String _typeString(ContentType t) {

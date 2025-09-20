@@ -241,10 +241,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       ),
           child: InkWell(
         onTap: () {
-          // Navigate to the canonical content route and pass the content
-          // object as `extra` so the detail screen can render it directly
-          // (avoids Firestore lookup mismatch when search uses a local/mock repo).
-          context.push('/content/${content.id}', extra: content);
+          // Navigate to the content detail screen using the same pattern as home screen cards
+          context.push('/content/${content.id}');
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
