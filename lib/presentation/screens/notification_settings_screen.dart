@@ -109,7 +109,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
               data: (settings) => _buildNotificationToggle(
                 context, 
                 user, 
-                settings?['notificationsEnabled'] ?? true,
+                settings?['notificationsEnabled'] as bool? ?? true,
               ),
               loading: () => _buildLoadingToggle(context),
               error: (error, _) => _buildErrorState(context),

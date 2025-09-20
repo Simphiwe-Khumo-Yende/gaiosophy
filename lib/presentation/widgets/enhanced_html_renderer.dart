@@ -97,42 +97,55 @@ class EnhancedHtmlRenderer extends StatelessWidget {
         padding: HtmlPaddings.zero,
         color: const Color(0xFF1A1612),
         fontSize: FontSize(16),
-        lineHeight: LineHeight(1.6),
+        lineHeight: LineHeight(1.1), // Reduced from 1.3 to 1.1
+      ),
+      "br": Style(
+        margin: Margins.only(bottom: 2), // Reduced from 4 to 2
       ),
       "h1": Style(
         color: const Color(0xFF1A1612),
         fontSize: FontSize(24),
         fontWeight: FontWeight.w700,
-        margin: Margins.only(top: 24, bottom: 12),
+        margin: Margins.only(top: 12, bottom: 6), // Reduced from 16,8 to 12,6
         textAlign: TextAlign.center,
       ),
       "h2": Style(
         color: const Color(0xFF1A1612),
         fontSize: FontSize(20),
         fontWeight: FontWeight.w600,
-        margin: Margins.only(top: 20, bottom: 10),
+        margin: Margins.only(top: 10, bottom: 4), // Reduced from 14,6 to 10,4
       ),
       "h3": Style(
         color: const Color(0xFF1A1612),
         fontSize: FontSize(18),
         fontWeight: FontWeight.w600,
-        margin: Margins.only(top: 16, bottom: 8),
+        margin: Margins.only(top: 8, bottom: 3), // Reduced from 12,4 to 8,3
       ),
       "p": Style(
-        margin: Margins.only(bottom: 16),
+        margin: Margins.only(bottom: 3), // Reduced from 6 to 3
         color: const Color(0xFF1A1612),
       ),
+      "div": Style(
+        margin: Margins.only(bottom: 2), // Minimal spacing for div elements
+      ),
       "ul": Style(
-        margin: Margins.only(bottom: 16),
+        margin: Margins.only(bottom: 3), // Reduced from 6 to 3
       ),
       "li": Style(
-        margin: Margins.only(bottom: 4),
+        margin: Margins.only(bottom: 1), // Reduced from 2 to 1
       ),
       "strong": Style(
         fontWeight: FontWeight.bold,
       ),
       "em": Style(
         fontStyle: FontStyle.italic,
+      ),
+      "u": Style(
+        textDecoration: TextDecoration.none, // Hide the underline
+        fontFamily: 'Roboto Serif',
+        fontWeight: FontWeight.w400,
+        fontSize: FontSize(20),
+        color: const Color(0xFF5A4E3C),
       ),
       "icon": Style(
         color: iconColor ?? const Color(0xFF8B6B47),
@@ -171,10 +184,10 @@ class RecipeHtmlRenderer extends EnhancedHtmlRenderer {
         padding: HtmlPaddings.zero,
         color: const Color(0xFF5A5A5A),
         fontSize: FontSize(13),
-        lineHeight: LineHeight(1.5),
+        lineHeight: LineHeight(1.1), // Reduced from 1.3 to 1.1
       ),
       "p": Style(
-        margin: Margins.only(bottom: 8),
+        margin: Margins.only(bottom: 2), // Reduced from 4 to 2
       ),
       "h1, h2, h3": Style(
         color: Colors.black87,

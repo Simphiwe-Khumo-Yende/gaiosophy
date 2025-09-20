@@ -44,10 +44,10 @@ extension AppTypography on BuildContext {
       fontWeight: fontWeight,
       color: color,
       letterSpacing: letterSpacing,
-      height: height,
+      height: height ?? 1.1, // Default reduced line height from 1.3 to 1.1
     );
   }
-  
+
   TextStyle secondaryFont({
     double? fontSize,
     FontWeight? fontWeight,
@@ -60,7 +60,7 @@ extension AppTypography on BuildContext {
       fontWeight: fontWeight,
       color: color,
       letterSpacing: letterSpacing,
-      height: height,
+      height: height ?? 1.1, // Default reduced line height from 1.3 to 1.1
     );
   }
 }

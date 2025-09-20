@@ -21,7 +21,7 @@ class ContentBoxParser {
     
     for (final section in sections) {
       if (section.isBoxed) {
-        // Create a boxed section with special styling based on boxStyle
+        // Create a boxed section with special styling based on boxStyle and boxVariant
         widgets.add(_buildBoxedSection(
           section.content,
           context: context,
@@ -30,6 +30,7 @@ class ContentBoxParser {
           iconColor: iconColor,
           boxDecoration: boxDecoration,
           boxStyle: section.boxStyle, // Pass the style from the section
+          boxVariant: section.boxVariant, // Pass the variant from the section
         ));
       } else {
         // Regular content section
@@ -50,8 +51,8 @@ class ContentBoxParser {
   /// Splits content into sections based on [box-start] and [box-end] tags
   static List<ContentSection> _splitByBoxTags(String content) {
     final List<ContentSection> sections = [];
-    // Updated regex to capture optional style parameter: [box-start] or [box-start:style]
-    final RegExp boxRegex = RegExp(r'\[box-start(?::([^\]]+))?\](.*?)\[box-end\]', dotAll: true);
+    // Updated regex to capture box variants: [box-start], [box-start-1], [box-start-2] with optional style parameter
+    final RegExp boxRegex = RegExp(r'\[box-start(-[12])?(?::([^\]]+))?\](.*?)\[box-end(-[12])?\]', dotAll: true);
     
     int lastMatchEnd = 0;
     final matches = boxRegex.allMatches(content);
@@ -68,14 +69,16 @@ class ContentBoxParser {
         }
       }
       
-      // Add the boxed content with style
-      final boxStyle = match.group(1); // Extract style parameter (e.g., "warning", "info")
-      final boxContent = match.group(2)?.trim() ?? '';
+      // Add the boxed content with style and variant
+      final boxVariant = match.group(1); // Extract variant (-1 or -2)
+      final boxStyle = match.group(2); // Extract style parameter (e.g., "warning", "info")
+      final boxContent = match.group(3)?.trim() ?? '';
       if (boxContent.isNotEmpty) {
         sections.add(ContentSection(
           content: boxContent,
           isBoxed: true,
           boxStyle: boxStyle, // Pass the style to the section
+          boxVariant: boxVariant, // Pass the variant to the section
         ));
       }
       
@@ -113,17 +116,21 @@ class ContentBoxParser {
     Color? iconColor,
     BoxDecoration? boxDecoration,
     String? boxStyle, // Style identifier for dynamic decoration
+    String? boxVariant, // Variant identifier for dynamic decoration
   }) {
     // Use custom boxDecoration if provided, otherwise use style-based decoration
-    final decoration = boxDecoration ?? _getBoxDecorationForStyle(boxStyle);
+    final decoration = boxDecoration ?? _getBoxDecorationForStyle(boxStyle, boxVariant);
+    
+    // Process content for better spacing
+    final processedContent = processContentSpacing(content);
     
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(12), // Reduced from 16 to 12
+      margin: const EdgeInsets.symmetric(vertical: 4), // Reduced from 6 to 4
       decoration: decoration,
       child: EnhancedHtmlRenderer(
-        content: content,
+        content: processedContent,
         textStyle: textStyle ?? _getDefaultTextStyle(context),
         iconSize: iconSize,
         iconColor: iconColor,
@@ -138,10 +145,13 @@ class ContentBoxParser {
     double iconSize = 20,
     Color? iconColor,
   }) {
+    // Process content for better spacing
+    final processedContent = processContentSpacing(content);
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 1), // Reduced from 2 to 1
       child: EnhancedHtmlRenderer(
-        content: content,
+        content: processedContent,
         textStyle: textStyle,
         iconSize: iconSize,
         iconColor: iconColor,
@@ -149,22 +159,44 @@ class ContentBoxParser {
     );
   }
   
-  /// Static box decoration using Figma design color #F2E9D7
-  static BoxDecoration _staticBoxDecoration() {
+  /// Gets dynamic box decoration based on variant and style
+  static BoxDecoration _getBoxDecorationForStyle(String? boxStyle, String? boxVariant) {
+    // Map variants to colors
+    final Color backgroundColor = _getBackgroundColorForVariant(boxVariant);
+    final Color borderColor = _getBorderColorForVariant(boxVariant);
+    
     return BoxDecoration(
-      color: const Color(0xFFF2E9D7), // Static color from Figma design
+      color: backgroundColor,
       borderRadius: BorderRadius.circular(12),
       border: Border.all(
-        color: const Color(0xFFE5D5C0), // Slightly darker border
+        color: borderColor,
         width: 1,
       ),
     );
   }
-
-  /// Gets static box decoration (no longer style-dependent)
-  static BoxDecoration _getBoxDecorationForStyle(String? boxStyle) {
-    // Always return the same static styling regardless of style parameter
-    return _staticBoxDecoration();
+  
+  /// Maps box variant to background color
+  static Color _getBackgroundColorForVariant(String? boxVariant) {
+    switch (boxVariant) {
+      case '-1':
+        return const Color(0xFFF1ECE1); // Light beige for box-start-1
+      case '-2':
+        return const Color(0xFFF2E9D7); // Original beige for box-start-2
+      default:
+        return const Color(0xFFF2E9D7); // Original beige for box-start (no variant)
+    }
+  }
+  
+  /// Maps box variant to border color
+  static Color _getBorderColorForVariant(String? boxVariant) {
+    switch (boxVariant) {
+      case '-1':
+        return const Color(0xFFE4D7C4); // Slightly darker border for box-start-1
+      case '-2':
+        return const Color(0xFFE5D5C0); // Original border for box-start-2
+      default:
+        return const Color(0xFFE5D5C0); // Original border for box-start (no variant)
+    }
   }
   
   /// Gets default text style based on context
@@ -182,16 +214,17 @@ class ContentBoxParser {
     );
   }
   
-  /// Checks if content contains box tags (with or without style)
+  /// Checks if content contains box tags (with or without style, including variants)
   static bool hasBoxTags(String content) {
-    return content.contains(RegExp(r'\[box-start(?::[^\]]+)?\]')) && content.contains('[box-end]');
+    return content.contains(RegExp(r'\[box-start(-[12])?(?::[^\]]+)?\]')) && 
+           content.contains(RegExp(r'\[box-end(-[12])?\]'));
   }
   
-  /// Removes box tags from content (useful for plain text extraction)
+  /// Removes box tags from content (useful for plain text extraction, including variants)
   static String removeBoxTags(String content) {
     return content
-        .replaceAll(RegExp(r'\[box-start(?::[^\]]+)?\]'), '')
-        .replaceAll('[box-end]', '')
+        .replaceAll(RegExp(r'\[box-start(-[12])?(?::[^\]]+)?\]'), '')
+        .replaceAll(RegExp(r'\[box-end(-[12])?\]'), '')
         .trim();
   }
 
@@ -220,6 +253,33 @@ class ContentBoxParser {
     return stripped;
   }
 
+  /// Processes content to improve sentence spacing and empty line handling
+  static String processContentSpacing(String content) {
+    // Convert double newlines to minimal paragraph breaks - much tighter spacing
+    content = content.replaceAll(RegExp(r'\n\s*\n'), '<br>');
+    
+    // Convert single newlines to minimal breaks
+    content = content.replaceAll(RegExp(r'\n'), '<br>');
+    
+    // Add proper spacing after sentence endings followed by capital letters
+    content = content.replaceAllMapped(RegExp(r'([.!?])\s*([A-Z])'), (match) {
+      return '${match.group(1)} ${match.group(2)}';
+    });
+    
+    // Ensure proper spacing around periods, exclamation marks, and question marks
+    content = content.replaceAllMapped(RegExp(r'([.!?])([A-Za-z])'), (match) {
+      return '${match.group(1)} ${match.group(2)}';
+    });
+    
+    // Handle multiple spaces and normalize
+    content = content.replaceAll(RegExp(r' {2,}'), ' ');
+    
+    // Remove excessive line breaks
+    content = content.replaceAll(RegExp(r'<br>\s*<br>\s*<br>'), '<br><br>');
+    
+    return content;
+  }
+
   /// Parse content for enhanced HTML rendering with box support
   static List<Widget> parseContentForHtml(
     String content, {
@@ -243,6 +303,7 @@ class ContentBoxParser {
           iconSize: iconSize,
           iconColor: iconColor,
           boxStyle: section.boxStyle,
+          boxVariant: section.boxVariant,
         ));
       } else {
         // Regular content section with HTML support
@@ -268,16 +329,20 @@ class ContentBoxParser {
     double iconSize = 20,
     Color? iconColor,
     String? boxStyle,
+    String? boxVariant, // Add boxVariant parameter
   }) {
-    final decoration = _getBoxDecorationForStyle(boxStyle);
+    final decoration = _getBoxDecorationForStyle(boxStyle, boxVariant);
+    
+    // Process content for better spacing
+    final processedContent = processContentSpacing(content);
     
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(12), // Reduced from 16 to 12
+      margin: const EdgeInsets.symmetric(vertical: 4), // Reduced from 6 to 4
       decoration: decoration,
       child: EnhancedHtmlRenderer(
-        content: content,
+        content: processedContent,
         textStyle: textStyle ?? _getDefaultTextStyle(context),
         iconSize: iconSize,
         iconColor: iconColor,
@@ -292,10 +357,13 @@ class ContentBoxParser {
     double iconSize = 20,
     Color? iconColor,
   }) {
+    // Process content for better spacing
+    final processedContent = processContentSpacing(content);
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 1), // Reduced from 2 to 1
       child: EnhancedHtmlRenderer(
-        content: content,
+        content: processedContent,
         textStyle: textStyle,
         iconSize: iconSize,
         iconColor: iconColor,
@@ -315,16 +383,18 @@ class ContentSection {
   final String content;
   final bool isBoxed;
   final String? boxStyle; // Style identifier for the box (e.g., "warning", "info", "recipe")
+  final String? boxVariant; // Variant identifier for the box (e.g., "-1", "-2", null for original)
   
   const ContentSection({
     required this.content,
     required this.isBoxed,
     this.boxStyle,
+    this.boxVariant,
   });
   
   @override
   String toString() {
-    return 'ContentSection(content: "${content.length > 50 ? '${content.substring(0, 50)}...' : content}", isBoxed: $isBoxed, boxStyle: $boxStyle)';
+    return 'ContentSection(content: "${content.length > 50 ? '${content.substring(0, 50)}...' : content}", isBoxed: $isBoxed, boxStyle: $boxStyle, boxVariant: $boxVariant)';
   }
 }
 

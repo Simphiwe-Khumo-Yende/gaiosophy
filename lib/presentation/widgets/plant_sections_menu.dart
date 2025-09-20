@@ -11,7 +11,7 @@ class PlantSectionsMenu extends StatelessWidget {
   });
 
   final Content content;
-  final Function(String section) onSectionSelected;
+  final void Function(String section) onSectionSelected;
 
   @override
   Widget build(BuildContext context) {

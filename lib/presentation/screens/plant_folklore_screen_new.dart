@@ -13,18 +13,6 @@ class PlantFolkloreScreen extends StatelessWidget {
     required this.parentTitle,
   });
 
-  String _getPlantName() {
-    // Extract plant name from parent title or content block title
-    final title = parentTitle.toLowerCase();
-    if (title.contains('bramble')) return 'brambles';
-    if (title.contains('lavender')) return 'lavender';
-    if (title.contains('sage')) return 'sage';
-    if (title.contains('rosemary')) return 'rosemary';
-    if (title.contains('mint')) return 'mint';
-    // Add more plant names as needed
-    return 'these wonderful plants';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

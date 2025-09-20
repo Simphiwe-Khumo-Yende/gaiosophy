@@ -18,6 +18,7 @@ import '../screens/saved_content_screen.dart';
 import '../screens/search_screen.dart';
 import '../screens/disclaimer_screen.dart';
 import '../screens/legal_screen.dart';
+import '../../debug/content_debug_screen.dart';
 import '../screens/about_screen.dart';
 import '../screens/references_gratitude_screen.dart';
 import '../screens/content_icon_demo_screen.dart';
@@ -63,7 +64,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               .doc(user.uid)
               .get();
           
-          final profileCompleted = userDoc.data()?['profileCompleted'] ?? false;
+          final profileCompleted = userDoc.data()?['profileCompleted'] as bool? ?? false;
           if (!profileCompleted) {
             return '/profile-setup';
           }
@@ -109,6 +110,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/references-gratitude', builder: (c, s) => const ReferencesGratitudeScreen()),
       GoRoute(path: '/legal', builder: (c, s) => const LegalScreen()),
       GoRoute(path: '/content-icon-demo', builder: (c, s) => const ContentIconDemoScreen()),
+      GoRoute(path: '/debug-content', builder: (c, s) => const ContentDebugScreen()),
       GoRoute(
         path: '/content/:id',
         builder: (c, s) {

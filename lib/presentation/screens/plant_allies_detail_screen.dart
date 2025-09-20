@@ -230,7 +230,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
         }
         
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => destinationScreen),
+          MaterialPageRoute<void>(builder: (context) => destinationScreen),
         );
       },
       isLast: false,
@@ -350,7 +350,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
               );
               
               Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (context) => FolkMedicineScreen(
                     contentBlock: focusedBlock,
                     parentTitle: widget.content.title,

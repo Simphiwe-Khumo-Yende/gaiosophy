@@ -44,14 +44,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         );
       } else {
         setState(() {
-          _error = result['message'] ?? 'Failed to send password reset email.';
+          _error = result['message'] as String? ?? 'Failed to send password reset email.';
         });
         
         // Log the failed attempt
         PasswordResetService.logPasswordResetAttempt(
           email: _emailController.text.trim(),
           success: false,
-          errorCode: result['error'],
+          errorCode: result['error'] as String?,
         );
       }
     } catch (e) {

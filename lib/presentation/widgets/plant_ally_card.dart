@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart';
-import '../theme/typography.dart';
 import 'firebase_storage_image.dart';
 
 class PlantAllyCard extends StatelessWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
+import '../widgets/enhanced_html_renderer.dart';
 
 class PlantOverviewScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -185,28 +185,10 @@ class PlantOverviewScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     
                     if (contentBlock.data.content != null) ...[
-                      Html(
-                        data: contentBlock.data.content,
-                        style: {
-                          "body": Style(
-                            color: const Color(0xFF5A4E3C),
-                            fontSize: FontSize(16),
-                            lineHeight: const LineHeight(1.8),
-                            margin: Margins.zero,
-                            padding: HtmlPaddings.zero,
-                          ),
-                          "p": Style(
-                            color: const Color(0xFF5A4E3C),
-                            fontSize: FontSize(16),
-                            lineHeight: const LineHeight(1.8),
-                            margin: Margins.only(bottom: 15),
-                          ),
-                          "h1, h2, h3, h4, h5, h6": Style(
-                            color: const Color(0xFF5A4E3C),
-                            fontWeight: FontWeight.bold,
-                            margin: Margins.only(top: 20, bottom: 10),
-                          ),
-                        },
+                      EnhancedHtmlRenderer(
+                        content: contentBlock.data.content!,
+                        iconSize: 20,
+                        iconColor: const Color(0xFF8B6B47),
                       ),
                     ] else ...[
                       Text(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/bookmark_button.dart';
+import '../widgets/enhanced_html_renderer.dart';
 import '../theme/typography.dart';
 import '../theme/app_theme.dart';
 
@@ -346,57 +346,10 @@ class PlantOverviewDetailedView extends StatelessWidget {
   }
 
   Widget _buildDetailedHtmlContent(String htmlContent) {
-    return Html(
-      data: htmlContent,
-      style: {
-        "body": Style(
-          margin: Margins.zero,
-          padding: HtmlPaddings.zero,
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(16),
-          lineHeight: LineHeight(1.8),
-        ),
-        "h1": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(26),
-          fontWeight: FontWeight.w600,
-          margin: Margins.only(top: 24, bottom: 16),
-          textAlign: TextAlign.center,
-        ),
-        "h2": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(22),
-          fontWeight: FontWeight.w500,
-          margin: Margins.only(top: 20, bottom: 12),
-          textAlign: TextAlign.center,
-        ),
-        "h3": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(18),
-          fontWeight: FontWeight.w500,
-          margin: Margins.only(top: 16, bottom: 8),
-          textAlign: TextAlign.center,
-        ),
-        "p": Style(
-          margin: Margins.only(bottom: 16),
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(16),
-          lineHeight: LineHeight(1.8),
-        ),
-        "a": Style(
-          color: const Color(0xFF8B6B47),
-          textDecoration: TextDecoration.underline,
-        ),
-        "blockquote": Style(
-          backgroundColor: const Color(0xFF8B6B47).withValues(alpha: 0.05),
-          border: Border(
-            left: BorderSide(color: const Color(0xFF8B6B47), width: 3),
-          ),
-          padding: HtmlPaddings.all(16),
-          margin: Margins.symmetric(vertical: 16),
-          fontStyle: FontStyle.italic,
-        ),
-      },
+    return ContentDetailHtmlRenderer(
+      content: htmlContent,
+      iconSize: 20,
+      iconColor: const Color(0xFF8B6B47),
     );
   }
 

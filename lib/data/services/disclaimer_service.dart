@@ -22,7 +22,7 @@ class DisclaimerService {
           .doc(userId)
           .get();
       
-      final firestoreValue = userDoc.data()?['disclaimerAccepted'] ?? false;
+      final firestoreValue = userDoc.data()?['disclaimerAccepted'] as bool? ?? false;
       
       // If Firestore has it but local doesn't, sync to local
       if (firestoreValue) {

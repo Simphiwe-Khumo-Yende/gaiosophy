@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/typography.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -15,7 +14,7 @@ class HomeHeroHeader extends StatelessWidget {
     
     if (data == null) return null;
     // Resolve image: prefer canonical storage download URL from image id when possible
-    String? resolvedUrl = data['app_image']?['url'];
+    String? resolvedUrl = data['app_image']?['url'] as String?;
     final imageId = data['app_image']?['id'];
     if (imageId != null) {
       // try common extensions
@@ -68,7 +67,7 @@ class HomeHeroHeader extends StatelessWidget {
               // Background Image
               hero['imageUrl'] != null
                   ? Image.network(
-                      hero['imageUrl'],
+                      hero['imageUrl'] as String,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(color: Colors.brown.shade200),
                     )

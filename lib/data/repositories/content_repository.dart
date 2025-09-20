@@ -7,7 +7,7 @@ class ContentRepository {
     final q = query.toLowerCase().trim();
 
     // Simulate small delay as if fetching from network/local DB
-    await Future.delayed(const Duration(milliseconds: 150));
+    await Future<void>.delayed(const Duration(milliseconds: 150));
 
     final all = await _getMockContent();
 

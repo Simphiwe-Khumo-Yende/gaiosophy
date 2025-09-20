@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import '../../data/models/content.dart' as content_model;
+import '../widgets/enhanced_html_renderer.dart';
 
 class BrambleFolkloreScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -174,9 +174,11 @@ class BrambleFolkloreScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            content,
-            style: const TextStyle(
+          EnhancedHtmlRenderer(
+            content: content,
+            iconSize: 20,
+            iconColor: const Color(0xFF8B6B47),
+            textStyle: const TextStyle(
               color: Color(0xFF5A4E3C),
               fontSize: 16,
               height: 1.8,

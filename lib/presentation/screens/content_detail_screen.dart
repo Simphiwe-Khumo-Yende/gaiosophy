@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import '../../application/providers/content_list_provider.dart';
+import '../../application/providers/network_connectivity_provider.dart';
 import '../../data/models/content.dart' as content_model;
 import '../theme/typography.dart';
 import '../theme/app_theme.dart';
@@ -59,29 +60,62 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
       final content = initial;
       return Scaffold(
         backgroundColor: const Color(0xFFFCF9F2),
-        appBar: _buildAppBar(context),
+        appBar: _buildAppBar(context, false),
         body: _buildContentView(content),
       );
     }
 
-    final contentAsync = ref.watch(contentDetailProvider(widget.contentId));
+    // Try real-time first, with automatic fallback
+    final contentAsync = ref.watch(realTimeContentDetailProvider(widget.contentId));
+    final isOffline = ref.watch(isOfflineProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F2),
-      appBar: _buildAppBar(context),
+      appBar: _buildAppBar(context, isOffline),
       body: contentAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B6B47)),
           ),
         ),
-        error: (error, stack) => _buildErrorView(error),
-        data: (content) => _buildContentView(content),
+        error: (error, stack) {
+          return _buildFallbackContent(context);
+        },
+        data: (content) => content != null 
+            ? _buildContentView(content)
+            : _buildFallbackContent(context),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  Widget _buildFallbackContent(BuildContext context) {
+    final fallbackAsync = ref.watch(contentDetailProvider(widget.contentId));
+    
+    return fallbackAsync.when(
+      loading: () => const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B6B47)),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Loading with fallback method...',
+              style: TextStyle(
+                color: Color(0xFF8B6B47),
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+      error: (error, stack) => _buildErrorView(error),
+      data: (content) => _buildContentView(content),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context, bool isOffline) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -90,6 +124,31 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
         icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1612)),
         onPressed: () => context.pop(),
       ),
+      title: isOffline
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange, width: 1),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.wifi_off, size: 16, color: Colors.orange),
+                  SizedBox(width: 4),
+                  Text(
+                    'Offline',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : null,
       actions: [
         IconButton(
           icon: const Icon(Icons.home, color: Color(0xFF1A1612)),
@@ -279,64 +338,10 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
   }
 
   Widget _buildHtmlContent(String htmlContent) {
-    return Html(
-      data: htmlContent,
-      style: {
-        "body": Style(
-          margin: Margins.zero,
-          padding: HtmlPaddings.zero,
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(16),
-          lineHeight: LineHeight(1.6),
-        ),
-        "h1": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(24),
-          fontWeight: FontWeight.w700,
-          margin: Margins.only(top: 24, bottom: 12),
-          textAlign: TextAlign.center,
-        ),
-        "h2": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(20),
-          fontWeight: FontWeight.w600,
-          margin: Margins.only(top: 20, bottom: 10),
-          textAlign: TextAlign.center,
-        ),
-        "h3": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(18),
-          fontWeight: FontWeight.w600,
-          margin: Margins.only(top: 16, bottom: 8),
-          textAlign: TextAlign.center,
-        ),
-        "p": Style(
-          margin: Margins.only(bottom: 16),
-          color: const Color(0xFF1A1612),
-        ),
-        "a": Style(
-          color: const Color(0xFF8B6B47),
-          textDecoration: TextDecoration.underline,
-        ),
-        "blockquote": Style(
-          backgroundColor: const Color(0xFF8B6B47).withValues(alpha: 0.05),
-          border: Border(
-            left: BorderSide(color: const Color(0xFF8B6B47), width: 4),
-          ),
-          padding: HtmlPaddings.all(16),
-          margin: Margins.only(bottom: 16),
-          fontStyle: FontStyle.italic,
-        ),
-        "ul": Style(
-          margin: Margins.only(bottom: 16),
-        ),
-        "ol": Style(
-          margin: Margins.only(bottom: 16),
-        ),
-        "li": Style(
-          margin: Margins.only(bottom: 4),
-        ),
-      },
+    return ContentDetailHtmlRenderer(
+      content: htmlContent,
+      iconSize: 20,
+      iconColor: const Color(0xFF8B6B47),
     );
   }
 
@@ -359,99 +364,11 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
 
   // Special method to handle HTML content that contains icon keys
   Widget _buildHtmlContentWithIcons(String htmlContent) {
-    // Preprocess the HTML to replace icon keys with placeholder text that we can style
-    String processedHtml = _replaceIconKeysInHtml(htmlContent);
-    
-    return Html(
-      data: processedHtml,
-      style: {
-        "body": Style(
-          margin: Margins.zero,
-          padding: HtmlPaddings.zero,
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(16),
-          lineHeight: LineHeight(1.6),
-        ),
-        "p": Style(
-          margin: Margins.only(bottom: 16),
-          color: const Color(0xFF1A1612),
-        ),
-        "ul": Style(
-          margin: Margins.only(bottom: 16),
-        ),
-        "li": Style(
-          margin: Margins.only(bottom: 4),
-        ),
-        ".icon": Style(
-          color: const Color(0xFF8B6B47),
-          fontWeight: FontWeight.bold,
-        ),
-      },
+    return ContentDetailHtmlRenderer(
+      content: htmlContent,
+      iconSize: 20,
+      iconColor: const Color(0xFF8B6B47),
     );
-  }
-
-  // Helper method to replace icon keys with styled spans in HTML
-  String _replaceIconKeysInHtml(String htmlContent) {
-    final RegExp iconRegex = RegExp(r'\[([^\]]+)\]');
-    return htmlContent.replaceAllMapped(iconRegex, (match) {
-      final iconKey = match.group(1)!.toLowerCase();
-      if (ContentIconMapper.hasIcon(iconKey)) {
-        // Replace with a styled span that includes an icon symbol
-        // Using Unicode symbols as a fallback since we can't embed Flutter icons in HTML
-        final iconSymbol = _getIconSymbol(iconKey);
-        return '<span class="icon">$iconSymbol</span>';
-      } else {
-        // Keep original text if icon not found
-        return match.group(0)!;
-      }
-    });
-  }
-
-  // Helper method to get Unicode symbols for icons (fallback for HTML rendering)
-  String _getIconSymbol(String iconKey) {
-    const Map<String, String> iconSymbols = {
-      'mountain': '⛰️',
-      'tree': '🌲',
-      'flower': '🌸',
-      'herb': '🌿',
-      'leaf': '🍃',
-      'sun': '☀️',
-      'morning': '🌅',
-      'evening': '🌆',
-      'night': '🌙',
-      'water': '💧',
-      'tea': '🍵',
-      'healing': '💚',
-      'safe': '✅',
-      'caution': '⚠️',
-      'danger': '⚠️',
-      'toxic': '☠️',
-      'medicine': '💊',
-      'forest': '🌲',
-      'meadow': '🌾',
-      'garden': '🏡',
-      'harvest': '🌾',
-      'fresh': '🌱',
-      'dried': '🍂',
-      'oil': '🫗',
-      'powder': '🥄',
-      'compress': '🩹',
-      'massage': '💆',
-      'scalp': '👤',
-      'hair': '💇',
-      'wash': '🚿',
-      'rinse': '💧',
-      'store': '📦',
-      'fridge': '🧊',
-      'days': '📅',
-      'time': '⏰',
-      'best': '⭐',
-      'results': '✅',
-      'traditional': '📜',
-      'usage': 'ℹ️',
-    };
-    
-    return iconSymbols[iconKey] ?? '🔹';
   }
 
   Widget _buildActionButtons(content_model.Content content) {
@@ -513,7 +430,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
 
   void _navigateToDetailedReading(content_model.Content content) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) => DetailedReadingView(content: content),
       ),
     );
@@ -522,7 +439,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
   void _playAudio(content_model.Content content) {
     // Navigate to audio player screen
     Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) => AudioPlayerScreen(
           content: content,
           audioUrl: content.audioId,  // Use audioId instead of media array
@@ -706,57 +623,10 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
   }
 
   Widget _buildDetailedHtmlContent(String htmlContent) {
-    return Html(
-      data: htmlContent,
-      style: {
-        "body": Style(
-          margin: Margins.zero,
-          padding: HtmlPaddings.zero,
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(16),
-          lineHeight: LineHeight(1.8),
-        ),
-        "h1": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(26),
-          fontWeight: FontWeight.w600,
-          margin: Margins.only(top: 24, bottom: 16),
-          textAlign: TextAlign.center,
-        ),
-        "h2": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(22),
-          fontWeight: FontWeight.w500,
-          margin: Margins.only(top: 20, bottom: 12),
-          textAlign: TextAlign.center,
-        ),
-        "h3": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(18),
-          fontWeight: FontWeight.w500,
-          margin: Margins.only(top: 16, bottom: 8),
-          textAlign: TextAlign.center,
-        ),
-        "p": Style(
-          margin: Margins.only(bottom: 16),
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(16),
-          lineHeight: LineHeight(1.8),
-        ),
-        "a": Style(
-          color: const Color(0xFF8B6B47),
-          textDecoration: TextDecoration.underline,
-        ),
-        "blockquote": Style(
-          backgroundColor: const Color(0xFF8B6B47).withValues(alpha: 0.05),
-          border: Border(
-            left: BorderSide(color: const Color(0xFF8B6B47), width: 3),
-          ),
-          padding: HtmlPaddings.all(16),
-          margin: Margins.symmetric(vertical: 16),
-          fontStyle: FontStyle.italic,
-        ),
-      },
+    return ContentDetailHtmlRenderer(
+      content: htmlContent,
+      iconSize: 20,
+      iconColor: const Color(0xFF8B6B47),
     );
   }
 

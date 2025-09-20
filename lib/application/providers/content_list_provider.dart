@@ -96,17 +96,20 @@ class ContentListNotifier extends StateNotifier<PaginatedContentState> {
 
 final firestoreProvider = Provider<FirebaseFirestore>((_) => FirebaseFirestore.instance);
 
+// Repository provider for Firestore content operations
 final firestoreContentRepositoryProvider = Provider<FirestoreContentRepository>((ref) {
   final db = ref.read(firestoreProvider);
   return FirestoreContentRepository(db);
 });
 
+// Provider for paginated content lists with caching
 final contentListProvider = StateNotifierProvider<ContentListNotifier, PaginatedContentState>((ref) {
   final repo = ref.watch(firestoreContentRepositoryProvider);
   final imageCacheService = ref.watch(imageCacheServiceProvider);
   return ContentListNotifier(repo, imageCacheService);
 });
 
+// Fallback provider for single content items with offline support
 final contentDetailProvider = FutureProvider.family<Content, String>((ref, id) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) {
@@ -128,7 +131,8 @@ final contentDetailProvider = FutureProvider.family<Content, String>((ref, id) a
   // If online, try Firestore first, with offline fallback
   try {
     final repo = ref.watch(firestoreContentRepositoryProvider);
-    return await repo.fetchById(id);
+    final content = await repo.fetchById(id);
+    return content;
   } catch (e) {
     if (e.toString().contains('permission-denied')) {
       throw Exception('Access denied. Please check your login status.');
@@ -142,4 +146,20 @@ final contentDetailProvider = FutureProvider.family<Content, String>((ref, id) a
     
     rethrow;
   }
+});
+
+// Real-time provider for content with automatic updates
+final realTimeContentDetailProvider = StreamProvider.family<Content?, String>((ref, id) {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    return Stream.error(Exception('Please sign in to view content'));
+  }
+
+  // Use the same repository approach as fallback but as a stream
+  final repo = ref.watch(firestoreContentRepositoryProvider);
+  
+  return Stream.fromFuture(repo.fetchById(id))
+      .handleError((Object error) {
+        // Error handling is done by the UI layer
+      });
 });

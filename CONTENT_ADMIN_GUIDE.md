@@ -70,6 +70,24 @@ This can include multiple lines and [herb] icons.
 [box-end]
 ```
 
+### Box Variants with Different Colors
+
+#### Light Beige Boxes (Color #F1ECE1)
+```
+[box-start-1]
+Content in light beige box.
+Perfect for subtle highlights or secondary information.
+[box-end-1]
+```
+
+#### Standard Beige Boxes (Color #F2E9D7)
+```
+[box-start-2]
+Content in standard beige box.
+Same color as original boxes, alternative syntax.
+[box-end-2]
+```
+
 ### Styled Box Sections
 Add style tags for different visual themes:
 
@@ -131,15 +149,25 @@ Always consult with experts before foraging
 
 ### Available Box Styles
 
-| Style Tag | Theme | Use For |
-|-----------|-------|---------|
-| `warning`, `danger`, `caution` | Red | Safety warnings, toxic plants, important cautions |
-| `info`, `note`, `tip` | Blue | General information, helpful notes, educational content |
-| `success`, `safe`, `healing` | Green | Safe plants, healing properties, positive outcomes |
-| `recipe`, `ingredients`, `preparation` | Orange | Recipes, ingredient lists, preparation steps |
-| `magical`, `mystical`, `ritual` | Purple | Magical properties, ritual instructions, spiritual content |
-| `seasonal`, `timing`, `calendar` | Yellow | Harvest times, seasonal information, timing guides |
-| No style (plain `[box-start]`) | Beige | Default styling for general highlights |
+| Style Tag | Theme | Color | Use For |
+|-----------|-------|-------|---------|
+| `warning`, `danger`, `caution` | Red | #F2E9D7 | Safety warnings, toxic plants, important cautions |
+| `info`, `note`, `tip` | Blue | #F2E9D7 | General information, helpful notes, educational content |
+| `success`, `safe`, `healing` | Green | #F2E9D7 | Safe plants, healing properties, positive outcomes |
+| `recipe`, `ingredients`, `preparation` | Orange | #F2E9D7 | Recipes, ingredient lists, preparation steps |
+| `magical`, `mystical`, `ritual` | Purple | #F2E9D7 | Magical properties, ritual instructions, spiritual content |
+| `seasonal`, `timing`, `calendar` | Yellow | #F2E9D7 | Harvest times, seasonal information, timing guides |
+| No style (plain `[box-start]`) | Beige | #F2E9D7 | Default styling for general highlights |
+
+### Box Variants with Color Options
+
+| Box Type | Background Color | Border Color | Description |
+|----------|------------------|--------------|-------------|
+| `[box-start]` / `[box-end]` | #F2E9D7 | #E5D5C0 | Original beige boxes for standard highlights |
+| `[box-start-1]` / `[box-end-1]` | #F1ECE1 | #E4D7C4 | Light beige boxes for subtle highlights |
+| `[box-start-2]` / `[box-end-2]` | #F2E9D7 | #E5D5C0 | Standard beige boxes (same as original) |
+
+**Note**: All box variants support style parameters (e.g., `[box-start-1:warning]`), but the background color is determined by the variant number, not the style.
 
 ---
 
@@ -165,11 +193,16 @@ The [herb] elderberry is a powerful [healing] plant that grows in [forest] envir
 
 Traditional uses include [medicine] for immune support and [tea] for respiratory health.
 
-[box-start:warning]
+[box-start-1:warning]
 [caution] Only use ripe, dark purple berries
 [toxic] Raw elderberries can cause stomach upset
 [safe] Always cook berries before consumption
-[box-end]
+[box-end-1]
+
+[box-start-2]
+Additional information can go in the standard beige variant boxes
+for consistent visual hierarchy in your content.
+[box-end-2]
 ```
 
 #### For Recipes

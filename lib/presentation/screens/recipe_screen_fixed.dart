@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
+import '../widgets/enhanced_html_renderer.dart';
 import '../theme/typography.dart';
 
 class RecipeScreen extends StatelessWidget {
@@ -281,37 +281,12 @@ class RecipeScreen extends StatelessWidget {
   Widget _buildTextContent(BuildContext context, content_model.ContentBlock block) {
     String content = block.data.content ?? '';
     
-    // If it's HTML content, render as HTML
-    if (content.contains('<') && content.contains('>')) {
-      return Html(
-        data: content,
-        style: {
-          "body": Style(
-            margin: Margins.zero,
-            padding: HtmlPaddings.zero,
-            color: const Color(0xFF5A5A5A),
-            fontSize: FontSize(13),
-            lineHeight: LineHeight(1.5),
-          ),
-          "p": Style(
-            margin: Margins.only(bottom: 8),
-          ),
-          "h1, h2, h3": Style(
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-        },
-      );
-    } else {
-      // Plain text
-      return Text(
-        content,
-        style: context.secondaryBodyMedium.copyWith(
-          height: 1.5,
-          color: const Color(0xFF5A5A5A),
-        ),
-      );
-    }
+    // Use RecipeHtmlRenderer for all content (handles both HTML and plain text)
+    return RecipeHtmlRenderer(
+      content: content,
+      iconSize: 16,
+      iconColor: const Color(0xFF8B6B47),
+    );
   }
 
   Widget _buildSaveButton() {

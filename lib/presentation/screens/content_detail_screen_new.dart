@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import '../../application/providers/content_list_provider.dart';
+import '../../application/providers/network_connectivity_provider.dart';
 import '../../data/models/content.dart' as content_model;
 import '../theme/typography.dart';
 import '../widgets/firebase_storage_image.dart';
+import '../widgets/enhanced_html_renderer.dart';
 
 class ContentScreen extends ConsumerStatefulWidget {
   const ContentScreen({super.key, required this.contentId});
@@ -33,24 +34,61 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final contentAsync = ref.watch(contentDetailProvider(widget.contentId));
+    return _buildWithFallback(context);
+  }
+
+  Widget _buildWithFallback(BuildContext context) {
+    // Try real-time first, with automatic fallback
+    final contentAsync = ref.watch(realTimeContentDetailProvider(widget.contentId));
+    final isOffline = ref.watch(isOfflineProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F2),
-      appBar: _buildAppBar(context),
+      appBar: _buildAppBar(context, isOffline),
       body: contentAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B6B47)),
           ),
         ),
-        error: (error, stack) => _buildErrorView(error),
-        data: (content) => _buildContentView(content),
+        error: (error, stack) {
+          return _buildFallbackContent(context);
+        },
+        data: (content) => content != null 
+            ? _buildContentView(content)
+            : _buildFallbackContent(context),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  Widget _buildFallbackContent(BuildContext context) {
+    final fallbackAsync = ref.watch(contentDetailProvider(widget.contentId));
+    
+    return fallbackAsync.when(
+      loading: () => const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B6B47)),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Loading with fallback method...',
+              style: TextStyle(
+                color: Color(0xFF8B6B47),
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+      error: (error, stack) => _buildErrorView(error),
+      data: (content) => _buildContentView(content),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context, bool isOffline) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -59,6 +97,31 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
         icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1612)),
         onPressed: () => context.pop(),
       ),
+      title: isOffline
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange, width: 1),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.wifi_off, size: 16, color: Colors.orange),
+                  SizedBox(width: 4),
+                  Text(
+                    'Offline',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : null,
       actions: [
         IconButton(
           icon: const Icon(Icons.home, color: Color(0xFF1A1612)),
@@ -82,14 +145,14 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
               size: 64,
               color: const Color(0xFF8B6B47).withValues(alpha: 0.5),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Reduced from 16 to 12
             Text(
               'Content Not Found',
               style: context.primaryTitleLarge.copyWith(
                 color: const Color(0xFF1A1612),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6), // Reduced from 8 to 6
             Text(
               'The content you\'re looking for could not be loaded.',
               style: context.secondaryBodyMedium.copyWith(
@@ -97,7 +160,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6), // Reduced from 8 to 6
             Text(
               'Error: $error',
               style: context.secondaryBodySmall.copyWith(
@@ -105,7 +168,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18), // Reduced from 24 to 18
             ElevatedButton(
               onPressed: () => context.go('/'),
               style: ElevatedButton.styleFrom(
@@ -296,61 +359,10 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
   }
 
   Widget _buildHtmlContent(String htmlContent) {
-    return Html(
-      data: htmlContent,
-      style: {
-        "body": Style(
-          margin: Margins.zero,
-          padding: HtmlPaddings.zero,
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(16),
-          lineHeight: LineHeight(1.6),
-        ),
-        "h1": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(24),
-          fontWeight: FontWeight.w700,
-          margin: Margins.only(top: 24, bottom: 12),
-        ),
-        "h2": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(20),
-          fontWeight: FontWeight.w600,
-          margin: Margins.only(top: 20, bottom: 10),
-        ),
-        "h3": Style(
-          color: const Color(0xFF1A1612),
-          fontSize: FontSize(18),
-          fontWeight: FontWeight.w600,
-          margin: Margins.only(top: 16, bottom: 8),
-        ),
-        "p": Style(
-          margin: Margins.only(bottom: 16),
-          color: const Color(0xFF1A1612),
-        ),
-        "a": Style(
-          color: const Color(0xFF8B6B47),
-          textDecoration: TextDecoration.underline,
-        ),
-        "blockquote": Style(
-          backgroundColor: const Color(0xFF8B6B47).withValues(alpha: 0.05),
-          border: Border(
-            left: BorderSide(color: const Color(0xFF8B6B47), width: 4),
-          ),
-          padding: HtmlPaddings.all(16),
-          margin: Margins.only(bottom: 16),
-          fontStyle: FontStyle.italic,
-        ),
-        "ul": Style(
-          margin: Margins.only(bottom: 16),
-        ),
-        "ol": Style(
-          margin: Margins.only(bottom: 16),
-        ),
-        "li": Style(
-          margin: Margins.only(bottom: 4),
-        ),
-      },
+    return ContentDetailHtmlRenderer(
+      content: htmlContent,
+      iconSize: 20,
+      iconColor: const Color(0xFF8B6B47),
     );
   }
 
