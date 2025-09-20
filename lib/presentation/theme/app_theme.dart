@@ -18,6 +18,11 @@ class AppTheme {
   static const Color buttonTextColor = Color(0xFFFCF9F2);
   static const Color bodyTextColor = Color(0xFF25221E);
   
+  // Plant profile specific colors
+  static const Color plantProfileHeadingColor = Color(0xFF5A4E3C);
+  static const Color plantProfileSubheadingColor = Color(0xFF757069);
+  static const Color plantProfileDividerColor = Color(0xFFF2E9D7);
+  
   static ThemeData get light => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
@@ -136,5 +141,31 @@ class AppTheme {
     fontSize: 15,
     fontWeight: FontWeight.w400, // Regular weight
     color: bodyTextColor,
+  );
+
+  // Custom heading style for content, overview, and folklore screens
+  static TextStyle get screenHeadingStyle => GoogleFonts.robotoSlab(
+    fontSize: 28,
+    fontWeight: FontWeight.w400, // Regular weight
+    color: Colors.black, // #000000
+  );
+
+  // Plant profile home screen typography
+  static TextStyle get plantProfileHeadingStyle => GoogleFonts.robotoSlab(
+    fontSize: 18,
+    fontWeight: FontWeight.w700, // Bold weight
+    color: plantProfileHeadingColor, // #5A4E3C
+  );
+
+  static TextStyle get plantProfileSubheadingStyle => GoogleFonts.publicSans(
+    fontSize: 13,
+    fontWeight: FontWeight.w400, // Regular weight
+    color: plantProfileSubheadingColor, // #757069
+  );
+
+  static TextStyle get plantPartsHeaderStyle => GoogleFonts.robotoSlab(
+    fontSize: 18,
+    fontWeight: FontWeight.w400, // Regular weight
+    color: plantProfileHeadingColor, // #5A4E3C
   );
 }

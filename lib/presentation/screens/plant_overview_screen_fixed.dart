@@ -33,11 +33,7 @@ class PlantOverviewScreen extends StatelessWidget {
             child: Text(
               contentBlock.data.title ?? 'Plant Overview',
               textAlign: TextAlign.center,
-              style: context.primaryFont(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1A1612),
-              ),
+              style: AppTheme.screenHeadingStyle,
             ),
           ),
           

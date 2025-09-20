@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/content.dart';
 import '../theme/typography.dart';
+import '../theme/app_theme.dart';
 
 class PlantSectionsMenu extends StatelessWidget {
   const PlantSectionsMenu({
@@ -136,18 +137,14 @@ class PlantSectionsMenu extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: context.primaryTitleSmall.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1A1612),
+                      style: AppTheme.plantProfileHeadingStyle.copyWith(
                         fontSize: 16,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       description,
-                      style: context.secondaryBodySmall.copyWith(
-                        color: const Color(0xFF1A1612).withOpacity(0.7),
-                      ),
+                      style: AppTheme.plantProfileSubheadingStyle,
                     ),
                   ],
                 ),

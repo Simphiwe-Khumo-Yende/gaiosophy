@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
+import '../theme/app_theme.dart';
 import 'content_block_detail_screen.dart';
 import 'plant_overview_screen.dart';
 import 'plant_folklore_screen.dart';
@@ -127,7 +128,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
         border: !isLast
             ? Border(
                 bottom: BorderSide(
-                  color: const Color(0xFF5A4E3C).withValues(alpha: 0.2),
+                  color: AppTheme.plantProfileDividerColor,
                   width: 1,
                 ),
               )
@@ -137,18 +138,13 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         title: Text(
           title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: const Color(0xFF5A4E3C),
-          ),
+          style: AppTheme.plantProfileHeadingStyle,
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Text(
             subtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF5A4E3C).withOpacity(0.7),
-              height: 1.3,
-            ),
+            style: AppTheme.plantProfileSubheadingStyle,
           ),
         ),
         trailing: Icon(
@@ -247,7 +243,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: const Color(0xFF5A4E3C).withValues(alpha: 0.2),
+            color: AppTheme.plantProfileDividerColor,
             width: 1,
           ),
         ),
@@ -264,17 +260,12 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                   children: [
                     Text(
                       block.data.title ?? 'Folk Medicine',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: const Color(0xFF5A4E3C),
-                      ),
+                      style: AppTheme.plantProfileHeadingStyle,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Tap on plant parts below to explore their medicinal uses',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF5A4E3C).withValues(alpha: 0.7),
-                        height: 1.3,
-                      ),
+                      style: AppTheme.plantProfileSubheadingStyle,
                     ),
                   ],
                 ),
@@ -441,9 +432,9 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
           const SizedBox(height: 8),
           Text(
             subBlock.plantPartName?.toUpperCase() ?? 'UNKNOWN',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: const Color(0xFF5A4E3C),
+            style: AppTheme.plantPartsHeaderStyle.copyWith(
               fontWeight: FontWeight.w500,
+              fontSize: 12,
             ),
           ),
         ],
