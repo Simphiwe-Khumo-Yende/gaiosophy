@@ -7,6 +7,7 @@ import '../widgets/firebase_storage_image.dart';
 import '../widgets/enhanced_html_renderer.dart';
 import '../widgets/bookmark_button.dart';
 import '../theme/typography.dart';
+import '../theme/app_theme.dart';
 
 class PlantOverviewScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
@@ -184,20 +185,17 @@ class PlantOverviewScreen extends StatelessWidget {
                 _navigateToDetailedReading(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B6B47),
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.readMoreButtonColor,
+                foregroundColor: AppTheme.buttonTextColor,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(50),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Read More',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: AppTheme.buttonTextStyle,
               ),
             ),
           ),
@@ -212,20 +210,17 @@ class PlantOverviewScreen extends StatelessWidget {
                 _playAudio(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B6B47).withValues(alpha: 0.8),
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.listenToAudioButtonColor,
+                foregroundColor: AppTheme.buttonTextColor,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(50),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Listen to Audio',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: AppTheme.buttonTextStyle,
               ),
             ),
           ),

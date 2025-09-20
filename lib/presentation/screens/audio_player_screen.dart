@@ -8,6 +8,7 @@ import '../../data/models/content.dart' as content_model;
 import '../../data/services/offline_storage_service.dart';
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
+import '../theme/typography.dart';
 
 class AudioPlayerScreen extends ConsumerStatefulWidget {
   final content_model.Content content;
@@ -252,11 +253,9 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
                         child: Text(
                           widget.content.title,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 18,
+                          style: context.primaryTitleMedium.copyWith(
+                            color: const Color(0xFF5A4E3C),
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF5A4E3C),
-                            height: 1.4,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,

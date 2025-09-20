@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../application/providers/content_list_provider.dart';
 import '../../data/models/content.dart' as content_model;
 import '../theme/typography.dart';
+import '../theme/app_theme.dart';
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
 import '../widgets/content_box_parser.dart';
@@ -470,8 +471,8 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
                 _navigateToDetailedReading(content);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B6B47),
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.readMoreButtonColor,
+                foregroundColor: AppTheme.buttonTextColor,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -480,10 +481,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
               ),
               child: Text(
                 'Read More',
-                style: context.primaryFont(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: AppTheme.buttonTextStyle,
               ),
             ),
           ),
@@ -498,8 +496,8 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
                 _playAudio(content);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B6B47).withValues(alpha: 0.8),
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.listenToAudioButtonColor,
+                foregroundColor: AppTheme.buttonTextColor,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -508,10 +506,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
               ),
               child: Text(
                 'Listen to Audio',
-                style: context.primaryFont(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: AppTheme.buttonTextStyle,
               ),
             ),
           ),

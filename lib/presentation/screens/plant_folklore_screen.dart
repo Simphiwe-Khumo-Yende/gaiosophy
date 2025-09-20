@@ -4,6 +4,7 @@ import '../widgets/firebase_storage_image.dart';
 import '../widgets/enhanced_html_renderer.dart';
 import '../widgets/bookmark_button.dart';
 import '../theme/typography.dart';
+import '../theme/app_theme.dart';
 import 'audio_player_screen.dart';
 
 class PlantFolkloreScreen extends StatelessWidget {
@@ -184,8 +185,8 @@ class PlantFolkloreScreen extends StatelessWidget {
                 _navigateToDetailedReading(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B6B47),
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.readMoreButtonColor,
+                foregroundColor: AppTheme.buttonTextColor,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -194,11 +195,7 @@ class PlantFolkloreScreen extends StatelessWidget {
               ),
               child: Text(
                 'Read More',
-                style: context.primaryFont(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+                style: AppTheme.buttonTextStyle,
               ),
             ),
           ),
@@ -213,8 +210,8 @@ class PlantFolkloreScreen extends StatelessWidget {
                 _playAudio(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B6B47).withValues(alpha: 0.8),
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.listenToAudioButtonColor,
+                foregroundColor: AppTheme.buttonTextColor,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -223,11 +220,7 @@ class PlantFolkloreScreen extends StatelessWidget {
               ),
               child: Text(
                 'Listen to Audio',
-                style: context.primaryFont(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+                style: AppTheme.buttonTextStyle,
               ),
             ),
           ),

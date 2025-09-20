@@ -12,6 +12,12 @@ class AppTheme {
   static const Color surfaceVariant = Color(0xFFF5F1E8);
   static const Color onSurface = Color(0xFF2C2419);
   
+  // Button specific colors
+  static const Color readMoreButtonColor = Color(0xFF8D7C63);
+  static const Color listenToAudioButtonColor = Color(0xFF5A4E3C);
+  static const Color buttonTextColor = Color(0xFFFCF9F2);
+  static const Color bodyTextColor = Color(0xFF25221E);
+  
   static ThemeData get light => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
@@ -116,5 +122,19 @@ class AppTheme {
       fontWeight: FontWeight.w500,
       letterSpacing: 0.5,
     ),
+  );
+
+  // Custom button text style for Read More and Listen to Audio buttons
+  static TextStyle get buttonTextStyle => GoogleFonts.publicSans(
+    fontSize: 17,
+    fontWeight: FontWeight.w500, // Medium weight
+    color: buttonTextColor,
+  );
+
+  // Custom body text style
+  static TextStyle get customBodyText => GoogleFonts.publicSans(
+    fontSize: 15,
+    fontWeight: FontWeight.w400, // Regular weight
+    color: bodyTextColor,
   );
 }
