@@ -50,10 +50,16 @@ class ContentCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Full image taking up most of the card
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          Container(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+            ),
+            clipBehavior: Clip.hardEdge,
             child: AspectRatio(
-              aspectRatio: 1.3, // Landscape ratio
+              aspectRatio: 1.1, // Slightly taller than before (was 1.3)
               child: content.featuredImageId != null
                   ? FirebaseStorageImage(
                       imageId: content.featuredImageId!,

@@ -60,7 +60,7 @@ class HomeHeroHeader extends StatelessWidget {
         }
         final hero = snapshot.data!;
         return SizedBox(
-          height: 380,
+          height: 480,
           child: Stack(
             fit: StackFit.expand,
             children: [

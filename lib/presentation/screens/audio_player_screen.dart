@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/content.dart' as content_model;
 import '../../data/services/offline_storage_service.dart';
@@ -33,14 +34,21 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
   bool isRepeating = false; // Add repeat state
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
+  content_model.Content? _fullContent; // Store the complete content data
 
   @override
   void initState() {
     super.initState();
     _audioPlayer = AudioPlayer();
+    _fullContent = widget.content; // Initialize with passed content
 
     // Sign in anonymously to Firebase Auth (if not already signed in)
     _signInAndInitAudio();
+    
+    // If featuredImageId is missing, try to fetch complete content
+    if (widget.content.featuredImageId == null) {
+      _fetchCompleteContent();
+    }
 
     // Listen to audio player state changes
     _audioPlayer.playerStateStream.listen((state) {
@@ -67,6 +75,25 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
         _duration = duration ?? Duration.zero;
       });
     });
+  }
+
+  Future<void> _fetchCompleteContent() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('content')
+          .doc(widget.content.id)
+          .get();
+      
+      if (doc.exists && mounted) {
+        final completeContent = content_model.Content.fromFirestore(doc);
+        setState(() {
+          _fullContent = completeContent;
+        });
+        print('Fetched complete content - Featured Image ID: ${completeContent.featuredImageId}');
+      }
+    } catch (e) {
+      print('Error fetching complete content: $e');
+    }
   }
 
   Future<void> _signInAndInitAudio() async {
@@ -174,6 +201,18 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Use the complete content if available, otherwise use the original
+    final displayContent = _fullContent ?? widget.content;
+    
+    // Debug: Print content details
+    print('AudioPlayer Debug:');
+    print('  - Content ID: ${widget.content.id}');
+    print('  - Content Title: ${widget.content.title}');
+    print('  - Original Featured Image ID: ${widget.content.featuredImageId}');
+    print('  - Complete Featured Image ID: ${displayContent.featuredImageId}');
+    print('  - Audio ID: ${widget.content.audioId}');
+    print('  - Audio URL param: ${widget.audioUrl}');
+    
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F2),
       body: SafeArea(
@@ -184,12 +223,47 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
               child: Stack(
                 children: [
                   // Background Image - Full width
-                  widget.content.featuredImageId != null
+                  displayContent.featuredImageId != null
                       ? FirebaseStorageImage(
-                          imageId: widget.content.featuredImageId!,
+                          imageId: displayContent.featuredImageId!,
                           fit: BoxFit.cover,
                           width: double.infinity,
                           height: double.infinity,
+                          errorWidget: Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
+                            child: const Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.broken_image,
+                                    size: 80,
+                                    color: Color(0xFF8B6B47),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Image not found',
+                                    style: TextStyle(
+                                      color: Color(0xFF8B6B47),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          placeholder: Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF8B6B47),
+                              ),
+                            ),
+                          ),
                         )
                       : Container(
                           width: double.infinity,
@@ -238,7 +312,7 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: BookmarkButton(
-                        content: widget.content,
+                        content: displayContent,
                         iconColor: const Color(0xFF1A1612),
                         iconSize: 24,
                       ),

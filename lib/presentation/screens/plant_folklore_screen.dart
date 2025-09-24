@@ -79,11 +79,11 @@ class PlantFolkloreScreen extends StatelessWidget {
   // Large featured image matching Figma design
   Widget _buildFeaturedImage() {
     return Container(
-      height: 300, // Large height as shown in Figma
-      width: double.infinity,
+      height: 345,
+      width: 247,
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -93,7 +93,7 @@ class PlantFolkloreScreen extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         child: contentBlock.data.featuredImageId != null
             ? FirebaseStorageImage(
                 imageId: contentBlock.data.featuredImageId!,
