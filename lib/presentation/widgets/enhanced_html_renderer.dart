@@ -42,7 +42,7 @@ class EnhancedHtmlRenderer extends StatelessWidget {
 
   /// Build content with indentation support
   Widget _buildContentWithIndentation(BuildContext context) {
-    final sections = _parseContentWithIndentation(content);
+    final sections = _parseContentWithIndentation(content, context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: sections,
@@ -50,7 +50,7 @@ class EnhancedHtmlRenderer extends StatelessWidget {
   }
 
   /// Parse content into sections with indentation awareness
-  List<Widget> _parseContentWithIndentation(String content) {
+  List<Widget> _parseContentWithIndentation(String content, BuildContext context) {
     final List<Widget> widgets = [];
     
     // More flexible approach: find indentation tags within HTML content
@@ -65,7 +65,7 @@ class EnhancedHtmlRenderer extends StatelessWidget {
         isIndented = false;
         continue;
       } else if (segment.content.trim().isNotEmpty) {
-        final sectionWidget = _buildTextSectionWithIcons(segment.content.trim(), isIndented);
+        final sectionWidget = _buildTextSectionWithIcons(segment.content.trim(), isIndented, context);
         widgets.add(sectionWidget);
       }
     }
@@ -91,11 +91,6 @@ class EnhancedHtmlRenderer extends StatelessWidget {
     
     // Sort markers by position
     markers.sort((a, b) => a.start.compareTo(b.start));
-    
-    print('Found ${markers.length} indentation markers');
-    for (final marker in markers) {
-      print('  ${marker.type} at ${marker.start}-${marker.end}');
-    }
     
     // Split content based on markers
     int lastEnd = 0;
@@ -125,37 +120,25 @@ class EnhancedHtmlRenderer extends StatelessWidget {
   }
 
   /// Build a text section with icon support and optional indentation
-  Widget _buildTextSectionWithIcons(String text, bool isIndented) {
+  Widget _buildTextSectionWithIcons(String text, bool isIndented, BuildContext context) {
     // Calculate indentation based on a more visible amount
     final double indentWidth = isIndented ? 24.0 : 0;
     
     return Container(
       margin: EdgeInsets.only(left: indentWidth, bottom: 8),
-      child: _buildHtmlWithIcons(text),
+      child: _buildHtmlWithIcons(text, context),
     );
   }
 
   /// Build HTML content with inline icons (for indented sections)
-  Widget _buildHtmlWithIcons(String htmlContent) {
+  Widget _buildHtmlWithIcons(String htmlContent, BuildContext context) {
     // Clean HTML content and process icons
     String processedContent = _processIconsInContent(htmlContent);
     
     // Use Html widget to handle HTML tags properly
     return Html(
       data: processedContent,
-      style: {
-        "body": Style(
-          fontSize: FontSize(14),
-          color: const Color(0xFF2C3E50),
-          margin: Margins.zero,
-          padding: HtmlPaddings.zero,
-        ),
-        "p": Style(
-          fontSize: FontSize(14),
-          color: const Color(0xFF2C3E50),
-          margin: Margins.only(bottom: 4),
-        ),
-      },
+      style: _getHtmlStyles(context),
       extensions: [
         TagExtension(
           tagsToExtend: {"icon"},
@@ -174,6 +157,35 @@ class EnhancedHtmlRenderer extends StatelessWidget {
             return Text('[$iconKey]');
           },
         ),
+        TagExtension(
+          tagsToExtend: {"title-text"},
+          builder: (extensionContext) {
+            return Text(
+              extensionContext.element!.text,
+              style: const TextStyle(
+                fontFamily: 'Roboto Serif',
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: Color(0xFF5A4E3C),
+              ),
+              textAlign: TextAlign.center,
+            );
+          },
+        ),
+        TagExtension(
+          tagsToExtend: {"subtitle-text"},
+          builder: (extensionContext) {
+            return Text(
+              extensionContext.element!.text,
+              style: const TextStyle(
+                fontFamily: 'Roboto Serif',
+                fontWeight: FontWeight.w400,
+                fontSize: 16,
+                color: Color(0xFF5A4E3C),
+              ),
+            );
+          },
+        ),
       ],
     );
   }
@@ -181,6 +193,12 @@ class EnhancedHtmlRenderer extends StatelessWidget {
   /// Process icon placeholders in HTML content
   String _processIconsInContent(String content) {
     String processedContent = content;
+    
+    // Process custom title-text tags first
+    processedContent = _processTitleTextTags(processedContent);
+    
+    // Process custom subtitle-text tags
+    processedContent = _processSubtitleTextTags(processedContent);
     
     // Replace 🍃 emojis with icon tags
     processedContent = processedContent.replaceAllMapped(
@@ -197,20 +215,58 @@ class EnhancedHtmlRenderer extends StatelessWidget {
       (match) => '<icon>${match.group(1)}</icon>',
     );
     
-    // Replace icon keys [iconKey] with custom HTML tags
+    // Replace icon keys [iconKey] with custom HTML tags, but exclude title-text and subtitle-text tags
     processedContent = processedContent.replaceAllMapped(
       RegExp(r'\[([^\]]+)\]'),
       (match) {
+        final fullMatch = match.group(0)!;
         final iconKey = match.group(1)!.toLowerCase();
+        
+        // Skip title-text and subtitle-text tags - they should be processed by their respective methods
+        if (iconKey == 'title-text-start' || iconKey == 'title-text-end' ||
+            iconKey == 'subtitle-text-start' || iconKey == 'subtitle-text-end') {
+          return fullMatch; // Return unchanged
+        }
+        
         if (ContentIconMapper.hasIcon(iconKey)) {
           return '<icon>$iconKey</icon>';
         } else {
-          return match.group(0)!;
+          return fullMatch;
         }
       },
     );
     
     return processedContent;
+  }
+
+  /// Process custom title-text tags [title-text-start]content[title-text-end]
+  String _processTitleTextTags(String content) {
+    return content.replaceAllMapped(
+      RegExp(r'\[title-text-start\](.*?)\[title-text-end\]', dotAll: true),
+      (match) {
+        final titleContent = match.group(1) ?? '';
+        
+        // Extract plain text from HTML content by removing HTML tags
+        String plainText = titleContent.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+        
+        return '<title-text>$plainText</title-text>';
+      },
+    );
+  }
+
+  /// Process custom subtitle-text tags [subtitle-text-start]content[subtitle-text-end]
+  String _processSubtitleTextTags(String content) {
+    return content.replaceAllMapped(
+      RegExp(r'\[subtitle-text-start\](.*?)\[subtitle-text-end\]', dotAll: true),
+      (match) {
+        final subtitleContent = match.group(1) ?? '';
+        
+        // Extract plain text from HTML content by removing HTML tags
+        String plainText = subtitleContent.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+        
+        return '<subtitle-text>$plainText</subtitle-text>';
+      },
+    );
   }
 
   Widget _buildContentWithBoxes(BuildContext context) {
@@ -252,6 +308,35 @@ class EnhancedHtmlRenderer extends StatelessWidget {
               );
             }
             return Text('[$iconKey]');
+          },
+        ),
+        TagExtension(
+          tagsToExtend: {"title-text"},
+          builder: (extensionContext) {
+            return Text(
+              extensionContext.element!.text,
+              style: const TextStyle(
+                fontFamily: 'Roboto Serif',
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: Color(0xFF5A4E3C),
+              ),
+              textAlign: TextAlign.center,
+            );
+          },
+        ),
+        TagExtension(
+          tagsToExtend: {"subtitle-text"},
+          builder: (extensionContext) {
+            return Text(
+              extensionContext.element!.text,
+              style: const TextStyle(
+                fontFamily: 'Roboto Serif',
+                fontWeight: FontWeight.w400,
+                fontSize: 16,
+                color: Color(0xFF5A4E3C),
+              ),
+            );
           },
         ),
       ],
@@ -312,8 +397,24 @@ class EnhancedHtmlRenderer extends StatelessWidget {
         textDecoration: TextDecoration.none, // Hide the underline
         fontFamily: 'Roboto Serif',
         fontWeight: FontWeight.w400,
-        fontSize: FontSize(20),
+        fontSize: FontSize(16),
         color: const Color(0xFF5A4E3C),
+      ),
+      "title-text": Style(
+        fontFamily: 'Roboto Serif',
+        fontWeight: FontWeight.bold,
+        fontSize: FontSize(18),
+        color: const Color(0xFF5A4E3C),
+        textDecoration: TextDecoration.none,
+        margin: Margins.only(bottom: 4),
+      ),
+      "subtitle-text": Style(
+        fontFamily: 'Roboto Serif',
+        fontWeight: FontWeight.w400,
+        fontSize: FontSize(16),
+        color: const Color(0xFF5A4E3C),
+        textDecoration: TextDecoration.none,
+        margin: Margins.only(bottom: 4),
       ),
       "icon": Style(
         color: iconColor ?? const Color(0xFF8B6B47),

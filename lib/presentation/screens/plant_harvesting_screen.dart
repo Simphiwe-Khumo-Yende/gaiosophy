@@ -67,10 +67,6 @@ class PlantHarvestingScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               
-              // Timeline
-// Replace the Timeline section with this:
-
-// Timeline
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -161,20 +157,7 @@ class PlantHarvestingScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 30),
-              
-              // Subtitle if available (Ethical Foraging Practices)
-              if (contentBlock.data.subtitle != null) ...[
-                Text(
-                  contentBlock.data.subtitle!,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-              
+              const SizedBox(height: 30),    
               // Main Content from Firestore
               if (contentBlock.data.content != null) ...[
                 _buildContentWithIconsAndBoxes(contentBlock.data.content!),
