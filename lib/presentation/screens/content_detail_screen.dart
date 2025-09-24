@@ -584,7 +584,13 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
                 Text(
                   block.data.title!,
                   textAlign: TextAlign.center,
-                  style: AppTheme.screenHeadingStyle,
+                  style: const TextStyle(
+                    fontFamily: 'RobotoSerif',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Color(0xFF000000),
+                    height: 1.2,
+                  ),
                 ),
             const SizedBox(height: 16),
           ],
@@ -593,10 +599,11 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
             Text(
               block.data.subtitle!,
               textAlign: TextAlign.center,
-              style: context.secondaryFont(
-                fontSize: 18,
-                fontWeight: FontWeight.w300,
-                color: const Color(0xFF1A1612).withValues(alpha: 0.8),
+              style: const TextStyle(
+                fontFamily: 'PublicSans',
+                fontWeight: FontWeight.w400,
+                fontSize: 15,
+                color: Color(0xFF25221E),
                 height: 1.5,
               ),
             ),
@@ -625,6 +632,13 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
   Widget _buildDetailedHtmlContent(String htmlContent) {
     return ContentDetailHtmlRenderer(
       content: htmlContent,
+      textStyle: const TextStyle(
+        fontFamily: 'PublicSans',
+        fontWeight: FontWeight.w400,
+        fontSize: 15,
+        color: Color(0xFF25221E),
+        height: 1.6,
+      ),
       iconSize: 20,
       iconColor: const Color(0xFF8B6B47),
     );
