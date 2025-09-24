@@ -20,7 +20,7 @@ class PlantOverviewScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {    
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F2),
       appBar: _buildAppBar(context),
@@ -227,7 +227,7 @@ class PlantOverviewScreen extends StatelessWidget {
 
   void _navigateToDetailedReading(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) => PlantOverviewDetailedView(
           contentBlock: contentBlock,
           parentTitle: parentTitle,
@@ -256,7 +256,7 @@ class PlantOverviewScreen extends StatelessWidget {
 
     // Navigate to audio player screen
     Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) => AudioPlayerScreen(
           content: content,
           audioUrl: content.audioId,

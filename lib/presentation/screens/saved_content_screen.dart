@@ -266,7 +266,7 @@ class SavedContentScreen extends ConsumerWidget {
   }
 
   void _showInfoDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(

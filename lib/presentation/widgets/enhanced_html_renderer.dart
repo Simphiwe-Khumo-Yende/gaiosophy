@@ -184,22 +184,32 @@ class RecipeHtmlRenderer extends EnhancedHtmlRenderer {
         padding: HtmlPaddings.zero,
         color: const Color(0xFF5A5A5A),
         fontSize: FontSize(13),
-        lineHeight: LineHeight(1.1), // Reduced from 1.3 to 1.1
+        lineHeight: LineHeight(1.0), // Minimal line height
       ),
       "p": Style(
-        margin: Margins.only(bottom: 2), // Reduced from 4 to 2
+        margin: Margins.zero, // No margins for paragraphs
+      ),
+      "div": Style(
+        margin: Margins.zero, // No margins for divs
+      ),
+      "span": Style(
+        margin: Margins.zero, // No margins for spans
       ),
       "h1, h2, h3": Style(
         color: Colors.black87,
         fontWeight: FontWeight.w500,
+        margin: Margins.zero, // No margins for headers
       ),
       "ul": Style(
         margin: Margins.zero,
         padding: HtmlPaddings.zero,
       ),
       "li": Style(
-        margin: Margins.only(bottom: 4),
+        margin: Margins.zero, // No margins for list items
         listStyleType: ListStyleType.disc,
+      ),
+      "br": Style(
+        margin: Margins.zero, // No margins for line breaks
       ),
     });
 

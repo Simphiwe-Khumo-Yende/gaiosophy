@@ -227,7 +227,7 @@ class PlantOverviewScreen extends StatelessWidget {
 
   void _navigateToDetailedReading(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) => PlantOverviewDetailedView(
           contentBlock: contentBlock,
           parentTitle: parentTitle,
