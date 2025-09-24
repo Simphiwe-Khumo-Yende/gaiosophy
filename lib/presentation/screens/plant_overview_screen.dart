@@ -196,30 +196,33 @@ class PlantOverviewScreen extends StatelessWidget {
             ),
           ),
           
-          const SizedBox(height: 12),
-          
-          // Listen to Audio Button (Secondary)
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                _playAudio(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.listenToAudioButtonColor,
-                foregroundColor: AppTheme.buttonTextColor,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50),
+          // Only show Listen to Audio button if audio is available
+          if (contentBlock.audioId != null && contentBlock.audioId!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            
+            // Listen to Audio Button (Secondary)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  _playAudio(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.listenToAudioButtonColor,
+                  foregroundColor: AppTheme.buttonTextColor,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                ),
+                child: Text(
+                  'Listen to Audio',
+                  style: AppTheme.buttonTextStyle,
                 ),
               ),
-              child: Text(
-                'Listen to Audio',
-                style: AppTheme.buttonTextStyle,
-              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -237,6 +240,17 @@ class PlantOverviewScreen extends StatelessWidget {
   }
 
   void _playAudio(BuildContext context) {
+    // Check if this content block has audio
+    if (contentBlock.audioId == null || contentBlock.audioId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No audio available for this content.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     // Create a Content object from the ContentBlock data for the AudioPlayerScreen
     final content = content_model.Content(
       id: contentBlock.id,
@@ -249,17 +263,17 @@ class PlantOverviewScreen extends StatelessWidget {
           : null,
       body: contentBlock.data.content,
       featuredImageId: contentBlock.data.featuredImageId,
-      audioId: 'plant_${contentBlock.id}_audio', // Construct audio ID for plant content
+      audioId: null, // Set to null so it's different from audioUrl
       published: true,
       contentBlocks: [contentBlock],
     );
 
-    // Navigate to audio player screen
+    // Navigate to audio player screen with block audio
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (context) => AudioPlayerScreen(
           content: content,
-          audioUrl: content.audioId,
+          audioUrl: contentBlock.audioId, // Pass block audioId as audioUrl for block audio detection
         ),
       ),
     );

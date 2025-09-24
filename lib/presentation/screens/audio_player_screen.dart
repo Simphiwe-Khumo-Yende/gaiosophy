@@ -97,22 +97,35 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
       String audioId = widget.audioUrl ?? widget.content.audioId!;
       String audioPath;
       
-      // If audioUrl is different from content.audioId, it's block audio
+      // If audioUrl is provided and content.audioId is null/different, it's block audio
       // If they're the same (or audioUrl is null), it's global content audio
       bool isBlockAudio = widget.audioUrl != null && 
-                         widget.content.audioId != null && 
-                         widget.audioUrl != widget.content.audioId;
+                         (widget.content.audioId == null || widget.audioUrl != widget.content.audioId);
       
       if (isBlockAudio) {
-        // Block audio uses media/audio/ bucket
-        audioPath = audioId.startsWith('media/audio/')
-            ? (audioId.endsWith('.m4a') ? audioId : audioId + '.m4a')
-            : 'media/audio/' + (audioId.endsWith('.m4a') ? audioId : audioId + '.m4a');
+        // Block audio uses media/audio bucket
+        if (audioId.startsWith('media/audio/')) {
+          // audioId already has full path
+          audioPath = audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a';
+        } else if (audioId.startsWith('media/audio')) {
+          // audioId has path but might be missing trailing slash
+          audioPath = audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a';
+        } else {
+          // audioId is just the filename, prepend media/audio/
+          audioPath = 'media/audio/' + (audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a');
+        }
       } else {
-        // Global content audio uses media/content-audio/ bucket
-        audioPath = audioId.startsWith('media/content-audio/')
-            ? (audioId.endsWith('.m4a') ? audioId : audioId + '.m4a')
-            : 'media/content-audio/' + (audioId.endsWith('.m4a') ? audioId : audioId + '.m4a');
+        // Global content audio uses media/content-audio bucket
+        if (audioId.startsWith('media/content-audio/')) {
+          // audioId already has full path
+          audioPath = audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a';
+        } else if (audioId.startsWith('media/content-audio')) {
+          // audioId has path but might be missing trailing slash
+          audioPath = audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a';
+        } else {
+          // audioId is just the filename, prepend media/content-audio/
+          audioPath = 'media/content-audio/' + (audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a');
+        }
       }
 
       String? foundUrl;
