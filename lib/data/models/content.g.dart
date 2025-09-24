@@ -54,7 +54,7 @@ _$SubBlockImpl _$$SubBlockImplFromJson(Map<String, dynamic> json) =>
     _$SubBlockImpl(
       id: json['id'] as String?,
       plantPartName: json['plantPartName'] as String?,
-      imageUrl: json['imageUrl'] as String?,
+      imageUrl: json['image_url'] as String?,
       medicinalUses: (json['medicinalUses'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -73,7 +73,7 @@ Map<String, dynamic> _$$SubBlockImplToJson(_$SubBlockImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'plantPartName': instance.plantPartName,
-      'imageUrl': instance.imageUrl,
+      'image_url': instance.imageUrl,
       'medicinalUses': instance.medicinalUses,
       'energeticUses': instance.energeticUses,
       'skincareUses': instance.skincareUses,

@@ -50,7 +50,7 @@ class _FirebaseStorageImageState extends ConsumerState<FirebaseStorageImage> {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading image ${widget.imageId}: $e');
+        print('FirebaseStorageImage error for ${widget.imageId}: $e');
       }
       if (mounted) {
         setState(() {
@@ -78,6 +78,9 @@ class _FirebaseStorageImageState extends ConsumerState<FirebaseStorageImage> {
     }
 
     if (_error != null || _imageUrl == null) {
+      if (kDebugMode) {
+        print('FirebaseStorageImage failed to load: ${widget.imageId} (error: $_error, url: $_imageUrl)');
+      }
       return widget.errorWidget ?? Container(
         width: widget.width,
         height: widget.height,

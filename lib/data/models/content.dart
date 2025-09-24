@@ -38,7 +38,7 @@ class SubBlock with _$SubBlock {
   const factory SubBlock({
     String? id,
     String? plantPartName,
-    String? imageUrl,
+    @JsonKey(name: 'image_url') String? imageUrl,
     @Default([]) List<String> medicinalUses,
     @Default([]) List<String> energeticUses,
     @Default([]) List<String> skincareUses,

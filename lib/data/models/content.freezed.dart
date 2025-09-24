@@ -559,6 +559,7 @@ SubBlock _$SubBlockFromJson(Map<String, dynamic> json) {
 mixin _$SubBlock {
   String? get id => throw _privateConstructorUsedError;
   String? get plantPartName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'image_url')
   String? get imageUrl => throw _privateConstructorUsedError;
   List<String> get medicinalUses => throw _privateConstructorUsedError;
   List<String> get energeticUses => throw _privateConstructorUsedError;
@@ -582,7 +583,7 @@ abstract class $SubBlockCopyWith<$Res> {
   $Res call(
       {String? id,
       String? plantPartName,
-      String? imageUrl,
+      @JsonKey(name: 'image_url') String? imageUrl,
       List<String> medicinalUses,
       List<String> energeticUses,
       List<String> skincareUses});
@@ -650,7 +651,7 @@ abstract class _$$SubBlockImplCopyWith<$Res>
   $Res call(
       {String? id,
       String? plantPartName,
-      String? imageUrl,
+      @JsonKey(name: 'image_url') String? imageUrl,
       List<String> medicinalUses,
       List<String> energeticUses,
       List<String> skincareUses});
@@ -711,7 +712,7 @@ class _$SubBlockImpl implements _SubBlock {
   const _$SubBlockImpl(
       {this.id,
       this.plantPartName,
-      this.imageUrl,
+      @JsonKey(name: 'image_url') this.imageUrl,
       final List<String> medicinalUses = const [],
       final List<String> energeticUses = const [],
       final List<String> skincareUses = const []})
@@ -727,6 +728,7 @@ class _$SubBlockImpl implements _SubBlock {
   @override
   final String? plantPartName;
   @override
+  @JsonKey(name: 'image_url')
   final String? imageUrl;
   final List<String> _medicinalUses;
   @override
@@ -809,7 +811,7 @@ abstract class _SubBlock implements SubBlock {
   const factory _SubBlock(
       {final String? id,
       final String? plantPartName,
-      final String? imageUrl,
+      @JsonKey(name: 'image_url') final String? imageUrl,
       final List<String> medicinalUses,
       final List<String> energeticUses,
       final List<String> skincareUses}) = _$SubBlockImpl;
@@ -822,6 +824,7 @@ abstract class _SubBlock implements SubBlock {
   @override
   String? get plantPartName;
   @override
+  @JsonKey(name: 'image_url')
   String? get imageUrl;
   @override
   List<String> get medicinalUses;

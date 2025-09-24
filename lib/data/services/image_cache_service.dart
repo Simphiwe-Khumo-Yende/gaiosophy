@@ -57,30 +57,41 @@ class ImageCacheService {
   /// Fetch image URL from Firebase Storage
   Future<String?> _fetchFromFirebase(String imageId) async {
     try {
-      // Ensure we're signed in (anonymous) so storage rules that require auth pass
-      if (FirebaseAuth.instance.currentUser == null) {
+      // Ensure we're signed in so storage rules pass
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
         await FirebaseAuth.instance.signInAnonymously();
       }
 
-      // Try different extensions
+      // Try different paths and extensions
+      final paths = [
+        'media/content-images', // New path structure
+        'media/uploads',        // Legacy path structure
+      ];
       final extensions = ['webp', 'png', 'jpg', 'jpeg'];
-      for (final ext in extensions) {
-        final path = 'media/content-images/$imageId.$ext';
-        try {
-          final url = await FirebaseStorage.instance
-              .ref()
-              .child(path)
-              .getDownloadURL();
-          return url;
-        } catch (e) {
-          // Try next extension
-          continue;
+      
+      for (final basePath in paths) {
+        for (final ext in extensions) {
+          final path = '$basePath/$imageId.$ext';
+          try {
+            final url = await FirebaseStorage.instance
+                .ref()
+                .child(path)
+                .getDownloadURL();
+            
+            return url;
+          } catch (e) {
+            // Try next combination - continue to next path/extension
+            continue;
+          }
         }
       }
+      
       return null;
     } catch (e) {
+      // Always log image loading errors in debug mode
       if (kDebugMode) {
-        print('Firebase fetch error for $imageId: $e');
+        print('🚨 Firebase fetch error for $imageId: $e');
       }
       return null;
     }

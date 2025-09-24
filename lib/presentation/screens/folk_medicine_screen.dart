@@ -15,6 +15,98 @@ class FolkMedicineScreen extends StatelessWidget {
     required this.parentTitle,
   });
 
+  Widget _getImageWidget() {
+    // First try to get featuredImageId from the content block
+    if (contentBlock.data.featuredImageId != null && contentBlock.data.featuredImageId!.isNotEmpty) {
+      return FirebaseStorageImage(
+        imageId: contentBlock.data.featuredImageId!,
+        width: 180,
+        height: 180,
+        fit: BoxFit.cover,
+        placeholder: _buildImagePlaceholder(),
+        errorWidget: _buildImageErrorWidget(),
+      );
+    }
+    
+    // If not found, try to get direct imageUrl from subBlocks
+    if (contentBlock.data.subBlocks.isNotEmpty) {
+      for (final subBlock in contentBlock.data.subBlocks) {
+        if (subBlock.imageUrl != null && subBlock.imageUrl!.isNotEmpty) {
+          // Check if it's a direct URL that needs to be converted
+          if (subBlock.imageUrl!.startsWith('http')) {
+            try {
+              final uri = Uri.parse(subBlock.imageUrl!);
+              String pathSegment = uri.path;
+              
+              // Remove leading slash
+              if (pathSegment.startsWith('/')) {
+                pathSegment = pathSegment.substring(1);
+              }
+              
+              // Extract filename from paths like media/folk-medicine/filename.png
+              final pathParts = pathSegment.split('/');
+              if (pathParts.length > 0) {
+                final filename = pathParts.last;
+                // Remove file extension to get the ID
+                final filenameWithoutExt = filename.split('.').first;
+                
+                print('🔄 Converting URL to Firebase Storage ID: $filenameWithoutExt');
+                
+                return FirebaseStorageImage(
+                  imageId: filenameWithoutExt,
+                  width: 180,
+                  height: 180,
+                  fit: BoxFit.cover,
+                  placeholder: _buildImagePlaceholder(),
+                  errorWidget: _buildImageErrorWidget(),
+                );
+              }
+            } catch (e) {
+              // Failed to parse URL - continue to fallback
+            }
+          }
+          
+          // Fallback to direct network loading for non-URL strings
+          return Image.network(
+            subBlock.imageUrl!,
+            width: 180,
+            height: 180,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return SizedBox(
+                width: 180,
+                height: 180,
+                child: _buildImagePlaceholder(),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return SizedBox(
+                width: 180,
+                height: 180,
+                child: _buildImageErrorWidget(),
+              );
+            },
+          );
+        }
+      }
+    }
+    
+    // No image found
+    return Container(
+      width: 180,
+      height: 180,
+      color: Colors.grey.withOpacity(0.2),
+      child: const Center(
+        child: Icon(
+          Icons.image_outlined,
+          size: 48,
+          color: Colors.grey,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,16 +150,7 @@ class FolkMedicineScreen extends StatelessWidget {
               // Circular Image - always show
               Center(
                 child: ClipOval(
-                  child: contentBlock.data.featuredImageId != null && contentBlock.data.featuredImageId!.isNotEmpty
-                      ? FirebaseStorageImage(
-                          imageId: contentBlock.data.featuredImageId!,
-                          width: 180,
-                          height: 180,
-                          fit: BoxFit.cover,
-                          placeholder: _buildImagePlaceholder(),
-                          errorWidget: _buildImageErrorWidget(),
-                        )
-                      : _buildImagePlaceholder(),
+                  child: _getImageWidget(),
                 ),
               ),
               const SizedBox(height: 32),

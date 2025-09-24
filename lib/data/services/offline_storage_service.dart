@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/content.dart';
@@ -27,14 +28,27 @@ class OfflineStorageService {
 
   // Initialize boxes
   Future<void> init() async {
-    _bookmarksBox ??= await Hive.openBox(_bookmarksBoxName);
-    _contentBox ??= await Hive.openBox(_contentBoxName);
+    try {
+      _bookmarksBox ??= await Hive.openBox(_bookmarksBoxName);
+      _contentBox ??= await Hive.openBox(_contentBoxName);
+    } catch (e) {
+      print('Error initializing offline storage: $e');
+      rethrow;
+    }
   }
 
   // Get bookmarked content IDs
   List<String> getBookmarkedContentIds() {
-    return (_bookmarksBox?.get(_bookmarkedIdsKey, defaultValue: <String>[]) as List<dynamic>?)
-        ?.cast<String>() ?? [];
+    try {
+      final data = _bookmarksBox?.get(_bookmarkedIdsKey, defaultValue: <String>[]);
+      if (data is List<dynamic>) {
+        return data.cast<String>();
+      }
+      return <String>[];
+    } catch (e) {
+      print('Error getting bookmarked IDs: $e');
+      return <String>[];
+    }
   }
 
   // Watch bookmarked content IDs
@@ -57,21 +71,26 @@ class OfflineStorageService {
   Future<bool> toggleBookmark(String contentId, Content content) async {
     await init();
     
-    final bookmarkedIds = getBookmarkedContentIds();
-    final isCurrentlyBookmarked = bookmarkedIds.contains(contentId);
-    
-    if (isCurrentlyBookmarked) {
-      // Remove bookmark
-      bookmarkedIds.remove(contentId);
-      await _contentBox?.delete(contentId);
-    } else {
-      // Add bookmark
-      bookmarkedIds.add(contentId);
-      await _saveContentOffline(contentId, content);
+    try {
+      final bookmarkedIds = getBookmarkedContentIds();
+      final isCurrentlyBookmarked = bookmarkedIds.contains(contentId);
+      
+      if (isCurrentlyBookmarked) {
+        // Remove bookmark
+        bookmarkedIds.remove(contentId);
+        await _contentBox?.delete(contentId);
+      } else {
+        // Add bookmark
+        bookmarkedIds.add(contentId);
+        await _saveContentOffline(contentId, content);
+      }
+      
+      await _bookmarksBox?.put(_bookmarkedIdsKey, bookmarkedIds);
+      return !isCurrentlyBookmarked;
+    } catch (e) {
+      print('Error toggling bookmark for $contentId: $e');
+      rethrow;
     }
-    
-    await _bookmarksBox?.put(_bookmarkedIdsKey, bookmarkedIds);
-    return !isCurrentlyBookmarked;
   }
 
   // Save content for offline access
@@ -84,7 +103,7 @@ class OfflineStorageService {
         'id': content.id,
         'title': content.title,
         'slug': content.slug,
-        'type': content.type.name, // Convert enum to string
+        'type': content.type.name,
         'summary': content.summary,
         'body': content.body,
         'season': content.season,
@@ -102,7 +121,6 @@ class OfflineStorageService {
         'createdAt': content.createdAt?.toIso8601String(),
         'updatedAt': content.updatedAt?.toIso8601String(),
         'savedAt': DateTime.now().toIso8601String(),
-        // Serialize content blocks
         'contentBlocks': content.contentBlocks.map((block) => {
           'id': block.id,
           'type': block.type,
@@ -115,7 +133,6 @@ class OfflineStorageService {
             'galleryImageIds': block.data.galleryImageIds,
             'listItems': block.data.listItems,
             'listStyle': block.data.listStyle,
-            // Serialize subBlocks
             'subBlocks': block.data.subBlocks.map((subBlock) => {
               'id': subBlock.id,
               'plantPartName': subBlock.plantPartName,
@@ -133,10 +150,15 @@ class OfflineStorageService {
         }).toList(),
       };
       
-      // Store the simplified data
       await _contentBox?.put(contentId, simplifiedContent);
     } catch (e) {
-      print('Error saving content offline: $e');
+      print('Error saving content offline: $contentId - $e');
+      // Clean up any partial data
+      try {
+        await _contentBox?.delete(contentId);
+      } catch (cleanupError) {
+        print('Error during cleanup: $cleanupError');
+      }
       rethrow;
     }
   }
@@ -145,10 +167,10 @@ class OfflineStorageService {
   Future<Content?> getSavedContent(String contentId) async {
     await init();
     
-    final contentData = _contentBox?.get(contentId);
-    if (contentData == null) return null;
-    
     try {
+      final contentData = _contentBox?.get(contentId);
+      if (contentData == null) return null;
+      
       // Ensure it's a Map<String, dynamic>
       final Map<String, dynamic> data;
       if (contentData is Map<String, dynamic>) {
@@ -162,10 +184,10 @@ class OfflineStorageService {
       }
       
       // Reconstruct Content from simplified data
-      return Content(
+      final content = Content(
         id: data['id']?.toString() ?? contentId,
         title: data['title']?.toString() ?? '',
-        slug: data['slug']?.toString() ?? contentId, // Use contentId as fallback slug
+        slug: data['slug']?.toString() ?? contentId,
         type: _parseContentType(data['type']?.toString()),
         summary: data['summary']?.toString(),
         body: data['body']?.toString(),
@@ -179,8 +201,11 @@ class OfflineStorageService {
           : null,
         published: data['published'] as bool? ?? true,
       );
+      
+      return content;
+      
     } catch (e) {
-      // If content format is invalid, remove it
+      print('Error reconstructing content for $contentId: $e');
       await _contentBox?.delete(contentId);
       return null;
     }
@@ -190,17 +215,22 @@ class OfflineStorageService {
   Future<List<Content>> getAllSavedContent() async {
     await init();
     
-    final bookmarkedIds = getBookmarkedContentIds();
-    final savedContent = <Content>[];
-    
-    for (final contentId in bookmarkedIds) {
-      final content = await getSavedContent(contentId);
-      if (content != null) {
-        savedContent.add(content);
+    try {
+      final bookmarkedIds = getBookmarkedContentIds();
+      final savedContent = <Content>[];
+      
+      for (final contentId in bookmarkedIds) {
+        final content = await getSavedContent(contentId);
+        if (content != null) {
+          savedContent.add(content);
+        }
       }
+      
+      return savedContent;
+    } catch (e) {
+      print('Error getting all saved content: $e');
+      return <Content>[];
     }
-    
-    return savedContent;
   }
 
   // Remove bookmark and saved content
@@ -240,6 +270,26 @@ class OfflineStorageService {
   Future<bool> isContentAvailableOffline(String contentId) async {
     await init();
     return _contentBox?.containsKey(contentId) ?? false;
+  }
+
+  // Debug method to check storage status
+  Future<void> debugStorageStatus() async {
+    if (kDebugMode) {
+      await init();
+      
+      print('=== OFFLINE STORAGE DEBUG ===');
+      print('Bookmarks box: ${_bookmarksBox != null ? "✓" : "✗"}');
+      print('Content box: ${_contentBox != null ? "✓" : "✗"}');
+      
+      final bookmarkedIds = getBookmarkedContentIds();
+      print('Bookmarked IDs (${bookmarkedIds.length}): $bookmarkedIds');
+      
+      if (_contentBox != null) {
+        print('Saved content keys (${_contentBox!.length}): ${_contentBox!.keys.toList()}');
+      }
+      
+      print('==============================');
+    }
   }
 
   // Helper method to parse ContentType from string
