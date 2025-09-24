@@ -22,13 +22,195 @@ class EnhancedHtmlRenderer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // First, check if content has box sections
+    // Check if content has box sections first (as they are more complex)
     if (ContentBoxParser.hasBoxTags(content)) {
       return _buildContentWithBoxes(context);
+    }
+    // Then check for indentation tags
+    else if (_hasIndentationTags(content)) {
+      return _buildContentWithIndentation(context);
     } else {
-      // No box sections, render as enhanced HTML with icon support
+      // No box sections or indentation, render as enhanced HTML with icon support
       return _buildEnhancedHtml(context);
     }
+  }
+
+  /// Check if content contains indentation tags
+  bool _hasIndentationTags(String content) {
+    return content.contains('[indent-start]') || content.contains('[indent-end]');
+  }
+
+  /// Build content with indentation support
+  Widget _buildContentWithIndentation(BuildContext context) {
+    final sections = _parseContentWithIndentation(content);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: sections,
+    );
+  }
+
+  /// Parse content into sections with indentation awareness
+  List<Widget> _parseContentWithIndentation(String content) {
+    final List<Widget> widgets = [];
+    
+    // More flexible approach: find indentation tags within HTML content
+    final segments = _splitContentByIndentationTags(content);
+    bool isIndented = false;
+    
+    for (final segment in segments) {
+      if (segment.type == 'indent-start') {
+        isIndented = true;
+        continue;
+      } else if (segment.type == 'indent-end') {
+        isIndented = false;
+        continue;
+      } else if (segment.content.trim().isNotEmpty) {
+        final sectionWidget = _buildTextSectionWithIcons(segment.content.trim(), isIndented);
+        widgets.add(sectionWidget);
+      }
+    }
+    
+    return widgets;
+  }
+
+  /// Split content by indentation tags, handling HTML-wrapped tags
+  List<ContentSegment> _splitContentByIndentationTags(String content) {
+    final List<ContentSegment> segments = [];
+    
+    // Find all indentation tags, whether wrapped in HTML or not
+    final indentPattern = RegExp(r'(?:<[^>]*>)?\s*\[(indent-start|indent-end)\]\s*(?:<[^>]*>)?');
+    
+    // Create a list of all indentation positions
+    final List<IndentationMarker> markers = [];
+    
+    // Find all indentation markers
+    for (final match in indentPattern.allMatches(content)) {
+      final type = match.group(1)!; // 'indent-start' or 'indent-end'
+      markers.add(IndentationMarker(match.start, match.end, type));
+    }
+    
+    // Sort markers by position
+    markers.sort((a, b) => a.start.compareTo(b.start));
+    
+    print('Found ${markers.length} indentation markers');
+    for (final marker in markers) {
+      print('  ${marker.type} at ${marker.start}-${marker.end}');
+    }
+    
+    // Split content based on markers
+    int lastEnd = 0;
+    for (final marker in markers) {
+      // Add content before this marker
+      if (marker.start > lastEnd) {
+        final contentBefore = content.substring(lastEnd, marker.start);
+        if (contentBefore.trim().isNotEmpty) {
+          segments.add(ContentSegment(contentBefore, 'content'));
+        }
+      }
+      
+      // Add the marker itself
+      segments.add(ContentSegment('', marker.type));
+      lastEnd = marker.end;
+    }
+    
+    // Add remaining content
+    if (lastEnd < content.length) {
+      final remaining = content.substring(lastEnd);
+      if (remaining.trim().isNotEmpty) {
+        segments.add(ContentSegment(remaining, 'content'));
+      }
+    }
+    
+    return segments;
+  }
+
+  /// Build a text section with icon support and optional indentation
+  Widget _buildTextSectionWithIcons(String text, bool isIndented) {
+    // Calculate indentation based on a more visible amount
+    final double indentWidth = isIndented ? 24.0 : 0;
+    
+    return Container(
+      margin: EdgeInsets.only(left: indentWidth, bottom: 8),
+      child: _buildHtmlWithIcons(text),
+    );
+  }
+
+  /// Build HTML content with inline icons (for indented sections)
+  Widget _buildHtmlWithIcons(String htmlContent) {
+    // Clean HTML content and process icons
+    String processedContent = _processIconsInContent(htmlContent);
+    
+    // Use Html widget to handle HTML tags properly
+    return Html(
+      data: processedContent,
+      style: {
+        "body": Style(
+          fontSize: FontSize(14),
+          color: const Color(0xFF2C3E50),
+          margin: Margins.zero,
+          padding: HtmlPaddings.zero,
+        ),
+        "p": Style(
+          fontSize: FontSize(14),
+          color: const Color(0xFF2C3E50),
+          margin: Margins.only(bottom: 4),
+        ),
+      },
+      extensions: [
+        TagExtension(
+          tagsToExtend: {"icon"},
+          builder: (extensionContext) {
+            final iconKey = extensionContext.element!.text.toLowerCase();
+            if (ContentIconMapper.hasIcon(iconKey)) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: ContentIconMapper.buildIcon(
+                  iconKey,
+                  color: iconColor ?? const Color(0xFF8B4513),
+                  size: iconSize,
+                ),
+              );
+            }
+            return Text('[$iconKey]');
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Process icon placeholders in HTML content
+  String _processIconsInContent(String content) {
+    String processedContent = content;
+    
+    // Replace 🍃 emojis with icon tags
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'🍃\s*([^🍃\n<]*?)(?=\s|$|<|🍃)'),
+      (match) {
+        String iconText = match.group(1)?.trim() ?? 'leaf';
+        return '<icon>$iconText</icon> ';
+      },
+    );
+    
+    // Replace other icon patterns like [icon:key] with <icon>key</icon>
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'\[icon:([^\]]+)\]'),
+      (match) => '<icon>${match.group(1)}</icon>',
+    );
+    
+    // Replace icon keys [iconKey] with custom HTML tags
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'\[([^\]]+)\]'),
+      (match) {
+        final iconKey = match.group(1)!.toLowerCase();
+        if (ContentIconMapper.hasIcon(iconKey)) {
+          return '<icon>$iconKey</icon>';
+        } else {
+          return match.group(0)!;
+        }
+      },
+    );
+    
+    return processedContent;
   }
 
   Widget _buildContentWithBoxes(BuildContext context) {
@@ -49,7 +231,7 @@ class EnhancedHtmlRenderer extends StatelessWidget {
 
   Widget _buildEnhancedHtml(BuildContext context) {
     // Process content to replace icon keys with HTML spans that can be styled
-    final processedContent = _processIconsInHtml(content);
+    final processedContent = _processIconsInContent(content);
 
     return Html(
       data: processedContent,
@@ -74,20 +256,6 @@ class EnhancedHtmlRenderer extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  String _processIconsInHtml(String htmlContent) {
-    // Replace icon keys [iconKey] with custom HTML tags that can be processed by extensions
-    final RegExp iconRegex = RegExp(r'\[([^\]]+)\]');
-    return htmlContent.replaceAllMapped(iconRegex, (match) {
-      final iconKey = match.group(1)!.toLowerCase();
-      if (ContentIconMapper.hasIcon(iconKey)) {
-        return '<icon>$iconKey</icon>';
-      } else {
-        // Keep original text if icon not found
-        return match.group(0)!;
-      }
-    });
   }
 
   Map<String, Style> _getHtmlStyles(BuildContext context) {
@@ -234,4 +402,21 @@ class ContentDetailHtmlRenderer extends EnhancedHtmlRenderer {
     // Content detail specific styles are already good in the base class
     return baseStyles;
   }
+}
+
+/// Helper class for content segments
+class ContentSegment {
+  final String content;
+  final String type; // 'content', 'indent-start', 'indent-end'
+  
+  ContentSegment(this.content, this.type);
+}
+
+/// Helper class for indentation markers
+class IndentationMarker {
+  final int start;
+  final int end;
+  final String type;
+  
+  IndentationMarker(this.start, this.end, this.type);
 }

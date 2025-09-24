@@ -188,16 +188,39 @@ class PlantHarvestingScreen extends StatelessWidget {
   }
 
   Widget _buildSeasonIcon(BuildContext context, IconData icon, String label) {
+    // Get season-specific circle color based on label
+    Color circleColor;
+    switch (label.toLowerCase()) {
+      case 'spring':
+        circleColor = const Color(0xFFF2E9D7); // Spring color
+        break;
+      case 'summer':
+        circleColor = const Color(0xFFE6DFD0); // Summer color
+        break;
+      case 'autumn':
+        circleColor = const Color(0xFFF2E9D7); // Autumn color
+        break;
+      case 'winter':
+        circleColor = const Color(0xFFE6DFD0); // Winter color
+        break;
+      default:
+        circleColor = boxColor; // Fallback to original color
+    }
+
     return Column(
       children: [
         Container(
-          width: 60,
-          height: 60,
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
-            color: boxColor,
+            color: circleColor,
             shape: BoxShape.circle,
+            border: Border.all(
+              color: const Color(0xFFE5E7EB), // Light border as shown in Figma
+              width: 1,
+            ),
           ),
-          child: Icon(icon, color: textColor, size: 30),
+          child: Icon(icon, color: textColor, size: 24),
         ),
         const SizedBox(height: 8),
         Text(
@@ -215,6 +238,11 @@ class PlantHarvestingScreen extends StatelessWidget {
       content: content,
       iconSize: 20,
       iconColor: textColor,
+      textStyle: TextStyle(
+        color: textColor,
+        fontSize: 16,
+        height: 1.6,
+      ),
     );
   }
 }

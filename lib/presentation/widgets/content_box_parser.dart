@@ -216,8 +216,10 @@ class ContentBoxParser {
   
   /// Checks if content contains box tags (with or without style, including variants)
   static bool hasBoxTags(String content) {
-    return content.contains(RegExp(r'\[box-start(-[12])?(?::[^\]]+)?\]')) && 
-           content.contains(RegExp(r'\[box-end(-[12])?\]'));
+    bool hasStart = content.contains(RegExp(r'\[box-start(-[12])?(?::[^\]]+)?\]'));
+    bool hasEnd = content.contains(RegExp(r'\[box-end(-[12])?\]'));
+    print('ContentBoxParser.hasBoxTags: start=$hasStart, end=$hasEnd');
+    return hasStart && hasEnd;
   }
   
   /// Removes box tags from content (useful for plain text extraction, including variants)
