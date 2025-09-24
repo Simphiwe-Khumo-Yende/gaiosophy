@@ -65,18 +65,6 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                   ),
                 ),
               ),
-              // Title
-              Positioned(
-                bottom: 20,
-                left: 16,
-                child: Text(
-                  widget.content.title,
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: Colors.white,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
             ],
           ),
           

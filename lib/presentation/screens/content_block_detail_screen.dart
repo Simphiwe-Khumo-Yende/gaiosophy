@@ -54,6 +54,7 @@ class ContentBlockDetailScreen extends StatelessWidget {
               if (contentBlock.data.content != null) ...[
                 Container(
                   width: double.infinity,
+                  height: 160, // Fixed height for horizontal rectangular dimension
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -66,7 +67,31 @@ class ContentBlockDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: _buildContentWithIconsAndBoxes(context, contentBlock.data.content!),
+                  child: Row( // Changed to horizontal layout
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left side - Icon
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF5A4E3C).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.article_outlined,
+                          size: 24,
+                          color: const Color(0xFF5A4E3C),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Right side - Content
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: _buildContentWithIconsAndBoxes(context, contentBlock.data.content!),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ] else ...[
                 Container(

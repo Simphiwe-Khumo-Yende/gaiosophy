@@ -39,60 +39,81 @@ class FolkMedicineScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
+              // Title - Show plant part name instead of plant name
               Center(
                 child: Text(
-                  contentBlock.data.title ?? parentTitle,
-                  style: context.primaryFont(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF3C3C3C),
-                    letterSpacing: 0.5,
+                  _getPlantPartName(),
+                  style: TextStyle(
+                    fontFamily: 'Roboto Serif',
+                    fontSize: 30,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF6B5D4D),
+                    letterSpacing: -0.02 * 30, // -2% of font size
+                    height: 1.0,
                   ),
                 ),
               ),
               const SizedBox(height: 24),
 
-              // Circular Image if available
-              if (contentBlock.data.featuredImageId != null && contentBlock.data.featuredImageId!.isNotEmpty) ...[
-                Center(
-                  child: ClipOval(
-                    child: FirebaseStorageImage(
-                      imageId: contentBlock.data.featuredImageId!,
-                      width: 180,
-                      height: 180,
-                      fit: BoxFit.cover,
-                      placeholder: Container(
-                        width: 180,
-                        height: 180,
-                        color: const Color(0xFF8B6B47).withOpacity(0.1),
-                        child: const Icon(
-                          Icons.spa_outlined,
-                          size: 48,
-                          color: Color(0xFF8B6B47),
-                        ),
-                      ),
-                      errorWidget: Container(
-                        width: 180,
-                        height: 180,
-                        color: const Color(0xFF8B6B47).withOpacity(0.1),
-                        child: const Icon(
-                          Icons.broken_image_outlined,
-                          size: 48,
-                          color: Color(0xFF8B6B47),
-                        ),
-                      ),
-                    ),
-                  ),
+              // Circular Image - always show
+              Center(
+                child: ClipOval(
+                  child: contentBlock.data.featuredImageId != null && contentBlock.data.featuredImageId!.isNotEmpty
+                      ? FirebaseStorageImage(
+                          imageId: contentBlock.data.featuredImageId!,
+                          width: 180,
+                          height: 180,
+                          fit: BoxFit.cover,
+                          placeholder: _buildImagePlaceholder(),
+                          errorWidget: _buildImageErrorWidget(),
+                        )
+                      : _buildImagePlaceholder(),
                 ),
-                const SizedBox(height: 32),
-              ],
+              ),
+              const SizedBox(height: 32),
 
               // Content
               _buildFolkMedicineContent(context),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // Get plant part name from subBlocks
+  String _getPlantPartName() {
+    if (contentBlock.data.subBlocks.isNotEmpty) {
+      final subBlock = contentBlock.data.subBlocks.first;
+      if (subBlock.plantPartName != null && subBlock.plantPartName!.isNotEmpty) {
+        return subBlock.plantPartName!;
+      }
+    }
+    return parentTitle; // fallback to parent title
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      width: 180,
+      height: 180,
+      color: const Color(0xFF8B6B47).withOpacity(0.1),
+      child: const Icon(
+        Icons.spa_outlined,
+        size: 48,
+        color: Color(0xFF8B6B47),
+      ),
+    );
+  }
+
+  Widget _buildImageErrorWidget() {
+    return Container(
+      width: 180,
+      height: 180,
+      color: const Color(0xFF8B6B47).withOpacity(0.1),
+      child: const Icon(
+        Icons.broken_image_outlined,
+        size: 48,
+        color: Color(0xFF8B6B47),
       ),
     );
   }
@@ -133,18 +154,6 @@ class FolkMedicineScreen extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Show plant part name if available (e.g., "Fruit")
-            if (subBlock.plantPartName != null && subBlock.plantPartName!.isNotEmpty) ...[
-              Text(
-                subBlock.plantPartName!,
-                style: context.primaryFont(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF3C3C3C),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
 
             // Medicinal uses - only show if has valid content
             if (_hasValidContent(subBlock.medicinalUses)) ...[
