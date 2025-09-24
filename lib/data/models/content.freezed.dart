@@ -25,6 +25,10 @@ mixin _$ContentBlock {
   int get order => throw _privateConstructorUsedError;
   ContentBlockData get data => throw _privateConstructorUsedError;
   ContentBlockButton? get button => throw _privateConstructorUsedError;
+  String? get audioId => throw _privateConstructorUsedError;
+  bool get audioAutoPlay => throw _privateConstructorUsedError;
+  String? get audioTranscript => throw _privateConstructorUsedError;
+  bool get showAudioTranscript => throw _privateConstructorUsedError;
 
   /// Serializes this ContentBlock to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -47,7 +51,11 @@ abstract class $ContentBlockCopyWith<$Res> {
       String type,
       int order,
       ContentBlockData data,
-      ContentBlockButton? button});
+      ContentBlockButton? button,
+      String? audioId,
+      bool audioAutoPlay,
+      String? audioTranscript,
+      bool showAudioTranscript});
 
   $ContentBlockDataCopyWith<$Res> get data;
   $ContentBlockButtonCopyWith<$Res>? get button;
@@ -73,6 +81,10 @@ class _$ContentBlockCopyWithImpl<$Res, $Val extends ContentBlock>
     Object? order = null,
     Object? data = null,
     Object? button = freezed,
+    Object? audioId = freezed,
+    Object? audioAutoPlay = null,
+    Object? audioTranscript = freezed,
+    Object? showAudioTranscript = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -95,6 +107,22 @@ class _$ContentBlockCopyWithImpl<$Res, $Val extends ContentBlock>
           ? _value.button
           : button // ignore: cast_nullable_to_non_nullable
               as ContentBlockButton?,
+      audioId: freezed == audioId
+          ? _value.audioId
+          : audioId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      audioAutoPlay: null == audioAutoPlay
+          ? _value.audioAutoPlay
+          : audioAutoPlay // ignore: cast_nullable_to_non_nullable
+              as bool,
+      audioTranscript: freezed == audioTranscript
+          ? _value.audioTranscript
+          : audioTranscript // ignore: cast_nullable_to_non_nullable
+              as String?,
+      showAudioTranscript: null == showAudioTranscript
+          ? _value.showAudioTranscript
+          : showAudioTranscript // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 
@@ -136,7 +164,11 @@ abstract class _$$ContentBlockImplCopyWith<$Res>
       String type,
       int order,
       ContentBlockData data,
-      ContentBlockButton? button});
+      ContentBlockButton? button,
+      String? audioId,
+      bool audioAutoPlay,
+      String? audioTranscript,
+      bool showAudioTranscript});
 
   @override
   $ContentBlockDataCopyWith<$Res> get data;
@@ -162,6 +194,10 @@ class __$$ContentBlockImplCopyWithImpl<$Res>
     Object? order = null,
     Object? data = null,
     Object? button = freezed,
+    Object? audioId = freezed,
+    Object? audioAutoPlay = null,
+    Object? audioTranscript = freezed,
+    Object? showAudioTranscript = null,
   }) {
     return _then(_$ContentBlockImpl(
       id: null == id
@@ -184,6 +220,22 @@ class __$$ContentBlockImplCopyWithImpl<$Res>
           ? _value.button
           : button // ignore: cast_nullable_to_non_nullable
               as ContentBlockButton?,
+      audioId: freezed == audioId
+          ? _value.audioId
+          : audioId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      audioAutoPlay: null == audioAutoPlay
+          ? _value.audioAutoPlay
+          : audioAutoPlay // ignore: cast_nullable_to_non_nullable
+              as bool,
+      audioTranscript: freezed == audioTranscript
+          ? _value.audioTranscript
+          : audioTranscript // ignore: cast_nullable_to_non_nullable
+              as String?,
+      showAudioTranscript: null == showAudioTranscript
+          ? _value.showAudioTranscript
+          : showAudioTranscript // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -196,7 +248,11 @@ class _$ContentBlockImpl implements _ContentBlock {
       required this.type,
       required this.order,
       required this.data,
-      this.button});
+      this.button,
+      this.audioId,
+      this.audioAutoPlay = false,
+      this.audioTranscript,
+      this.showAudioTranscript = false});
 
   factory _$ContentBlockImpl.fromJson(Map<String, dynamic> json) =>
       _$$ContentBlockImplFromJson(json);
@@ -211,10 +267,20 @@ class _$ContentBlockImpl implements _ContentBlock {
   final ContentBlockData data;
   @override
   final ContentBlockButton? button;
+  @override
+  final String? audioId;
+  @override
+  @JsonKey()
+  final bool audioAutoPlay;
+  @override
+  final String? audioTranscript;
+  @override
+  @JsonKey()
+  final bool showAudioTranscript;
 
   @override
   String toString() {
-    return 'ContentBlock(id: $id, type: $type, order: $order, data: $data, button: $button)';
+    return 'ContentBlock(id: $id, type: $type, order: $order, data: $data, button: $button, audioId: $audioId, audioAutoPlay: $audioAutoPlay, audioTranscript: $audioTranscript, showAudioTranscript: $showAudioTranscript)';
   }
 
   @override
@@ -226,12 +292,20 @@ class _$ContentBlockImpl implements _ContentBlock {
             (identical(other.type, type) || other.type == type) &&
             (identical(other.order, order) || other.order == order) &&
             (identical(other.data, data) || other.data == data) &&
-            (identical(other.button, button) || other.button == button));
+            (identical(other.button, button) || other.button == button) &&
+            (identical(other.audioId, audioId) || other.audioId == audioId) &&
+            (identical(other.audioAutoPlay, audioAutoPlay) ||
+                other.audioAutoPlay == audioAutoPlay) &&
+            (identical(other.audioTranscript, audioTranscript) ||
+                other.audioTranscript == audioTranscript) &&
+            (identical(other.showAudioTranscript, showAudioTranscript) ||
+                other.showAudioTranscript == showAudioTranscript));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, type, order, data, button);
+  int get hashCode => Object.hash(runtimeType, id, type, order, data, button,
+      audioId, audioAutoPlay, audioTranscript, showAudioTranscript);
 
   /// Create a copy of ContentBlock
   /// with the given fields replaced by the non-null parameter values.
@@ -255,7 +329,11 @@ abstract class _ContentBlock implements ContentBlock {
       required final String type,
       required final int order,
       required final ContentBlockData data,
-      final ContentBlockButton? button}) = _$ContentBlockImpl;
+      final ContentBlockButton? button,
+      final String? audioId,
+      final bool audioAutoPlay,
+      final String? audioTranscript,
+      final bool showAudioTranscript}) = _$ContentBlockImpl;
 
   factory _ContentBlock.fromJson(Map<String, dynamic> json) =
       _$ContentBlockImpl.fromJson;
@@ -270,6 +348,14 @@ abstract class _ContentBlock implements ContentBlock {
   ContentBlockData get data;
   @override
   ContentBlockButton? get button;
+  @override
+  String? get audioId;
+  @override
+  bool get audioAutoPlay;
+  @override
+  String? get audioTranscript;
+  @override
+  bool get showAudioTranscript;
 
   /// Create a copy of ContentBlock
   /// with the given fields replaced by the non-null parameter values.
@@ -1107,6 +1193,8 @@ mixin _$Content {
   String? get prepTime => throw _privateConstructorUsedError;
   String? get infusionTime => throw _privateConstructorUsedError;
   String? get difficulty => throw _privateConstructorUsedError;
+  bool? get ritual =>
+      throw _privateConstructorUsedError; // Ritual flag for seasonal content
   bool get published => throw _privateConstructorUsedError;
   List<String> get tags => throw _privateConstructorUsedError;
   List<String> get media => throw _privateConstructorUsedError;
@@ -1144,6 +1232,7 @@ abstract class $ContentCopyWith<$Res> {
       String? prepTime,
       String? infusionTime,
       String? difficulty,
+      bool? ritual,
       bool published,
       List<String> tags,
       List<String> media,
@@ -1182,6 +1271,7 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
     Object? prepTime = freezed,
     Object? infusionTime = freezed,
     Object? difficulty = freezed,
+    Object? ritual = freezed,
     Object? published = null,
     Object? tags = null,
     Object? media = null,
@@ -1250,6 +1340,10 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
           ? _value.difficulty
           : difficulty // ignore: cast_nullable_to_non_nullable
               as String?,
+      ritual: freezed == ritual
+          ? _value.ritual
+          : ritual // ignore: cast_nullable_to_non_nullable
+              as bool?,
       published: null == published
           ? _value.published
           : published // ignore: cast_nullable_to_non_nullable
@@ -1301,6 +1395,7 @@ abstract class _$$ContentImplCopyWith<$Res> implements $ContentCopyWith<$Res> {
       String? prepTime,
       String? infusionTime,
       String? difficulty,
+      bool? ritual,
       bool published,
       List<String> tags,
       List<String> media,
@@ -1337,6 +1432,7 @@ class __$$ContentImplCopyWithImpl<$Res>
     Object? prepTime = freezed,
     Object? infusionTime = freezed,
     Object? difficulty = freezed,
+    Object? ritual = freezed,
     Object? published = null,
     Object? tags = null,
     Object? media = null,
@@ -1405,6 +1501,10 @@ class __$$ContentImplCopyWithImpl<$Res>
           ? _value.difficulty
           : difficulty // ignore: cast_nullable_to_non_nullable
               as String?,
+      ritual: freezed == ritual
+          ? _value.ritual
+          : ritual // ignore: cast_nullable_to_non_nullable
+              as bool?,
       published: null == published
           ? _value.published
           : published // ignore: cast_nullable_to_non_nullable
@@ -1452,6 +1552,7 @@ class _$ContentImpl implements _Content {
       this.prepTime,
       this.infusionTime,
       this.difficulty,
+      this.ritual,
       this.published = false,
       final List<String> tags = const [],
       final List<String> media = const [],
@@ -1497,6 +1598,9 @@ class _$ContentImpl implements _Content {
   @override
   final String? difficulty;
   @override
+  final bool? ritual;
+// Ritual flag for seasonal content
+  @override
   @JsonKey()
   final bool published;
   final List<String> _tags;
@@ -1533,7 +1637,7 @@ class _$ContentImpl implements _Content {
 
   @override
   String toString() {
-    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, subtitle: $subtitle, prepTime: $prepTime, infusionTime: $infusionTime, difficulty: $difficulty, published: $published, tags: $tags, media: $media, contentBlocks: $contentBlocks, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, subtitle: $subtitle, prepTime: $prepTime, infusionTime: $infusionTime, difficulty: $difficulty, ritual: $ritual, published: $published, tags: $tags, media: $media, contentBlocks: $contentBlocks, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -1562,6 +1666,7 @@ class _$ContentImpl implements _Content {
                 other.infusionTime == infusionTime) &&
             (identical(other.difficulty, difficulty) ||
                 other.difficulty == difficulty) &&
+            (identical(other.ritual, ritual) || other.ritual == ritual) &&
             (identical(other.published, published) ||
                 other.published == published) &&
             const DeepCollectionEquality().equals(other._tags, _tags) &&
@@ -1593,6 +1698,7 @@ class _$ContentImpl implements _Content {
         prepTime,
         infusionTime,
         difficulty,
+        ritual,
         published,
         const DeepCollectionEquality().hash(_tags),
         const DeepCollectionEquality().hash(_media),
@@ -1634,6 +1740,7 @@ abstract class _Content implements Content {
       final String? prepTime,
       final String? infusionTime,
       final String? difficulty,
+      final bool? ritual,
       final bool published,
       final List<String> tags,
       final List<String> media,
@@ -1673,6 +1780,8 @@ abstract class _Content implements Content {
   String? get infusionTime;
   @override
   String? get difficulty;
+  @override
+  bool? get ritual; // Ritual flag for seasonal content
   @override
   bool get published;
   @override

@@ -376,7 +376,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 90),
       child: Column(
         children: [
-          // Read More Button (Primary)
+          // Read More Button (Primary) - text changes based on ritual property
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -393,36 +393,41 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
                 ),
               ),
               child: Text(
-                'Read More',
+                // Use ritual field: true = "The Ritual", false/null = "Read More"
+                content.ritual == true ? 'The Ritual' : 'Read More',
                 style: AppTheme.buttonTextStyle,
               ),
             ),
           ),
           
-          const SizedBox(height: 12),
-          
-          // Listen to Audio Button (Secondary)
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                _playAudio(content);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.listenToAudioButtonColor,
-                foregroundColor: AppTheme.buttonTextColor,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50),
+          // Show audio button when ritual is not true (includes false and null cases)
+          // When ritual field is not found (null), show both buttons (default behavior)
+          if (content.ritual != true) ...[
+            const SizedBox(height: 12),
+            
+            // Listen to Audio Button (Secondary)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  _playAudio(content);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.listenToAudioButtonColor,
+                  foregroundColor: AppTheme.buttonTextColor,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                ),
+                child: Text(
+                  'Listen to Audio',
+                  style: AppTheme.buttonTextStyle,
                 ),
               ),
-              child: Text(
-                'Listen to Audio',
-                style: AppTheme.buttonTextStyle,
-              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -595,6 +600,36 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
             const SizedBox(height: 16),
           ],
 
+          // Audio button - show if button exists, show is true, and action is play_audio
+          if (block.button != null && 
+              block.button!.show && 
+              block.button!.action == 'play_audio') ...[
+            const SizedBox(height: 8),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _playAudioFromBlock(block),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.listenToAudioButtonColor,
+                    foregroundColor: AppTheme.buttonTextColor,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                  ),
+                  child: Text(
+                    block.button!.text.isNotEmpty ? block.button!.text : 'Listen to Audio',
+                    style: AppTheme.buttonTextStyle,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+
           if (block.data.subtitle != null) ...[
             Text(
               block.data.subtitle!,
@@ -667,6 +702,35 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
     );
   }
 
+  void _playAudioFromBlock(content_model.ContentBlock block) {
+    // Use the block's audioId if available, otherwise fall back to content audioId
+    final audioId = block.audioId ?? widget.content.audioId ?? 'default_audio';
+    
+    // Create a Content object from the ContentBlock for audio playback
+    final content = content_model.Content(
+      id: block.id,
+      type: content_model.ContentType.seasonal,
+      title: block.data.title ?? 'Seasonal Wisdom',
+      slug: block.id,
+      summary: block.data.subtitle,
+      body: block.data.content,
+      featuredImageId: block.data.featuredImageId,
+      audioId: widget.content.audioId, // Keep original content audioId
+      published: true,
+      contentBlocks: [block],
+    );
+
+    // Navigate to audio player screen
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => AudioPlayerScreen(
+          content: content,
+          audioUrl: audioId, // Use the actual audio ID
+        ),
+      ),
+    );
+  }
+
   // Create content blocks from legacy content structure
   List<content_model.ContentBlock> _createLegacyBlocks(content_model.Content content) {
     final blocks = <content_model.ContentBlock>[];
@@ -684,6 +748,13 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
           featuredImageId: content.featuredImageId,
           galleryImageIds: const [],
         ),
+        // Add audio button if content has audioId
+        button: content.audioId != null ? content_model.ContentBlockButton(
+          action: 'play_audio',
+          show: true,
+          text: 'Listen to Audio',
+        ) : null,
+        audioId: content.audioId,
       ),
     );
 

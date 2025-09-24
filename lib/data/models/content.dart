@@ -13,6 +13,10 @@ class ContentBlock with _$ContentBlock {
     required int order,
     required ContentBlockData data,
     ContentBlockButton? button,
+    String? audioId,
+    @Default(false) bool audioAutoPlay,
+    String? audioTranscript,
+    @Default(false) bool showAudioTranscript,
   }) = _ContentBlock;
 
   factory ContentBlock.fromJson(Map<String, dynamic> json) => _$ContentBlockFromJson(json);
@@ -78,6 +82,7 @@ class Content with _$Content {
     String? prepTime,
     String? infusionTime,
     String? difficulty,
+    bool? ritual, // Ritual flag for seasonal content
     @Default(false) bool published,
     @Default([]) List<String> tags,
     @Default([]) List<String> media,
@@ -126,6 +131,7 @@ class Content with _$Content {
       prepTime: data['prep_time'] as String?,
       infusionTime: data['infusion_time'] as String?,
       difficulty: data['difficulty'] as String?,
+      ritual: data['ritual'] as bool?, // Parse ritual field from Firestore
       published: data['published'] as bool? ?? (data['status'] == 'published'),
       tags: (data['tags'] as List?)?.whereType<String>().toList() ?? const [],
       media: (data['media'] as List?)?.whereType<String>().toList() ?? const [],

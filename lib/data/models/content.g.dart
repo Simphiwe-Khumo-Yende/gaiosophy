@@ -15,6 +15,10 @@ _$ContentBlockImpl _$$ContentBlockImplFromJson(Map<String, dynamic> json) =>
       button: json['button'] == null
           ? null
           : ContentBlockButton.fromJson(json['button'] as Map<String, dynamic>),
+      audioId: json['audioId'] as String?,
+      audioAutoPlay: json['audioAutoPlay'] as bool? ?? false,
+      audioTranscript: json['audioTranscript'] as String?,
+      showAudioTranscript: json['showAudioTranscript'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$ContentBlockImplToJson(_$ContentBlockImpl instance) =>
@@ -24,6 +28,10 @@ Map<String, dynamic> _$$ContentBlockImplToJson(_$ContentBlockImpl instance) =>
       'order': instance.order,
       'data': instance.data,
       'button': instance.button,
+      'audioId': instance.audioId,
+      'audioAutoPlay': instance.audioAutoPlay,
+      'audioTranscript': instance.audioTranscript,
+      'showAudioTranscript': instance.showAudioTranscript,
     };
 
 _$ContentBlockButtonImpl _$$ContentBlockButtonImplFromJson(
@@ -123,6 +131,7 @@ _$ContentImpl _$$ContentImplFromJson(Map<String, dynamic> json) =>
       prepTime: json['prepTime'] as String?,
       infusionTime: json['infusionTime'] as String?,
       difficulty: json['difficulty'] as String?,
+      ritual: json['ritual'] as bool?,
       published: json['published'] as bool? ?? false,
       tags:
           (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
@@ -159,6 +168,7 @@ Map<String, dynamic> _$$ContentImplToJson(_$ContentImpl instance) =>
       'prepTime': instance.prepTime,
       'infusionTime': instance.infusionTime,
       'difficulty': instance.difficulty,
+      'ritual': instance.ritual,
       'published': instance.published,
       'tags': instance.tags,
       'media': instance.media,

@@ -78,8 +78,9 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
     } catch (e) {
       
     }
-    // Check if we have audio available
-    hasAudio = widget.content.audioId != null && widget.content.audioId!.isNotEmpty;
+    // Check if we have audio available - either from audioUrl parameter or content.audioId
+    hasAudio = (widget.audioUrl != null && widget.audioUrl!.isNotEmpty) || 
+               (widget.content.audioId != null && widget.content.audioId!.isNotEmpty);
     
     if (hasAudio) {
       _resolveAndInitializeAudio();
@@ -92,34 +93,47 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
         isLoading = true;
       });
 
-      String baseId = widget.content.audioId!;
-      String audioPathM4a = baseId.startsWith('media/content-audio/')
-          ? (baseId.endsWith('.m4a') ? baseId : baseId + '.m4a')
-          : 'media/content-audio/' + (baseId.endsWith('.m4a') ? baseId : baseId + '.m4a');
-      String audioPathMp4 = baseId.startsWith('media/content-audio/')
-          ? (baseId.endsWith('.mp4') ? baseId : baseId + '.mp4')
-          : 'media/content-audio/' + (baseId.endsWith('.mp4') ? baseId : baseId + '.mp4');
+      // Use audioUrl if provided, otherwise use content.audioId
+      String audioId = widget.audioUrl ?? widget.content.audioId!;
+      String audioPath;
+      
+      // If audioUrl is different from content.audioId, it's block audio
+      // If they're the same (or audioUrl is null), it's global content audio
+      bool isBlockAudio = widget.audioUrl != null && 
+                         widget.content.audioId != null && 
+                         widget.audioUrl != widget.content.audioId;
+      
+      if (isBlockAudio) {
+        // Block audio uses media/audio/ bucket
+        audioPath = audioId.startsWith('media/audio/')
+            ? (audioId.endsWith('.m4a') ? audioId : audioId + '.m4a')
+            : 'media/audio/' + (audioId.endsWith('.m4a') ? audioId : audioId + '.m4a');
+      } else {
+        // Global content audio uses media/content-audio/ bucket
+        audioPath = audioId.startsWith('media/content-audio/')
+            ? (audioId.endsWith('.m4a') ? audioId : audioId + '.m4a')
+            : 'media/content-audio/' + (audioId.endsWith('.m4a') ? audioId : audioId + '.m4a');
+      }
 
       String? foundUrl;
       try {
-        final refM4a = FirebaseStorage.instance.ref().child(audioPathM4a);
-        foundUrl = await refM4a.getDownloadURL();
+        final ref = FirebaseStorage.instance.ref().child(audioPath);
+        foundUrl = await ref.getDownloadURL();
         
       } catch (e) {
-        
+        // Try with mp4 extension if m4a fails
         try {
+          String audioPathMp4 = audioPath.replaceAll('.m4a', '.mp4');
           final refMp4 = FirebaseStorage.instance.ref().child(audioPathMp4);
           foundUrl = await refMp4.getDownloadURL();
           
         } catch (e2) {
-          
           throw e2;
         }
       }
       await _audioPlayer.setUrl(foundUrl);
       
     } catch (e) {
-      
       setState(() {
         hasAudio = false;
       });

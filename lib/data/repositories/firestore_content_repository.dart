@@ -116,6 +116,7 @@ class FirestoreContentRepository {
       prepTime: data['prep_time'] as String?,
       infusionTime: data['infusion_time'] as String?,
       difficulty: data['difficulty'] as String?,
+      ritual: data['ritual'] as bool?, // Parse ritual field from Firestore
       published: data['published'] as bool? ?? (data['status'] == 'published'),
       tags: (data['tags'] as List?)?.whereType<String>().toList() ?? const [],
       media: (data['media'] as List?)?.whereType<String>().toList() ?? const [],
@@ -171,6 +172,10 @@ class FirestoreContentRepository {
                       text: buttonData['text'] as String? ?? '',
                     );
                   }(),
+                  audioId: blockData['data']?['audio_id'] as String?,
+                  audioAutoPlay: blockData['data']?['audio_auto_play'] as bool? ?? false,
+                  audioTranscript: blockData['data']?['audio_transcript'] as String?,
+                  showAudioTranscript: blockData['data']?['show_audio_transcript'] as bool? ?? false,
                 ))
             .toList();
       }(),
