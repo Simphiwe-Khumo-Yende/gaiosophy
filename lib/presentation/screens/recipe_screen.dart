@@ -100,6 +100,19 @@ class RecipeScreen extends StatelessWidget {
   }
 
   Widget _buildTimeIndicators(BuildContext context) {
+    List<Widget> indicators = [];
+    
+    if (content.prepTime != null) {
+      indicators.add(_buildTimeIndicator('Prep Time', content.prepTime!));
+    }
+    if (content.infusionTime != null) {
+      indicators.add(_buildTimeIndicator('Infusion', content.infusionTime!));
+    }
+    if (content.difficulty != null) {
+      indicators.add(_buildTimeIndicator('Difficulty', content.difficulty!));
+    }
+    indicators.add(_buildTimeIndicator('Season', 'As needed'));
+    
     return Container(
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -108,22 +121,12 @@ class RecipeScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (content.prepTime != null) ...[
-            _buildTimeIndicator('Prep Time', content.prepTime!),
-            const SizedBox(width: 30),
-          ],
-          if (content.infusionTime != null) ...[
-            _buildTimeIndicator('Infusion', content.infusionTime!),
-            const SizedBox(width: 30),
-          ],
-          if (content.difficulty != null) ...[
-            _buildTimeIndicator('Difficulty', content.difficulty!),
-            const SizedBox(width: 30),
-          ],
-          _buildTimeIndicator('Season', 'As needed'),
-        ],
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: indicators.map((indicator) => 
+          Expanded(
+            child: Center(child: indicator),
+          ),
+        ).toList(),
       ),
     );
   }
