@@ -6,6 +6,8 @@ import 'presentation/routing/app_router.dart';
 import 'presentation/theme/app_theme.dart';
 import 'firebase_options.dart';
 import 'data/local/hive_init.dart';
+import 'application/providers/push_notification_provider.dart';
+import 'data/services/push_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +19,20 @@ Future<void> main() async {
   // Initialize offline storage
   await initHive();
   
-  runApp(const ProviderScope(child: GaiosophyApp()));
+  const String webPushKey = String.fromEnvironment('WEB_PUSH_KEY', defaultValue: '');
+  final pushNotificationService = PushNotificationService(
+    webVapidKey: webPushKey.isEmpty ? null : webPushKey,
+  );
+  await pushNotificationService.initialize();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        pushNotificationServiceProvider.overrideWithValue(pushNotificationService),
+      ],
+      child: const GaiosophyApp(),
+    ),
+  );
 }
 
 Future<void> _configureAuthPersistence() async {

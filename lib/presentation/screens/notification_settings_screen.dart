@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/typography.dart';
+import '../../application/providers/push_notification_provider.dart';
 
 // Provider for user notification settings
 final notificationSettingsProvider = StreamProvider<Map<String, dynamic>?>((ref) {
@@ -107,9 +108,10 @@ class NotificationSettingsScreen extends ConsumerWidget {
             
             notificationSettingsAsync.when(
               data: (settings) => _buildNotificationToggle(
-                context, 
-                user, 
-                settings?['notificationsEnabled'] as bool? ?? true,
+                context,
+                ref,
+                user,
+                settings?['notificationsEnabled'] as bool? ?? false,
               ),
               loading: () => _buildLoadingToggle(context),
               error: (error, _) => _buildErrorState(context),
@@ -120,7 +122,12 @@ class NotificationSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildNotificationToggle(BuildContext context, User? user, bool isEnabled) {
+  Widget _buildNotificationToggle(
+    BuildContext context,
+    WidgetRef ref,
+    User? user,
+    bool isEnabled,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -163,7 +170,51 @@ class NotificationSettingsScreen extends ConsumerWidget {
             Switch(
               value: isEnabled,
               activeColor: const Color(0xFF5A4E3C),
-              onChanged: (value) => _updateNotificationSetting(user, value),
+              onChanged: (value) async {
+                final messenger = ScaffoldMessenger.of(context);
+                if (user == null) {
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Please sign in to manage notifications.'),
+                    ),
+                  );
+                  return;
+                }
+
+                final service = ref.read(pushNotificationServiceProvider);
+
+                try {
+                  if (value) {
+                    final bool granted = await service.enableNotifications();
+                    if (!granted) {
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Notifications are disabled. Please allow notification permissions in your device settings.'),
+                        ),
+                      );
+                    } else {
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Notifications enabled. We\'ll let you know when new content arrives!'),
+                        ),
+                      );
+                    }
+                  } else {
+                    await service.disableNotifications();
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Notifications disabled.'),
+                      ),
+                    );
+                  }
+                } catch (_) {
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('We had trouble updating your notification settings. Please try again.'),
+                    ),
+                  );
+                }
+              },
             ),
           ],
         ),
@@ -272,17 +323,4 @@ class NotificationSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _updateNotificationSetting(User? user, bool value) async {
-    if (user == null) return;
-    
-    try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update({'notificationsEnabled': value});
-    } catch (e) {
-      // Handle error silently or show a snackbar
-      
-    }
-  }
 }

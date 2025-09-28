@@ -1,3 +1,6 @@
+import 'dart:developer' as developer;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -149,17 +152,71 @@ final contentDetailProvider = FutureProvider.family<Content, String>((ref, id) a
 });
 
 // Real-time provider for content with automatic updates
-final realTimeContentDetailProvider = StreamProvider.family<Content?, String>((ref, id) {
+final realTimeContentDetailProvider = StreamProvider.family<Content?, String>((ref, id) async* {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) {
-    return Stream.error(Exception('Please sign in to view content'));
+    throw Exception('Please sign in to view content');
   }
 
-  // Use the same repository approach as fallback but as a stream
-  final repo = ref.watch(firestoreContentRepositoryProvider);
-  
-  return Stream.fromFuture(repo.fetchById(id))
-      .handleError((Object error) {
-        // Error handling is done by the UI layer
-      });
+  final firestore = ref.read(firestoreProvider);
+  const collections = [
+    'content',
+    'content_seasonal_wisdom',
+    'content_plant_allies',
+    'content_recipes',
+  ];
+
+  DocumentReference<Map<String, dynamic>>? docRef;
+  String? collectionName;
+
+  for (final collection in collections) {
+    try {
+      final doc = await firestore.collection(collection).doc(id).get();
+      if (doc.exists) {
+        docRef = doc.reference;
+        collectionName = collection;
+        if (kDebugMode) {
+          developer.log(
+            'Resolved $id to collection $collection',
+            name: 'RealTimeContentDetailProvider',
+          );
+        }
+        break;
+      }
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        developer.log(
+          'Error resolving $id in $collection',
+          name: 'RealTimeContentDetailProvider',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+  }
+
+  if (docRef == null || collectionName == null) {
+    if (kDebugMode) {
+      developer.log(
+        'Content $id not found in any collection',
+        name: 'RealTimeContentDetailProvider',
+      );
+    }
+    yield null;
+    return;
+  }
+
+  yield* docRef.snapshots().map((snapshot) {
+    if (!snapshot.exists) {
+      if (kDebugMode) {
+        developer.log(
+          'Snapshot for $id no longer exists in $collectionName',
+          name: 'RealTimeContentDetailProvider',
+        );
+      }
+      return null;
+    }
+
+    return parseContentSnapshot(snapshot, collectionHint: collectionName);
+  });
 });

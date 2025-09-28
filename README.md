@@ -1,16 +1,27 @@
-# gaiosophy_app
+# Gaiosophy Mobile App
 
-A new Flutter project.
+Consumer-facing Flutter application for the Gaiosophy platform.
+
+## Project Overview
+
+- **Framework:** Flutter (Dart)
+- **State management:** Riverpod + hooks
+- **Backend:** Firebase (Auth, Firestore, Storage)
+- **Platforms:** Android, iOS, Web (experimental)
+
+## Push Notifications
+
+Push notifications for new content are handled through Firebase Cloud Messaging (FCM). Devices subscribe to the `new-content` topic when notifications are enabled from the in-app settings screen.
+
+See [`PUSH_NOTIFICATIONS_SETUP.md`](./PUSH_NOTIFICATIONS_SETUP.md) for a full configuration guide covering Firebase, iOS capabilities, Android permissions, and the recommended Cloud Function trigger for publishing notifications.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+1. Install Flutter `>=3.0.0`.
+2. Run `flutter pub get` to fetch dependencies.
+3. Configure Firebase by supplying `google-services.json` and `GoogleService-Info.plist`.
+4. Launch the app:
+	- Android: `flutter run -d android`
+	- iOS: `flutter run -d ios`
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+For more Flutter resources, visit the [official documentation](https://docs.flutter.dev/).

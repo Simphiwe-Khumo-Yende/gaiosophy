@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/models/content.dart';
-import 'content_list_provider.dart';
+import 'network_connectivity_provider.dart';
+import 'realtime_content_provider.dart';
 
 class HomeSection {
   HomeSection({required this.title, this.subtitle, required this.items});
@@ -11,43 +10,89 @@ class HomeSection {
   final List<Content> items;
 }
 
-final _dbProvider = firestoreProvider; // alias
+class HomeSectionsState {
+  const HomeSectionsState({
+    required this.sections,
+    required this.isInitialLoading,
+    required this.isRefreshing,
+    required this.isOffline,
+    required this.hasRealtimeConnection,
+    required this.hasData,
+    this.error,
+  });
 
-Future<List<Content>> _fetchFromCollection(FirebaseFirestore db, String collectionName, ContentType type, {int limit = 10}) async {
-  final snap = await db
-      .collection(collectionName)
-      .where('status', isEqualTo: 'published')  // Only fetch published content
-      .orderBy('updated_at', descending: true)
-      .limit(limit)
-      .get();
-  
-  // Convert documents to Content objects, setting the appropriate type
-  return snap.docs.map((doc) {
-    final data = doc.data();
-    // Add the type field to match our Content model
-    data['type'] = switch (type) { 
-      ContentType.plant => 'plant', 
-      ContentType.recipe => 'recipe', 
-      ContentType.seasonal => 'seasonal' 
-    };
-    return Content.fromFirestore(doc);
-  }).toList();
+  final List<HomeSection> sections;
+  final bool isInitialLoading;
+  final bool isRefreshing;
+  final Object? error;
+  final bool isOffline;
+  final bool hasRealtimeConnection;
+  final bool hasData;
 }
 
-final homeSectionsProvider = FutureProvider<List<HomeSection>>((ref) async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return [];
-  final db = ref.read(_dbProvider);
-  
-  final results = await Future.wait([
-    _fetchFromCollection(db, 'content_seasonal_wisdom', ContentType.seasonal, limit: 12),
-    _fetchFromCollection(db, 'content_plant_allies', ContentType.plant, limit: 12),
-    _fetchFromCollection(db, 'content_recipes', ContentType.recipe, limit: 12),
-  ]);
-  
-  return [
-    HomeSection(title: 'Seasonal Wisdom & Rituals', subtitle: 'Guidance & attunement', items: results[0]),
-    HomeSection(title: 'Plant Allies', subtitle: 'Companions in this season', items: results[1]),
-    HomeSection(title: 'Seasonal Remedies & Recipes and Crafts', subtitle: 'Kitchen & apothecary', items: results[2]),
+final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
+  final seasonalState = ref.watch(realTimeContentByTypeProvider(ContentType.seasonal));
+  final plantState = ref.watch(realTimeContentByTypeProvider(ContentType.plant));
+  final recipeState = ref.watch(realTimeContentByTypeProvider(ContentType.recipe));
+  final isOffline = ref.watch(isOfflineProvider);
+
+  List<Content> limitItems(List<Content> items) => items.take(12).toList(growable: false);
+
+  final sections = <HomeSection>[
+    HomeSection(
+      title: 'Seasonal Wisdom & Rituals',
+      subtitle: 'Guidance & attunement',
+      items: limitItems(seasonalState.items),
+    ),
+    HomeSection(
+      title: 'Plant Allies',
+      subtitle: 'Companions in this season',
+      items: limitItems(plantState.items),
+    ),
+    HomeSection(
+      title: 'Seasonal Remedies & Recipes and Crafts',
+      subtitle: 'Kitchen & apothecary',
+      items: limitItems(recipeState.items),
+    ),
   ];
+
+  final states = [seasonalState, plantState, recipeState];
+  final hasItems = sections.any((section) => section.items.isNotEmpty);
+  final anyLoading = states.any((state) => state.isLoading);
+  final Object? error = states.map((state) => state.error).firstWhere((error) => error != null, orElse: () => null);
+  final hasRealtimeConnection = states.any((state) => state.isConnected);
+
+  if (error != null && !hasItems) {
+    return HomeSectionsState(
+      sections: const [],
+      isInitialLoading: false,
+      isRefreshing: false,
+      error: error,
+      isOffline: isOffline,
+      hasRealtimeConnection: hasRealtimeConnection,
+      hasData: false,
+    );
+  }
+
+  if (!hasItems && anyLoading) {
+    return HomeSectionsState(
+      sections: const [],
+      isInitialLoading: true,
+      isRefreshing: false,
+      error: null,
+      isOffline: isOffline,
+      hasRealtimeConnection: hasRealtimeConnection,
+      hasData: false,
+    );
+  }
+
+  return HomeSectionsState(
+    sections: sections,
+    isInitialLoading: !hasItems && anyLoading,
+    isRefreshing: hasItems && anyLoading,
+    error: error,
+    isOffline: isOffline,
+    hasRealtimeConnection: hasRealtimeConnection,
+    hasData: hasItems,
+  );
 });

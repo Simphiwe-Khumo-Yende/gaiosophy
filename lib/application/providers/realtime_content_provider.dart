@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
+import 'dart:developer' as developer;
 import '../../data/models/content.dart';
 
 /// Real-time content state for streaming updates
@@ -53,15 +55,17 @@ class RealTimeContentNotifier extends StateNotifier<RealTimeContentState> {
           .snapshots()
           .listen(
             _onDataReceived,
-            onError: _onError,
+            onError: (Object error, StackTrace stackTrace) =>
+                _onError(error, stackTrace: stackTrace),
           );
-    } catch (error) {
-      _onError(error);
+    } catch (error, stackTrace) {
+      _onError(error, stackTrace: stackTrace);
     }
   }
 
   void _onDataReceived(QuerySnapshot<Map<String, dynamic>> snapshot) {
     try {
+      _logSnapshotMetadata(snapshot);
       // Handle document changes for more efficient updates
       final List<Content> newItems = [];
       final List<Content> modifiedItems = [];
@@ -97,12 +101,26 @@ class RealTimeContentNotifier extends StateNotifier<RealTimeContentState> {
         isConnected: true,
         clearError: true,
       );
-    } catch (error) {
-      _onError(error);
+      if (kDebugMode) {
+        developer.log(
+          'Applied changes: total=${updatedItems.length} · new=${newItems.length} · modified=${modifiedItems.length} · removed=${removedIds.length}',
+          name: 'RealTimeContentNotifier',
+        );
+      }
+    } catch (error, stackTrace) {
+      _onError(error, stackTrace: stackTrace);
     }
   }
 
-  void _onError(Object error) {
+  void _onError(Object error, {StackTrace? stackTrace}) {
+    if (kDebugMode) {
+      developer.log(
+        'Real-time stream error',
+        name: 'RealTimeContentNotifier',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
     state = state.copyWith(
       error: error,
       isLoading: false,
@@ -144,6 +162,9 @@ class RealTimeContentNotifier extends StateNotifier<RealTimeContentState> {
 
   /// Refresh the real-time connection
   void refresh() {
+    if (kDebugMode) {
+      developer.log('Manual refresh requested', name: 'RealTimeContentNotifier');
+    }
     _subscription?.cancel();
     _startListening();
   }
@@ -160,6 +181,8 @@ class RealTimeContentNotifier extends StateNotifier<RealTimeContentState> {
           .limit(50)
           .get();
 
+      _logSnapshotMetadata(snapshot);
+
       final items = snapshot.docs.map(Content.fromFirestore).toList();
       
       state = state.copyWith(
@@ -168,9 +191,21 @@ class RealTimeContentNotifier extends StateNotifier<RealTimeContentState> {
         isConnected: true,
         clearError: true,
       );
-    } catch (error) {
-      _onError(error);
+    } catch (error, stackTrace) {
+      _onError(error, stackTrace: stackTrace);
     }
+  }
+
+  void _logSnapshotMetadata(QuerySnapshot<Map<String, dynamic>> snapshot) {
+    if (!kDebugMode) {
+      return;
+    }
+
+    final source = snapshot.metadata.isFromCache ? 'cache' : 'server';
+    developer.log(
+      'Snapshot from $source · docs=${snapshot.size} · changes=${snapshot.docChanges.length}',
+      name: 'RealTimeContentNotifier',
+    );
   }
 
   @override
@@ -206,25 +241,112 @@ class RealTimeContentByTypeNotifier extends StateNotifier<RealTimeContentState> 
     state = state.copyWith(isLoading: true, clearError: true);
     
     try {
-      Query<Map<String, dynamic>> query = _db
-          .collection('content')
-          .where('status', isEqualTo: 'published');
-      
-      if (_contentType != null) {
-        query = query.where('type', isEqualTo: _getTypeString(_contentType!));
-      }
-      
+      final query = _buildQuery();
+
       _subscription = query
           .orderBy('updated_at', descending: true)
           .limit(50)
           .snapshots()
           .listen(
             _onDataReceived,
-            onError: _onError,
+            onError: (Object error, StackTrace stackTrace) =>
+                _onError(error, stackTrace: stackTrace),
           );
-    } catch (error) {
-      _onError(error);
+    } catch (error, stackTrace) {
+      _onError(error, stackTrace: stackTrace);
     }
+  }
+
+  void _onDataReceived(QuerySnapshot<Map<String, dynamic>> snapshot) {
+    try {
+      if (kDebugMode) {
+        final source = snapshot.metadata.isFromCache ? 'cache' : 'server';
+        developer.log(
+          '[$_contentType] snapshot from $source · docs=${snapshot.size}',
+          name: 'RealTimeContentByType',
+        );
+      }
+  final items = snapshot.docs.map(_mapContent).toList();
+      
+      state = state.copyWith(
+        items: items,
+        isLoading: false,
+        isConnected: true,
+        clearError: true,
+      );
+    } catch (error, stackTrace) {
+      _onError(error, stackTrace: stackTrace);
+    }
+  }
+
+  void _onError(Object error, {StackTrace? stackTrace}) {
+    if (kDebugMode) {
+      developer.log(
+        '[$_contentType] real-time stream error',
+        name: 'RealTimeContentByType',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+    state = state.copyWith(
+      error: error,
+      isLoading: false,
+      isConnected: false,
+    );
+  }
+
+  void refresh() {
+    if (kDebugMode) {
+      developer.log('[$_contentType] manual refresh requested', name: 'RealTimeContentByType');
+    }
+    _subscription?.cancel();
+    _startListening();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  Query<Map<String, dynamic>> _buildQuery() {
+    final collectionName = _collectionPath();
+    Query<Map<String, dynamic>> query = _db
+        .collection(collectionName)
+        .where('status', isEqualTo: 'published');
+
+    if (_contentType == null) {
+      return query;
+    }
+
+    // Some legacy collections don't store the `type` field, so we rely on the path
+    if (_collectionIncludesTypeField()) {
+      query = query.where('type', isEqualTo: _getTypeString(_contentType!));
+    }
+
+    return query;
+  }
+
+  String _collectionPath() {
+    if (_contentType == null) {
+      return 'content';
+    }
+
+    switch (_contentType!) {
+      case ContentType.plant:
+        return 'content_plant_allies';
+      case ContentType.recipe:
+        return 'content_recipes';
+      case ContentType.seasonal:
+        return 'content_seasonal_wisdom';
+    }
+  }
+
+  bool _collectionIncludesTypeField() {
+    // The primary `content` collection contains explicit `type` fields, but
+    // legacy collections (content_recipes, etc.) do not. Skip adding the
+    // equality filter in that case to avoid empty results.
+    return _collectionPath() == 'content';
   }
 
   String _getTypeString(ContentType type) {
@@ -238,37 +360,13 @@ class RealTimeContentByTypeNotifier extends StateNotifier<RealTimeContentState> 
     }
   }
 
-  void _onDataReceived(QuerySnapshot<Map<String, dynamic>> snapshot) {
-    try {
-      final items = snapshot.docs.map(Content.fromFirestore).toList();
-      
-      state = state.copyWith(
-        items: items,
-        isLoading: false,
-        isConnected: true,
-        clearError: true,
-      );
-    } catch (error) {
-      _onError(error);
+  Content _mapContent(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final content = Content.fromFirestore(doc);
+
+    if (_contentType != null && content.type != _contentType) {
+      return content.copyWith(type: _contentType!);
     }
-  }
 
-  void _onError(Object error) {
-    state = state.copyWith(
-      error: error,
-      isLoading: false,
-      isConnected: false,
-    );
-  }
-
-  void refresh() {
-    _subscription?.cancel();
-    _startListening();
-  }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
+    return content;
   }
 }

@@ -7,6 +7,147 @@ class FirestoreContentPage {
   final DocumentSnapshot<Map<String, dynamic>>? nextCursor;
 }
 
+Content parseContentFromData(
+  String docId,
+  Map<String, dynamic> data, {
+  String? collectionHint,
+}) {
+  DateTime? parseDate(dynamic v) {
+    if (v == null) return null;
+    if (v is Timestamp) return v.toDate();
+    if (v is int) return DateTime.fromMillisecondsSinceEpoch(v);
+    if (v is String) return DateTime.tryParse(v);
+    return null;
+  }
+
+  ContentType resolveType() {
+    final typeValue = data['type'] as String?;
+    switch (typeValue) {
+      case 'plant':
+        return ContentType.plant;
+      case 'recipe':
+        return ContentType.recipe;
+      case 'seasonal':
+        return ContentType.seasonal;
+    }
+
+    switch (collectionHint) {
+      case 'content_plant_allies':
+        return ContentType.plant;
+      case 'content_recipes':
+        return ContentType.recipe;
+      case 'content_seasonal_wisdom':
+        return ContentType.seasonal;
+    }
+
+    return ContentType.seasonal;
+  }
+
+  final type = resolveType();
+
+  return Content(
+    id: docId,
+    type: type,
+    title: data['title'] as String? ?? 'Untitled',
+    slug: data['slug'] as String? ?? docId,
+    summary: data['summary'] as String? ?? data['excerpt'] as String?,
+    body: data['body'] as String? ?? data['content'] as String?,
+    season: data['season'] as String?,
+    featuredImageId: data['featured_image_id'] as String?,
+    audioId: data['audio_id'] as String?,
+    templateType: data['template_type'] as String?,
+    status: data['status'] as String?,
+    subtitle: data['subtitle'] as String?,
+    prepTime: data['prep_time'] as String?,
+    infusionTime: data['infusion_time'] as String?,
+    difficulty: data['difficulty'] as String?,
+    ritual: data['ritual'] as bool?,
+    published: data['published'] as bool? ?? (data['status'] == 'published'),
+    tags: (data['tags'] as List?)?.whereType<String>().toList() ?? const [],
+    media: (data['media'] as List?)?.whereType<String>().toList() ?? const [],
+    contentBlocks: () {
+      final blocks = data['content_blocks'] as List?;
+      if (blocks == null) return <ContentBlock>[];
+
+      return blocks
+          .whereType<Map<String, dynamic>>()
+          .map((blockData) {
+            final blockMap = Map<String, dynamic>.from(blockData);
+            final dataMap = Map<String, dynamic>.from(blockMap['data'] as Map<String, dynamic>? ?? {});
+
+            final subBlocks = (dataMap['sub_blocks'] as List?)
+                    ?.whereType<Map<String, dynamic>>()
+                    .map((subBlockData) => SubBlock(
+                          id: subBlockData['id'] as String?,
+                          plantPartName: subBlockData['plant_part_name'] as String?,
+                          imageUrl: subBlockData['image_url'] as String?,
+                          medicinalUses: (subBlockData['medicinal_uses'] as List?)
+                                  ?.whereType<String>()
+                                  .toList() ??
+                              const [],
+                          energeticUses: (subBlockData['energetic_uses'] as List?)
+                                  ?.whereType<String>()
+                                  .toList() ??
+                              const [],
+                          skincareUses: (subBlockData['skincare_uses'] as List?)
+                                  ?.whereType<String>()
+                                  .toList() ??
+                              const [],
+                        ))
+                    .toList() ??
+                const <SubBlock>[];
+
+            return ContentBlock(
+              id: blockMap['id'] as String? ?? '',
+              type: blockMap['type'] as String? ?? 'text',
+              order: blockMap['order'] as int? ?? 0,
+              data: ContentBlockData(
+                title: dataMap['title'] as String?,
+                subtitle: dataMap['subtitle'] as String?,
+                content: dataMap['content'] as String?,
+                featuredImageId: dataMap['featured_image_id'] as String?,
+                galleryImageIds: (dataMap['gallery_image_ids'] as List?)
+                        ?.whereType<String>()
+                        .toList() ??
+                    const [],
+                subBlocks: subBlocks,
+                listItems: (dataMap['list_items'] as List?)
+                        ?.whereType<String>()
+                        .toList() ??
+                    const [],
+                listStyle: dataMap['list_style'] as String?,
+              ),
+              button: () {
+                final buttonData = dataMap['button'] as Map<String, dynamic>?;
+                if (buttonData == null) return null;
+                return ContentBlockButton(
+                  action: buttonData['action'] as String? ?? 'next',
+                  show: buttonData['show'] as bool? ?? false,
+                  text: buttonData['text'] as String? ?? '',
+                );
+              }(),
+              audioId: dataMap['audio_id'] as String?,
+              audioAutoPlay: dataMap['audio_auto_play'] as bool? ?? false,
+              audioTranscript: dataMap['audio_transcript'] as String?,
+              showAudioTranscript: dataMap['show_audio_transcript'] as bool? ?? false,
+            );
+          })
+          .toList();
+    }(),
+    createdAt: parseDate(data['created_at'] ?? data['createdAt']),
+    updatedAt: parseDate(data['updated_at'] ?? data['updatedAt']),
+  );
+}
+
+Content parseContentSnapshot(
+  DocumentSnapshot<Map<String, dynamic>> doc, {
+  String? collectionHint,
+}) {
+  final data = Map<String, dynamic>.from(doc.data() ?? {});
+  data['id'] = doc.id;
+  return parseContentFromData(doc.id, data, collectionHint: collectionHint ?? doc.reference.parent.id);
+}
+
 class FirestoreContentRepository {
   FirestoreContentRepository(this._db);
   final FirebaseFirestore _db;
@@ -49,139 +190,11 @@ class FirestoreContentRepository {
     for (final collection in collections) {
       final doc = await _db.collection(collection).doc(id).get();
       if (doc.exists) {
-        final data = Map<String, dynamic>.from(doc.data() ?? {});
-        
-        // Ensure type field is set based on collection name
-        if (!data.containsKey('type')) {
-          switch (collection) {
-            case 'content_seasonal_wisdom':
-              data['type'] = 'seasonal';
-              break;
-            case 'content_plant_allies':
-              data['type'] = 'plant';
-              break;
-            case 'content_recipes':
-              data['type'] = 'recipe';
-              break;
-            default:
-              data['type'] ??= 'seasonal';
-          }
-        }
-        
-        // Add document ID to data
-        data['id'] = doc.id;
-        
-        // Parse directly using the same logic as fromFirestore but with our modified data
-        return _parseContentFromData(doc.id, data);
+        return parseContentSnapshot(doc, collectionHint: collection);
       }
     }
     
     throw Exception('Content with ID $id not found');
-  }
-
-  // Parse content using the same logic as Content.fromFirestore
-  Content _parseContentFromData(String docId, Map<String, dynamic> data) {
-    DateTime? parseDate(dynamic v) {
-      if (v == null) return null;
-      if (v is Timestamp) return v.toDate();
-      if (v is int) return DateTime.fromMillisecondsSinceEpoch(v);
-      if (v is String) return DateTime.tryParse(v);
-      return null;
-    }
-    
-    return Content(
-      id: docId,
-      type: () {
-        final t = data['type'] as String?;
-        switch (t) {
-          case 'plant':
-            return ContentType.plant;
-          case 'recipe':
-            return ContentType.recipe;
-          case 'seasonal':
-          default:
-            return ContentType.seasonal;
-        }
-      }(),
-      title: data['title'] as String? ?? 'Untitled',
-      slug: data['slug'] as String? ?? docId,
-      summary: data['summary'] as String? ?? data['excerpt'] as String?,
-      body: data['body'] as String? ?? data['content'] as String?,
-      season: data['season'] as String?,
-      featuredImageId: data['featured_image_id'] as String?,
-      audioId: data['audio_id'] as String?,
-      templateType: data['template_type'] as String?,
-      status: data['status'] as String?,
-      // Recipe-specific fields
-      prepTime: data['prep_time'] as String?,
-      infusionTime: data['infusion_time'] as String?,
-      difficulty: data['difficulty'] as String?,
-      ritual: data['ritual'] as bool?, // Parse ritual field from Firestore
-      published: data['published'] as bool? ?? (data['status'] == 'published'),
-      tags: (data['tags'] as List?)?.whereType<String>().toList() ?? const [],
-      media: (data['media'] as List?)?.whereType<String>().toList() ?? const [],
-      contentBlocks: () {
-        final blocks = data['content_blocks'] as List?;
-        if (blocks == null) return <ContentBlock>[];
-        return blocks
-            .whereType<Map<String, dynamic>>()
-            .map((blockData) => ContentBlock(
-                  id: blockData['id'] as String? ?? '',
-                  type: blockData['type'] as String? ?? 'text',
-                  order: blockData['order'] as int? ?? 0,
-                  data: ContentBlockData(
-                    title: blockData['data']?['title'] as String?,
-                    subtitle: blockData['data']?['subtitle'] as String?,
-                    content: blockData['data']?['content'] as String?,
-                    featuredImageId: blockData['data']?['featured_image_id'] as String?,
-                    galleryImageIds: (blockData['data']?['gallery_image_ids'] as List?)
-                            ?.whereType<String>()
-                            .toList() ??
-                        const [],
-                    subBlocks: () {
-                      final subBlocksData = blockData['data']?['sub_blocks'] as List?;
-                      if (subBlocksData == null) return <SubBlock>[];
-                      return subBlocksData
-                          .whereType<Map<String, dynamic>>()
-                          .map((subBlockData) => SubBlock(
-                                id: subBlockData['id'] as String?,
-                                plantPartName: subBlockData['plant_part_name'] as String?,
-                                imageUrl: subBlockData['image_url'] as String?,
-                                medicinalUses: (subBlockData['medicinal_uses'] as List?)
-                                        ?.whereType<String>()
-                                        .toList() ??
-                                    const [],
-                                energeticUses: (subBlockData['energetic_uses'] as List?)
-                                        ?.whereType<String>()
-                                        .toList() ??
-                                    const [],
-                                skincareUses: (subBlockData['skincare_uses'] as List?)
-                                        ?.whereType<String>()
-                                        .toList() ??
-                                    const [],
-                              ))
-                          .toList();
-                    }(),
-                  ),
-                  button: () {
-                    final buttonData = blockData['data']?['button'] as Map<String, dynamic>?;
-                    if (buttonData == null) return null;
-                    return ContentBlockButton(
-                      action: buttonData['action'] as String? ?? 'next',
-                      show: buttonData['show'] as bool? ?? false,
-                      text: buttonData['text'] as String? ?? '',
-                    );
-                  }(),
-                  audioId: blockData['data']?['audio_id'] as String?,
-                  audioAutoPlay: blockData['data']?['audio_auto_play'] as bool? ?? false,
-                  audioTranscript: blockData['data']?['audio_transcript'] as String?,
-                  showAudioTranscript: blockData['data']?['show_audio_transcript'] as bool? ?? false,
-                ))
-            .toList();
-      }(),
-      createdAt: parseDate(data['created_at'] ?? data['createdAt']),
-      updatedAt: parseDate(data['updated_at'] ?? data['updatedAt']),
-    );
   }
 
   Future<List<Content>> searchContent(String query) async {
@@ -215,24 +228,7 @@ class FirestoreContentRepository {
               tags.any((tag) => tag.contains(qLower))) {
             
             // Ensure type field is set based on collection name
-            if (!data.containsKey('type')) {
-              switch (collection) {
-                case 'content_seasonal_wisdom':
-                  data['type'] = 'seasonal';
-                  break;
-                case 'content_plant_allies':
-                  data['type'] = 'plant';
-                  break;
-                case 'content_recipes':
-                  data['type'] = 'recipe';
-                  break;
-                default:
-                  data['type'] ??= 'seasonal';
-              }
-            }
-            
-            data['id'] = doc.id;
-            allResults.add(_parseContentFromData(doc.id, data));
+            allResults.add(parseContentFromData(doc.id, data, collectionHint: collection));
           }
         }
       } catch (e) {

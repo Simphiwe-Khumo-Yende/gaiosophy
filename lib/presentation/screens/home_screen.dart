@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../application/providers/home_sections_provider.dart';
+import '../../application/providers/realtime_content_provider.dart';
+import '../../data/models/content.dart';
 import '../../data/services/disclaimer_service.dart';
 import '../widgets/home_hero_header.dart';
 import '../widgets/content_section_horizontal.dart';
@@ -36,7 +38,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final sectionsAsync = ref.watch(homeSectionsProvider);
+    final homeSectionsState = ref.watch(homeSectionsProvider);
     final userAsync = ref.watch(firebaseAuthProvider);
     
     // Calculate opacity based on scroll offset
@@ -93,26 +95,110 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
       drawer: _buildDrawer(context, userAsync),
-      body: sectionsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'Failed to load content\n' + e.toString(),
-              style: TextStyle(color: const Color(0xFF1A1612)),
-            ),
+      body: _buildBody(homeSectionsState),
+    );
+  }
+
+  Widget _buildBody(HomeSectionsState state) {
+    if (state.isInitialLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state.error != null && !state.hasData) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Failed to load content\n${state.error}',
+            style: const TextStyle(color: Color(0xFF1A1612)),
+            textAlign: TextAlign.center,
           ),
         ),
-        data: (sections) => CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            const SliverToBoxAdapter(child: HomeHeroHeader()),
-            for (final s in sections)
-              SliverToBoxAdapter(child: ContentSectionHorizontal(section: s)),
-            const SliverPadding(padding: EdgeInsets.only(bottom: 48)),
-          ],
+      );
+    }
+
+    if (!state.hasData) {
+      return const Center(
+        child: Text(
+          'No published content available yet.',
+          style: TextStyle(color: Color(0xFF1A1612)),
         ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.read(realTimeContentProvider.notifier).refresh();
+        for (final type in ContentType.values) {
+          ref.read(realTimeContentByTypeProvider(type).notifier).refresh();
+        }
+      },
+      child: CustomScrollView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                const HomeHeroHeader(),
+                if (state.isOffline)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.cloud_off, color: Colors.orange),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Offline mode: showing cached content.',
+                            style: TextStyle(color: Colors.orange, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (!state.hasRealtimeConnection && !state.isOffline)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.sync_problem, color: Colors.red),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Live updates unavailable. Pull to refresh.',
+                            style: TextStyle(color: Colors.red, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (state.isRefreshing)
+            SliverToBoxAdapter(
+              child: LinearProgressIndicator(
+                minHeight: 2,
+                backgroundColor: Colors.transparent,
+              ),
+            ),
+          for (final section in state.sections)
+            SliverToBoxAdapter(child: ContentSectionHorizontal(section: section)),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 48)),
+        ],
       ),
     );
   }
