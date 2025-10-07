@@ -65,6 +65,9 @@ Content parseContentFromData(
     published: data['published'] as bool? ?? (data['status'] == 'published'),
     tags: (data['tags'] as List?)?.whereType<String>().toList() ?? const [],
     media: (data['media'] as List?)?.whereType<String>().toList() ?? const [],
+  linkedRecipeIds:
+    (data['linked_recipe_ids'] as List?)?.whereType<String>().toList() ??
+      const [],
     contentBlocks: () {
       final blocks = data['content_blocks'] as List?;
       if (blocks == null) return <ContentBlock>[];

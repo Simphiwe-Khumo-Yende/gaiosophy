@@ -1,14 +1,18 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
 import '../theme/app_theme.dart';
+import '../theme/typography.dart';
 import 'content_block_detail_screen.dart';
 import 'plant_overview_screen.dart';
 import 'plant_folklore_screen.dart';
 import 'plant_harvesting_screen.dart';
 import 'folk_medicine_screen.dart';
 import 'magic_rituals_screen.dart';
+import '../widgets/content_card.dart';
+import '../../application/providers/content_list_provider.dart';
 
 class PlantAlliesDetailScreen extends ConsumerStatefulWidget {
   final content_model.Content content;
@@ -23,6 +27,23 @@ class PlantAlliesDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScreen> {
+  AsyncValue<List<content_model.Content>> _linkedRecipes = const AsyncValue.loading();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLinkedRecipes();
+  }
+
+  @override
+  void didUpdateWidget(covariant PlantAlliesDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  if (widget.content.id != oldWidget.content.id ||
+    !listEquals<String>(widget.content.linkedRecipeIds, oldWidget.content.linkedRecipeIds)) {
+      _loadLinkedRecipes();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -97,6 +118,31 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                     })
                     .map((block) => _buildContentBlockItem(block))
                     .toList(),
+
+                if (widget.content.linkedRecipeIds.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Recipes and Sacred Craft',
+                      style: AppTheme.plantProfileHeadingStyle,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: Text(
+                      'Co-create with the spirit of ${widget.content.title}',
+                      style: context.secondaryFont(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: -0.065,
+                        color: const Color(0xFF2E2314).withValues(alpha: 0.62),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildLinkedRecipesSection(),
+                ],
               ],
             ),
           ),
@@ -453,5 +499,99 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
       default:
         return Icons.nature;
     }
+  }
+
+  Future<void> _loadLinkedRecipes() async {
+    final ids = widget.content.linkedRecipeIds;
+
+    if (ids.isEmpty) {
+      setState(() {
+        _linkedRecipes = const AsyncValue.data([]);
+      });
+      return;
+    }
+
+    setState(() {
+      _linkedRecipes = const AsyncValue.loading();
+    });
+
+    try {
+      final repo = ref.read(firestoreContentRepositoryProvider);
+      final seen = <String>{};
+
+      final futures = ids.where((id) => seen.add(id)).map((id) async {
+        try {
+          final recipe = await repo.fetchById(id);
+          return recipe.type == content_model.ContentType.recipe ? recipe : null;
+        } catch (_) {
+          return null;
+        }
+      }).toList();
+
+      final resolved = await Future.wait(futures);
+      final results = resolved.whereType<content_model.Content>().toList();
+
+      if (!mounted) return;
+      setState(() {
+        _linkedRecipes = AsyncValue.data(results);
+      });
+    } catch (error, stackTrace) {
+      if (!mounted) return;
+      setState(() {
+        _linkedRecipes = AsyncValue.error(error, stackTrace);
+      });
+    }
+  }
+
+  Widget _buildLinkedRecipesSection() {
+    return _linkedRecipes.when(
+      data: (recipes) {
+        if (recipes.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'No linked recipes available yet.',
+              style: AppTheme.plantProfileSubheadingStyle,
+            ),
+          );
+        }
+
+        return SizedBox(
+          height: 240,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) => ContentCard(content: recipes[index]),
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemCount: recipes.length,
+          ),
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B6B47)),
+          ),
+        ),
+      ),
+      error: (error, _) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'We couldn\'t load linked recipes right now.',
+                style: AppTheme.plantProfileSubheadingStyle,
+              ),
+            ),
+            TextButton(
+              onPressed: _loadLinkedRecipes,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

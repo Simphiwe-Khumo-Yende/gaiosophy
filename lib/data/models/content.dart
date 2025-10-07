@@ -86,6 +86,7 @@ class Content with _$Content {
     @Default(false) bool published,
     @Default([]) List<String> tags,
     @Default([]) List<String> media,
+    @Default([]) List<String> linkedRecipeIds,
     @Default([]) List<ContentBlock> contentBlocks,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -135,6 +136,7 @@ class Content with _$Content {
       published: data['published'] as bool? ?? (data['status'] == 'published'),
       tags: (data['tags'] as List?)?.whereType<String>().toList() ?? const [],
       media: (data['media'] as List?)?.whereType<String>().toList() ?? const [],
+      linkedRecipeIds: (data['linked_recipe_ids'] as List?)?.whereType<String>().toList() ?? const [],
       contentBlocks: () {
         final blocks = data['content_blocks'] as List?;
         if (blocks == null) return <ContentBlock>[];

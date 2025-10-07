@@ -1201,6 +1201,7 @@ mixin _$Content {
   bool get published => throw _privateConstructorUsedError;
   List<String> get tags => throw _privateConstructorUsedError;
   List<String> get media => throw _privateConstructorUsedError;
+  List<String> get linkedRecipeIds => throw _privateConstructorUsedError;
   List<ContentBlock> get contentBlocks => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
@@ -1239,6 +1240,7 @@ abstract class $ContentCopyWith<$Res> {
       bool published,
       List<String> tags,
       List<String> media,
+      List<String> linkedRecipeIds,
       List<ContentBlock> contentBlocks,
       DateTime? createdAt,
       DateTime? updatedAt});
@@ -1278,6 +1280,7 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
     Object? published = null,
     Object? tags = null,
     Object? media = null,
+    Object? linkedRecipeIds = null,
     Object? contentBlocks = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -1359,6 +1362,10 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
           ? _value.media
           : media // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      linkedRecipeIds: null == linkedRecipeIds
+          ? _value.linkedRecipeIds
+          : linkedRecipeIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       contentBlocks: null == contentBlocks
           ? _value.contentBlocks
           : contentBlocks // ignore: cast_nullable_to_non_nullable
@@ -1402,6 +1409,7 @@ abstract class _$$ContentImplCopyWith<$Res> implements $ContentCopyWith<$Res> {
       bool published,
       List<String> tags,
       List<String> media,
+      List<String> linkedRecipeIds,
       List<ContentBlock> contentBlocks,
       DateTime? createdAt,
       DateTime? updatedAt});
@@ -1439,6 +1447,7 @@ class __$$ContentImplCopyWithImpl<$Res>
     Object? published = null,
     Object? tags = null,
     Object? media = null,
+    Object? linkedRecipeIds = null,
     Object? contentBlocks = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -1520,6 +1529,10 @@ class __$$ContentImplCopyWithImpl<$Res>
           ? _value._media
           : media // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      linkedRecipeIds: null == linkedRecipeIds
+          ? _value._linkedRecipeIds
+          : linkedRecipeIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       contentBlocks: null == contentBlocks
           ? _value._contentBlocks
           : contentBlocks // ignore: cast_nullable_to_non_nullable
@@ -1559,11 +1572,13 @@ class _$ContentImpl implements _Content {
       this.published = false,
       final List<String> tags = const [],
       final List<String> media = const [],
+      final List<String> linkedRecipeIds = const [],
       final List<ContentBlock> contentBlocks = const [],
       this.createdAt,
       this.updatedAt})
       : _tags = tags,
         _media = media,
+        _linkedRecipeIds = linkedRecipeIds,
         _contentBlocks = contentBlocks;
 
   factory _$ContentImpl.fromJson(Map<String, dynamic> json) =>
@@ -1624,6 +1639,15 @@ class _$ContentImpl implements _Content {
     return EqualUnmodifiableListView(_media);
   }
 
+  final List<String> _linkedRecipeIds;
+  @override
+  @JsonKey()
+  List<String> get linkedRecipeIds {
+    if (_linkedRecipeIds is EqualUnmodifiableListView) return _linkedRecipeIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_linkedRecipeIds);
+  }
+
   final List<ContentBlock> _contentBlocks;
   @override
   @JsonKey()
@@ -1640,7 +1664,7 @@ class _$ContentImpl implements _Content {
 
   @override
   String toString() {
-    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, subtitle: $subtitle, prepTime: $prepTime, infusionTime: $infusionTime, difficulty: $difficulty, ritual: $ritual, published: $published, tags: $tags, media: $media, contentBlocks: $contentBlocks, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, subtitle: $subtitle, prepTime: $prepTime, infusionTime: $infusionTime, difficulty: $difficulty, ritual: $ritual, published: $published, tags: $tags, media: $media, linkedRecipeIds: $linkedRecipeIds, contentBlocks: $contentBlocks, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -1675,6 +1699,8 @@ class _$ContentImpl implements _Content {
             const DeepCollectionEquality().equals(other._tags, _tags) &&
             const DeepCollectionEquality().equals(other._media, _media) &&
             const DeepCollectionEquality()
+                .equals(other._linkedRecipeIds, _linkedRecipeIds) &&
+            const DeepCollectionEquality()
                 .equals(other._contentBlocks, _contentBlocks) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -1705,6 +1731,7 @@ class _$ContentImpl implements _Content {
         published,
         const DeepCollectionEquality().hash(_tags),
         const DeepCollectionEquality().hash(_media),
+        const DeepCollectionEquality().hash(_linkedRecipeIds),
         const DeepCollectionEquality().hash(_contentBlocks),
         createdAt,
         updatedAt
@@ -1747,6 +1774,7 @@ abstract class _Content implements Content {
       final bool published,
       final List<String> tags,
       final List<String> media,
+      final List<String> linkedRecipeIds,
       final List<ContentBlock> contentBlocks,
       final DateTime? createdAt,
       final DateTime? updatedAt}) = _$ContentImpl;
@@ -1791,6 +1819,8 @@ abstract class _Content implements Content {
   List<String> get tags;
   @override
   List<String> get media;
+  @override
+  List<String> get linkedRecipeIds;
   @override
   List<ContentBlock> get contentBlocks;
   @override

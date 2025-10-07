@@ -462,7 +462,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
         // Content
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -581,7 +581,7 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
 
   Widget _buildDetailedPageContent(content_model.ContentBlock block) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

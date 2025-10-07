@@ -139,6 +139,10 @@ _$ContentImpl _$$ContentImplFromJson(Map<String, dynamic> json) =>
       media:
           (json['media'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
+      linkedRecipeIds: (json['linkedRecipeIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       contentBlocks: (json['contentBlocks'] as List<dynamic>?)
               ?.map((e) => ContentBlock.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -172,6 +176,7 @@ Map<String, dynamic> _$$ContentImplToJson(_$ContentImpl instance) =>
       'published': instance.published,
       'tags': instance.tags,
       'media': instance.media,
+      'linkedRecipeIds': instance.linkedRecipeIds,
       'contentBlocks': instance.contentBlocks,
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
