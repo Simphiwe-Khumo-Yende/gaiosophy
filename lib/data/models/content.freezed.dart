@@ -855,6 +855,7 @@ mixin _$ContentBlockData {
   List<SubBlock> get subBlocks => throw _privateConstructorUsedError;
   List<String> get listItems => throw _privateConstructorUsedError;
   String? get listStyle => throw _privateConstructorUsedError;
+  List<HarvestPeriod> get harvestPeriods => throw _privateConstructorUsedError;
 
   /// Serializes this ContentBlockData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -880,7 +881,8 @@ abstract class $ContentBlockDataCopyWith<$Res> {
       List<String> galleryImageIds,
       List<SubBlock> subBlocks,
       List<String> listItems,
-      String? listStyle});
+      String? listStyle,
+      List<HarvestPeriod> harvestPeriods});
 }
 
 /// @nodoc
@@ -906,6 +908,7 @@ class _$ContentBlockDataCopyWithImpl<$Res, $Val extends ContentBlockData>
     Object? subBlocks = null,
     Object? listItems = null,
     Object? listStyle = freezed,
+    Object? harvestPeriods = null,
   }) {
     return _then(_value.copyWith(
       title: freezed == title
@@ -940,6 +943,10 @@ class _$ContentBlockDataCopyWithImpl<$Res, $Val extends ContentBlockData>
           ? _value.listStyle
           : listStyle // ignore: cast_nullable_to_non_nullable
               as String?,
+      harvestPeriods: null == harvestPeriods
+          ? _value.harvestPeriods
+          : harvestPeriods // ignore: cast_nullable_to_non_nullable
+              as List<HarvestPeriod>,
     ) as $Val);
   }
 }
@@ -960,7 +967,8 @@ abstract class _$$ContentBlockDataImplCopyWith<$Res>
       List<String> galleryImageIds,
       List<SubBlock> subBlocks,
       List<String> listItems,
-      String? listStyle});
+      String? listStyle,
+      List<HarvestPeriod> harvestPeriods});
 }
 
 /// @nodoc
@@ -984,6 +992,7 @@ class __$$ContentBlockDataImplCopyWithImpl<$Res>
     Object? subBlocks = null,
     Object? listItems = null,
     Object? listStyle = freezed,
+    Object? harvestPeriods = null,
   }) {
     return _then(_$ContentBlockDataImpl(
       title: freezed == title
@@ -1018,6 +1027,10 @@ class __$$ContentBlockDataImplCopyWithImpl<$Res>
           ? _value.listStyle
           : listStyle // ignore: cast_nullable_to_non_nullable
               as String?,
+      harvestPeriods: null == harvestPeriods
+          ? _value._harvestPeriods
+          : harvestPeriods // ignore: cast_nullable_to_non_nullable
+              as List<HarvestPeriod>,
     ));
   }
 }
@@ -1033,10 +1046,12 @@ class _$ContentBlockDataImpl implements _ContentBlockData {
       final List<String> galleryImageIds = const [],
       final List<SubBlock> subBlocks = const [],
       final List<String> listItems = const [],
-      this.listStyle})
+      this.listStyle,
+      final List<HarvestPeriod> harvestPeriods = const []})
       : _galleryImageIds = galleryImageIds,
         _subBlocks = subBlocks,
-        _listItems = listItems;
+        _listItems = listItems,
+        _harvestPeriods = harvestPeriods;
 
   factory _$ContentBlockDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$ContentBlockDataImplFromJson(json);
@@ -1078,10 +1093,18 @@ class _$ContentBlockDataImpl implements _ContentBlockData {
 
   @override
   final String? listStyle;
+  final List<HarvestPeriod> _harvestPeriods;
+  @override
+  @JsonKey()
+  List<HarvestPeriod> get harvestPeriods {
+    if (_harvestPeriods is EqualUnmodifiableListView) return _harvestPeriods;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_harvestPeriods);
+  }
 
   @override
   String toString() {
-    return 'ContentBlockData(title: $title, subtitle: $subtitle, content: $content, featuredImageId: $featuredImageId, galleryImageIds: $galleryImageIds, subBlocks: $subBlocks, listItems: $listItems, listStyle: $listStyle)';
+    return 'ContentBlockData(title: $title, subtitle: $subtitle, content: $content, featuredImageId: $featuredImageId, galleryImageIds: $galleryImageIds, subBlocks: $subBlocks, listItems: $listItems, listStyle: $listStyle, harvestPeriods: $harvestPeriods)';
   }
 
   @override
@@ -1102,7 +1125,9 @@ class _$ContentBlockDataImpl implements _ContentBlockData {
             const DeepCollectionEquality()
                 .equals(other._listItems, _listItems) &&
             (identical(other.listStyle, listStyle) ||
-                other.listStyle == listStyle));
+                other.listStyle == listStyle) &&
+            const DeepCollectionEquality()
+                .equals(other._harvestPeriods, _harvestPeriods));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1116,7 +1141,8 @@ class _$ContentBlockDataImpl implements _ContentBlockData {
       const DeepCollectionEquality().hash(_galleryImageIds),
       const DeepCollectionEquality().hash(_subBlocks),
       const DeepCollectionEquality().hash(_listItems),
-      listStyle);
+      listStyle,
+      const DeepCollectionEquality().hash(_harvestPeriods));
 
   /// Create a copy of ContentBlockData
   /// with the given fields replaced by the non-null parameter values.
@@ -1144,7 +1170,8 @@ abstract class _ContentBlockData implements ContentBlockData {
       final List<String> galleryImageIds,
       final List<SubBlock> subBlocks,
       final List<String> listItems,
-      final String? listStyle}) = _$ContentBlockDataImpl;
+      final String? listStyle,
+      final List<HarvestPeriod> harvestPeriods}) = _$ContentBlockDataImpl;
 
   factory _ContentBlockData.fromJson(Map<String, dynamic> json) =
       _$ContentBlockDataImpl.fromJson;
@@ -1165,6 +1192,8 @@ abstract class _ContentBlockData implements ContentBlockData {
   List<String> get listItems;
   @override
   String? get listStyle;
+  @override
+  List<HarvestPeriod> get harvestPeriods;
 
   /// Create a copy of ContentBlockData
   /// with the given fields replaced by the non-null parameter values.
@@ -1203,6 +1232,8 @@ mixin _$Content {
   List<String> get media => throw _privateConstructorUsedError;
   List<String> get linkedRecipeIds => throw _privateConstructorUsedError;
   List<ContentBlock> get contentBlocks => throw _privateConstructorUsedError;
+  List<HarvestPeriod> get harvestPeriods =>
+      throw _privateConstructorUsedError; // Harvest periods for plants
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
@@ -1242,6 +1273,7 @@ abstract class $ContentCopyWith<$Res> {
       List<String> media,
       List<String> linkedRecipeIds,
       List<ContentBlock> contentBlocks,
+      List<HarvestPeriod> harvestPeriods,
       DateTime? createdAt,
       DateTime? updatedAt});
 }
@@ -1282,6 +1314,7 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
     Object? media = null,
     Object? linkedRecipeIds = null,
     Object? contentBlocks = null,
+    Object? harvestPeriods = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -1370,6 +1403,10 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
           ? _value.contentBlocks
           : contentBlocks // ignore: cast_nullable_to_non_nullable
               as List<ContentBlock>,
+      harvestPeriods: null == harvestPeriods
+          ? _value.harvestPeriods
+          : harvestPeriods // ignore: cast_nullable_to_non_nullable
+              as List<HarvestPeriod>,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -1411,6 +1448,7 @@ abstract class _$$ContentImplCopyWith<$Res> implements $ContentCopyWith<$Res> {
       List<String> media,
       List<String> linkedRecipeIds,
       List<ContentBlock> contentBlocks,
+      List<HarvestPeriod> harvestPeriods,
       DateTime? createdAt,
       DateTime? updatedAt});
 }
@@ -1449,6 +1487,7 @@ class __$$ContentImplCopyWithImpl<$Res>
     Object? media = null,
     Object? linkedRecipeIds = null,
     Object? contentBlocks = null,
+    Object? harvestPeriods = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -1537,6 +1576,10 @@ class __$$ContentImplCopyWithImpl<$Res>
           ? _value._contentBlocks
           : contentBlocks // ignore: cast_nullable_to_non_nullable
               as List<ContentBlock>,
+      harvestPeriods: null == harvestPeriods
+          ? _value._harvestPeriods
+          : harvestPeriods // ignore: cast_nullable_to_non_nullable
+              as List<HarvestPeriod>,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -1574,12 +1617,14 @@ class _$ContentImpl implements _Content {
       final List<String> media = const [],
       final List<String> linkedRecipeIds = const [],
       final List<ContentBlock> contentBlocks = const [],
+      final List<HarvestPeriod> harvestPeriods = const [],
       this.createdAt,
       this.updatedAt})
       : _tags = tags,
         _media = media,
         _linkedRecipeIds = linkedRecipeIds,
-        _contentBlocks = contentBlocks;
+        _contentBlocks = contentBlocks,
+        _harvestPeriods = harvestPeriods;
 
   factory _$ContentImpl.fromJson(Map<String, dynamic> json) =>
       _$$ContentImplFromJson(json);
@@ -1657,6 +1702,16 @@ class _$ContentImpl implements _Content {
     return EqualUnmodifiableListView(_contentBlocks);
   }
 
+  final List<HarvestPeriod> _harvestPeriods;
+  @override
+  @JsonKey()
+  List<HarvestPeriod> get harvestPeriods {
+    if (_harvestPeriods is EqualUnmodifiableListView) return _harvestPeriods;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_harvestPeriods);
+  }
+
+// Harvest periods for plants
   @override
   final DateTime? createdAt;
   @override
@@ -1664,7 +1719,7 @@ class _$ContentImpl implements _Content {
 
   @override
   String toString() {
-    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, subtitle: $subtitle, prepTime: $prepTime, infusionTime: $infusionTime, difficulty: $difficulty, ritual: $ritual, published: $published, tags: $tags, media: $media, linkedRecipeIds: $linkedRecipeIds, contentBlocks: $contentBlocks, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, subtitle: $subtitle, prepTime: $prepTime, infusionTime: $infusionTime, difficulty: $difficulty, ritual: $ritual, published: $published, tags: $tags, media: $media, linkedRecipeIds: $linkedRecipeIds, contentBlocks: $contentBlocks, harvestPeriods: $harvestPeriods, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -1702,6 +1757,8 @@ class _$ContentImpl implements _Content {
                 .equals(other._linkedRecipeIds, _linkedRecipeIds) &&
             const DeepCollectionEquality()
                 .equals(other._contentBlocks, _contentBlocks) &&
+            const DeepCollectionEquality()
+                .equals(other._harvestPeriods, _harvestPeriods) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -1733,6 +1790,7 @@ class _$ContentImpl implements _Content {
         const DeepCollectionEquality().hash(_media),
         const DeepCollectionEquality().hash(_linkedRecipeIds),
         const DeepCollectionEquality().hash(_contentBlocks),
+        const DeepCollectionEquality().hash(_harvestPeriods),
         createdAt,
         updatedAt
       ]);
@@ -1776,6 +1834,7 @@ abstract class _Content implements Content {
       final List<String> media,
       final List<String> linkedRecipeIds,
       final List<ContentBlock> contentBlocks,
+      final List<HarvestPeriod> harvestPeriods,
       final DateTime? createdAt,
       final DateTime? updatedAt}) = _$ContentImpl;
 
@@ -1823,6 +1882,8 @@ abstract class _Content implements Content {
   List<String> get linkedRecipeIds;
   @override
   List<ContentBlock> get contentBlocks;
+  @override
+  List<HarvestPeriod> get harvestPeriods; // Harvest periods for plants
   @override
   DateTime? get createdAt;
   @override

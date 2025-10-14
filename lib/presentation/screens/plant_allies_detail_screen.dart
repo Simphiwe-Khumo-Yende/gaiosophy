@@ -243,9 +243,11 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                    blockTitle.contains('harvesting') ||
                    blockTitle.contains('preparation') ||
                    blockTitle.contains('harvest')) {
+          
           destinationScreen = PlantHarvestingScreen(
             contentBlock: block,
             parentTitle: widget.content.title,
+            parentContentId: widget.content.id, // Pass content ID for real-time updates
           );
           
         } else if (blockType == 'folk_medicine') {

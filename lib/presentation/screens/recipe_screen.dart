@@ -75,8 +75,8 @@ class RecipeScreen extends StatelessWidget {
   Widget _buildFeaturedImage(BuildContext context) {
     if (content.featuredImageId != null) {
       return Container(
-        height: 200,
-        width: 300,
+        height: 285.78,
+        width: 218.18,
         child: FirebaseStorageImage(
           imageId: content.featuredImageId!,
           fit: BoxFit.contain,
@@ -84,8 +84,8 @@ class RecipeScreen extends StatelessWidget {
       );
     } else {
       return Container(
-        height: 200,
-        width: 300,
+        height: 285.78,
+        width: 218.18,
         decoration: BoxDecoration(
           color: Colors.grey[200],
           borderRadius: BorderRadius.circular(12),

@@ -41,17 +41,17 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
   final sections = <HomeSection>[
     HomeSection(
       title: 'Seasonal Wisdom & Rituals',
-      subtitle: 'Guidance & attunement',
+      subtitle: 'Attune, give back, remember',
       items: limitItems(seasonalState.items),
     ),
     HomeSection(
       title: 'Plant Allies',
-      subtitle: 'Companions in this season',
+      subtitle: 'Green wisdom for the autumn season',
       items: limitItems(plantState.items),
     ),
     HomeSection(
       title: 'Seasonal Remedies & Recipes and Crafts',
-      subtitle: 'Kitchen & apothecary',
+      subtitle: 'Co-create with the land',
       items: limitItems(recipeState.items),
     ),
   ];

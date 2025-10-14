@@ -99,6 +99,10 @@ _$ContentBlockDataImpl _$$ContentBlockDataImplFromJson(
               .toList() ??
           const [],
       listStyle: json['listStyle'] as String?,
+      harvestPeriods: (json['harvestPeriods'] as List<dynamic>?)
+              ?.map((e) => HarvestPeriod.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$ContentBlockDataImplToJson(
@@ -112,6 +116,7 @@ Map<String, dynamic> _$$ContentBlockDataImplToJson(
       'subBlocks': instance.subBlocks,
       'listItems': instance.listItems,
       'listStyle': instance.listStyle,
+      'harvestPeriods': instance.harvestPeriods,
     };
 
 _$ContentImpl _$$ContentImplFromJson(Map<String, dynamic> json) =>
@@ -147,6 +152,10 @@ _$ContentImpl _$$ContentImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => ContentBlock.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      harvestPeriods: (json['harvestPeriods'] as List<dynamic>?)
+              ?.map((e) => HarvestPeriod.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
@@ -178,6 +187,7 @@ Map<String, dynamic> _$$ContentImplToJson(_$ContentImpl instance) =>
       'media': instance.media,
       'linkedRecipeIds': instance.linkedRecipeIds,
       'contentBlocks': instance.contentBlocks,
+      'harvestPeriods': instance.harvestPeriods,
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
     };

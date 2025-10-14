@@ -33,6 +33,61 @@ class ContentBlockButton with _$ContentBlockButton {
   factory ContentBlockButton.fromJson(Map<String, dynamic> json) => _$ContentBlockButtonFromJson(json);
 }
 
+class HarvestPeriod {
+  final String season;
+  final String timing;
+
+  HarvestPeriod({
+    required this.season,
+    required this.timing,
+  });
+
+  factory HarvestPeriod.fromJson(Map<String, dynamic> json) {
+    return HarvestPeriod(
+      season: json['season'] as String,
+      timing: json['timing'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'season': season,
+    'timing': timing,
+  };
+
+  // Convert season + timing to approximate month position (1-12)
+  int get monthPosition {
+    int baseMonth;
+    switch (season.toLowerCase()) {
+      case 'spring':
+        baseMonth = 3; // March = start of spring
+        break;
+      case 'summer':
+        baseMonth = 6; // June = start of summer
+        break;
+      case 'autumn':
+        baseMonth = 9; // September = start of autumn
+        break;
+      case 'winter':
+        baseMonth = 12; // December = start of winter
+        break;
+      default:
+        baseMonth = 1;
+    }
+
+    // Adjust based on timing
+    switch (timing.toLowerCase()) {
+      case 'early':
+        return baseMonth;
+      case 'mid':
+        return baseMonth + 1;
+      case 'late':
+        return baseMonth + 2;
+      default:
+        return baseMonth;
+    }
+  }
+}
+
 @freezed
 class SubBlock with _$SubBlock {
   const factory SubBlock({
@@ -58,6 +113,7 @@ class ContentBlockData with _$ContentBlockData {
     @Default([]) List<SubBlock> subBlocks,
     @Default([]) List<String> listItems,
     String? listStyle,
+    @Default([]) List<HarvestPeriod> harvestPeriods,
   }) = _ContentBlockData;
 
   factory ContentBlockData.fromJson(Map<String, dynamic> json) => _$ContentBlockDataFromJson(json);
@@ -88,6 +144,7 @@ class Content with _$Content {
     @Default([]) List<String> media,
     @Default([]) List<String> linkedRecipeIds,
     @Default([]) List<ContentBlock> contentBlocks,
+    @Default([]) List<HarvestPeriod> harvestPeriods, // Harvest periods for plants
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _Content;
@@ -105,7 +162,8 @@ class Content with _$Content {
       if (v is String) return DateTime.tryParse(v);
       return null;
     }
-    return Content(
+    
+    final finalContent = Content(
       id: doc.id,
       type: () {
         final t = data['type'] as String?;
@@ -137,6 +195,35 @@ class Content with _$Content {
       tags: (data['tags'] as List?)?.whereType<String>().toList() ?? const [],
       media: (data['media'] as List?)?.whereType<String>().toList() ?? const [],
       linkedRecipeIds: (data['linked_recipe_ids'] as List?)?.whereType<String>().toList() ?? const [],
+      harvestPeriods: () {
+        final rawHarvestPeriods = data['harvest_periods'];
+        
+        if (rawHarvestPeriods == null) {
+          return <HarvestPeriod>[];
+        }
+        
+        if (rawHarvestPeriods is! List) {
+          return <HarvestPeriod>[];
+        }
+        
+        final periods = rawHarvestPeriods
+            .map((p) {
+              try {
+                if (p is! Map) {
+                  return null;
+                }
+                
+                final periodMap = p as Map<String, dynamic>;
+                return HarvestPeriod.fromJson(periodMap);
+              } catch (e) {
+                return null;
+              }
+            })
+            .whereType<HarvestPeriod>()
+            .toList();
+        
+        return periods;
+      }(),
       contentBlocks: () {
         final blocks = data['content_blocks'] as List?;
         if (blocks == null) return <ContentBlock>[];
@@ -161,6 +248,25 @@ class Content with _$Content {
                             .toList() ??
                         const [],
                     listStyle: blockData['data']?['list_style'] as String?,
+                    harvestPeriods: () {
+                      final rawPeriods = blockData['data']?['harvest_periods'];
+                      
+                      if (rawPeriods == null) {
+                        return <HarvestPeriod>[];
+                      }
+                      
+                      return (rawPeriods as List?)
+                              ?.map((p) {
+                                try {
+                                  return HarvestPeriod.fromJson(p as Map<String, dynamic>);
+                                } catch (e) {
+                                  return null;
+                                }
+                              })
+                              .whereType<HarvestPeriod>()
+                              .toList() ??
+                          const [];
+                    }(),
                   ),
                   button: () {
                     final buttonData = blockData['data']?['button'] as Map<String, dynamic>?;
@@ -178,5 +284,7 @@ class Content with _$Content {
       createdAt: parseDate(data['created_at'] ?? data['createdAt']),
       updatedAt: parseDate(data['updated_at'] ?? data['updatedAt']),
     );
+    
+    return finalContent;
   }
 }

@@ -68,6 +68,22 @@ Content parseContentFromData(
   linkedRecipeIds:
     (data['linked_recipe_ids'] as List?)?.whereType<String>().toList() ??
       const [],
+    harvestPeriods: () {
+      final rawPeriods = data['harvest_periods'];
+      if (rawPeriods == null) return <HarvestPeriod>[];
+      
+      return (rawPeriods as List?)
+              ?.map((p) {
+                try {
+                  return HarvestPeriod.fromJson(p as Map<String, dynamic>);
+                } catch (e) {
+                  return null;
+                }
+              })
+              .whereType<HarvestPeriod>()
+              .toList() ??
+          const <HarvestPeriod>[];
+    }(),
     contentBlocks: () {
       final blocks = data['content_blocks'] as List?;
       if (blocks == null) return <ContentBlock>[];
