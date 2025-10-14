@@ -65,12 +65,26 @@ jobs:
         pod install --repo-update
         cd ..
 
-    - name: Create custom keychain
+    - name: Setup iOS Signing
       run: |
+        # Create custom keychain
         security create-keychain -p "github_actions_keychain" build.keychain
         security default-keychain -s build.keychain
         security unlock-keychain -p "github_actions_keychain" build.keychain
-        security set-keychain-settings -t 3600
+        security set-keychain-settings -t 3600 -u build.keychain
+        
+        # Decode and import distribution certificate
+        echo "${{ secrets.IOS_DIST_CERT_P12 }}" | base64 --decode > ios_dist.p12
+        security import ios_dist.p12 -k build.keychain -P "${{ secrets.IOS_DIST_CERT_PASSWORD }}" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "github_actions_keychain" build.keychain
+        
+        # Setup provisioning profile
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/gaiosophy.mobileprovision
+        
+        # Get profile UUID for ExportOptions.plist
+        PROFILE_UUID=$(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/gaiosophy.mobileprovision | plutil -extract UUID xml1 -o - - | xmllint --xpath "//string/text()" -)
+        echo "PROFILE_UUID=${PROFILE_UUID}" >> $GITHUB_ENV
 
     - name: Create ExportOptions.plist
       run: |
@@ -86,13 +100,21 @@ jobs:
             <key>uploadSymbols</key>
             <true/>
             <key>signingStyle</key>
-            <string>automatic</string>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+                <key>com.gaiosophy.app</key>
+                <string>gaiosophy</string>
+            </dict>
         </dict>
         </plist>
         EOF
 
     # --- Build and Upload ---
     - name: Build and Sign IPA
+      env:
+        DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        CODE_SIGN_STYLE: Manual
       run: |
         flutter build ipa --release \
           --build-name=${{ steps.get_version.outputs.version_name }} \
@@ -113,3 +135,5 @@ jobs:
       run: |
         security delete-keychain build.keychain || true
         rm -f ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_KEY_ID }}.p8
+        rm -f ios_dist.p12
+        rm -f ~/Library/MobileDevice/Provisioning\ Profiles/gaiosophy.mobileprovision
