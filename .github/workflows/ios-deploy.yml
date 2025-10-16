@@ -116,22 +116,51 @@ jobs:
             <key>provisioningProfiles</key>
             <dict>
                 <key>com.gaiosophy.app</key>
-                <string>gaiosophy</string>
+                <string>${PROFILE_UUID}</string>
             </dict>
         </dict>
         </plist>
         EOF
 
     # --- Build and Upload ---
-    - name: Build and Sign IPA
-      env:
-        DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
-        CODE_SIGN_STYLE: Manual
+    - name: Build iOS Archive
       run: |
-        flutter build ipa --release \
+        # Get certificate identity
+        CERT_IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Apple Distribution" | head -1 | grep -o '".*"' | sed 's/"//g')
+        echo "Using certificate: ${CERT_IDENTITY}"
+        
+        # Build Flutter iOS framework
+        flutter build ios --release \
           --build-name=${{ steps.get_version.outputs.version_name }} \
           --build-number=${{ steps.get_version.outputs.build_number }} \
-          --export-options-plist=ios/ExportOptions.plist
+          --no-codesign
+    
+    - name: Build and Sign IPA with Xcode
+      run: |
+        # Get certificate identity
+        CERT_IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Apple Distribution" | head -1 | grep -o '".*"' | sed 's/"//g')
+        echo "Using certificate: ${CERT_IDENTITY}"
+        
+        cd ios
+        
+        # Build archive with xcodebuild
+        xcodebuild -workspace Runner.xcworkspace \
+          -scheme Runner \
+          -configuration Release \
+          -archivePath ${{ github.workspace }}/build/Runner.xcarchive \
+          -allowProvisioningUpdates \
+          CODE_SIGN_IDENTITY="${CERT_IDENTITY}" \
+          CODE_SIGN_STYLE=Manual \
+          DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
+          PROVISIONING_PROFILE_SPECIFIER="${PROFILE_UUID}" \
+          archive
+        
+        # Export IPA
+        xcodebuild -exportArchive \
+          -archivePath ${{ github.workspace }}/build/Runner.xcarchive \
+          -exportPath ${{ github.workspace }}/build/ios/ipa \
+          -exportOptionsPlist ExportOptions.plist \
+          -allowProvisioningUpdates
 
     - name: Upload to TestFlight
       run: |
