@@ -1,146 +1,153 @@
-# iOS Code Signing Fix for GitHub Actions
+# iOS Code Signing Fix for GitHub Actions - FINAL VERSION
 
-## Problem
-The GitHub Actions workflow was failing with the error:
+## Problem History
+
+### Initial Issue
 ```
 No valid code signing certificates were found
 No development certificates available to code sign app for device deployment
 ```
 
-## Root Cause
-The `flutter build ipa` command was not properly utilizing the manually configured certificates and provisioning profiles in the CI environment. Flutter's IPA build process needs explicit control over the code signing process when using manual signing in CI/CD.
+### Second Issue (After First Fix)
+```
+'Flutter/Flutter.h' file not found
+Command SwiftCompile failed with a nonzero exit code
+```
 
-## Solution Applied
+## Root Causes
+
+1. **First Issue**: `flutter build ipa` couldn't find certificates in CI environment
+2. **Second Issue**: Splitting `flutter build ios` and `xcodebuild` caused Flutter framework to not be properly linked for CocoaPods dependencies
+
+## Final Solution
+
+### The Correct Approach
+Use `flutter build ipa` with proper Xcode project configuration BEFORE the build runs.
 
 ### Changes Made to `.github/workflows/ios-deploy.yml`
 
-#### 1. **Split Build Process into Two Steps**
-   - **Before**: Single `flutter build ipa` command
-   - **After**: Two-step process:
-     1. `flutter build ios --no-codesign` - Builds the Flutter framework without signing
-     2. `xcodebuild` commands - Handles archiving and signing explicitly
-
-#### 2. **Build iOS Archive Step**
+#### 1. **Reordered Build Steps**
    ```yaml
-   - name: Build iOS Archive
-     run: |
-       CERT_IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Apple Distribution" | head -1 | grep -o '".*"' | sed 's/"//g')
-       flutter build ios --release \
-         --build-name=${{ steps.get_version.outputs.version_name }} \
-         --build-number=${{ steps.get_version.outputs.build_number }} \
-         --no-codesign
+   Clean → Get Dependencies → Setup Signing → Configure Xcode → Install Pods → Build IPA
    ```
-   - Builds the iOS app without code signing
-   - Prepares the framework for manual signing with xcodebuild
 
-#### 3. **Build and Sign IPA with Xcode Step**
+#### 2. **New Step: Update Xcode Project with Signing Configuration**
    ```yaml
-   - name: Build and Sign IPA with Xcode
+   - name: Update Xcode Project with Signing Configuration
      run: |
        CERT_IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Apple Distribution" | head -1 | grep -o '".*"' | sed 's/"//g')
+       echo "CERT_IDENTITY=${CERT_IDENTITY}" >> $GITHUB_ENV
        
        cd ios
-       
-       # Build archive with xcodebuild
-       xcodebuild -workspace Runner.xcworkspace \
-         -scheme Runner \
-         -configuration Release \
-         -archivePath ${{ github.workspace }}/build/Runner.xcarchive \
-         -allowProvisioningUpdates \
-         CODE_SIGN_IDENTITY="${CERT_IDENTITY}" \
-         CODE_SIGN_STYLE=Manual \
-         DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
-         PROVISIONING_PROFILE_SPECIFIER="${PROFILE_UUID}" \
-         archive
-       
-       # Export IPA
-       xcodebuild -exportArchive \
-         -archivePath ${{ github.workspace }}/build/Runner.xcarchive \
-         -exportPath ${{ github.workspace }}/build/ios/ipa \
-         -exportOptionsPlist ExportOptions.plist \
-         -allowProvisioningUpdates
+       ruby -i -pe "gsub(/CODE_SIGN_STYLE = Automatic;/, 'CODE_SIGN_STYLE = Manual;')" Runner.xcodeproj/project.pbxproj
+       ruby -i -pe "gsub(/DEVELOPMENT_TEAM = \"\";/, 'DEVELOPMENT_TEAM = \"${{ secrets.APPLE_TEAM_ID }}\";')" Runner.xcodeproj/project.pbxproj
+       ruby -i -pe "gsub(/DEVELOPMENT_TEAM = ;/, 'DEVELOPMENT_TEAM = ${{ secrets.APPLE_TEAM_ID }};')" Runner.xcodeproj/project.pbxproj
    ```
+   - Modifies the Xcode project file to use manual signing
+   - Sets the DEVELOPMENT_TEAM in project.pbxproj
+   - Ensures Flutter's build process uses the correct signing
 
-#### 4. **Fixed ExportOptions.plist**
-   - **Before**: Used profile name `gaiosophy`
-   - **After**: Uses actual profile UUID `${PROFILE_UUID}`
-   ```xml
-   <key>provisioningProfiles</key>
-   <dict>
-       <key>com.gaiosophy.app</key>
-       <string>${PROFILE_UUID}</string>
-   </dict>
+#### 3. **Pod Install After Xcode Configuration**
+   ```yaml
+   - name: Install CocoaPods Dependencies
+     run: |
+       cd ios
+       pod install --repo-update
    ```
+   - Moved AFTER Xcode project configuration
+   - Ensures pods are installed with correct signing settings
+
+#### 4. **Enhanced ExportOptions.plist**
+   ```xml
+   <key>signingCertificate</key>
+   <string>Apple Distribution</string>
+   ```
+   - Added explicit signing certificate type
+
+#### 5. **Single Build Command**
+   ```yaml
+   - name: Build and Sign IPA
+     run: |
+       flutter build ipa --release \
+         --build-name=${{ steps.get_version.outputs.version_name }} \
+         --build-number=${{ steps.get_version.outputs.build_number }} \
+         --export-options-plist=ios/ExportOptions.plist
+   ```
+   - Back to using `flutter build ipa` (not split)
+   - Flutter handles the complete build and signing process
+   - Uses the pre-configured Xcode project settings
 
 ## Why This Works
 
-1. **Explicit Certificate Selection**: Extracts the exact certificate identity from the keychain and passes it to xcodebuild
-2. **Manual Signing Control**: Uses `CODE_SIGN_STYLE=Manual` with explicit parameters
-3. **Correct Profile Reference**: Uses UUID instead of profile name for accurate matching
-4. **Two-Phase Build**: Separates Flutter compilation from iOS code signing, giving full control over each step
+1. ✅ **Xcode Project Pre-Configuration**: Sets manual signing in project.pbxproj before any build
+2. ✅ **Proper Build Order**: Dependencies → Signing Setup → Xcode Config → Pods → Build
+3. ✅ **Flutter Framework Linking**: Flutter builds everything together, ensuring proper framework linking
+4. ✅ **Certificate Available**: Keychain has distribution certificate accessible to codesign
+5. ✅ **Profile UUID**: ExportOptions.plist uses the extracted UUID
 
-## Key Parameters
+## Complete Flow
 
-| Parameter | Purpose |
-|-----------|---------|
-| `CODE_SIGN_IDENTITY` | Specifies exact certificate to use for signing |
-| `CODE_SIGN_STYLE=Manual` | Forces manual signing (not automatic) |
-| `DEVELOPMENT_TEAM` | Your Apple Team ID (Z9WJ3V7JV3) |
-| `PROVISIONING_PROFILE_SPECIFIER` | UUID of the provisioning profile |
-| `-allowProvisioningUpdates` | Allows Xcode to manage provisioning if needed |
+```
+1. ✅ Setup Flutter & Xcode
+2. ✅ Verify App Store Connect API
+3. ✅ Clean & Get Dependencies (flutter pub get)
+4. ✅ Setup iOS Signing (certificate + provisioning profile)
+5. ✅ Create ExportOptions.plist with UUID
+6. ✅ Update Xcode Project (set manual signing + team)
+7. ✅ Install CocoaPods
+8. ✅ Build IPA (flutter build ipa with signing)
+9. ✅ Upload to TestFlight
+10. ✅ Clean up
+```
+
+## Key Differences from Previous Attempts
+
+| Previous | Current |
+|----------|---------|
+| Pod install BEFORE signing setup | Pod install AFTER Xcode configuration |
+| Split: `flutter build ios` + `xcodebuild` | Single: `flutter build ipa` |
+| No Xcode project modification | Modifies project.pbxproj for manual signing |
+| Profile name in ExportOptions | Profile UUID in ExportOptions |
 
 ## Testing the Fix
 
-After pushing these changes:
+After pushing:
+1. ✅ Check "Update Xcode Project" step succeeds
+2. ✅ Verify certificate identity is detected
+3. ✅ Check pod install completes without errors
+4. ✅ Verify Flutter build IPA succeeds
+5. ✅ Confirm upload to TestFlight works
 
-1. The workflow will run automatically on push to `main`
-2. Or trigger manually via GitHub Actions UI (workflow_dispatch)
-3. Monitor the "Build and Sign IPA with Xcode" step for success
-4. Check that the certificate identity is correctly detected
-5. Verify the archive is created at `build/Runner.xcarchive`
-6. Confirm IPA export completes successfully
+## All GitHub Secrets Required
 
-## Verification Checklist
+- ✅ `APPLE_TEAM_ID`
+- ✅ `APPSTORE_ISSUER_ID`
+- ✅ `APPSTORE_KEY_ID`
+- ✅ `APPSTORE_PRIVATE_KEY`
+- ✅ `GOOGLE_SERVICE_INFO_PLIST_BASE64`
+- ✅ `IOS_DIST_CERT_P12`
+- ✅ `IOS_DIST_CERT_PASSWORD`
+- ✅ `IOS_PROVISIONING_PROFILE`
 
-- [ ] GitHub secrets are all configured (see screenshot - all ✅)
-- [ ] Workflow file updated with new build steps
-- [ ] Certificate expires in the future (check Apple Developer portal)
-- [ ] Provisioning profile is valid and matches bundle ID `com.gaiosophy.app`
-- [ ] Team ID in secrets matches the one in provisioning profile
+All are configured! ✅
 
-## Next Steps
+## Expected Result
 
-1. **Commit and push the workflow changes**
-2. **Monitor the GitHub Actions run**
-3. **Check logs for certificate detection**
-4. **If successful, app will upload to TestFlight automatically**
+```
+Building com.gaiosophy.app for device (ios-release)...
+Running pod install...                                             ✅
+Running Xcode build...                                             ✅
+Xcode build done.                                                  ✅
+Built IPA to build/ios/ipa/gaiosophy_app.ipa                      ✅
+Uploading to TestFlight...                                         ✅
+Upload successful!                                                 ✅
+```
 
 ## Troubleshooting
 
-If the build still fails:
+If still fails, check:
+1. Certificate hasn't expired
+2. Provisioning profile matches bundle ID exactly
+3. Team ID in secrets matches provisioning profile
+4. Provisioning profile type is "App Store" (not Development)
 
-### Check Certificate Identity
-```bash
-security find-identity -v -p codesigning build.keychain
-```
-Should show "Apple Distribution" certificate
-
-### Check Provisioning Profile UUID
-```bash
-security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/gaiosophy.mobileprovision | plutil -extract UUID xml1 -o - - | xmllint --xpath "//string/text()" -
-```
-
-### Verify Bundle ID Match
-Ensure `com.gaiosophy.app` in:
-- `ios/Runner.xcodeproj/project.pbxproj`
-- App Store Connect
-- Provisioning Profile
-
-### Certificate Expiration
-Check Apple Developer Portal to ensure certificates haven't expired.
-
-## References
-
-- [Apple Code Signing Guide](https://developer.apple.com/support/code-signing/)
-- [xcodebuild Manual](https://developer.apple.com/library/archive/technotes/tn2339/_index.html)
-- [GitHub Actions for iOS](https://docs.github.com/en/actions/deployment/deploying-xcode-applications/installing-an-apple-certificate-on-macos-runners-for-xcode-development)
