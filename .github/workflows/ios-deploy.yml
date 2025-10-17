@@ -122,23 +122,6 @@ jobs:
         EOF
 
     # --- Build and Upload ---
-    - name: Update Xcode Project with Signing Configuration
-      run: |
-        # Get certificate identity
-        CERT_IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Apple Distribution" | head -1 | grep -o '".*"' | sed 's/"//g')
-        echo "Using certificate: ${CERT_IDENTITY}"
-        echo "CERT_IDENTITY=${CERT_IDENTITY}" >> $GITHUB_ENV
-        
-        # Update project.pbxproj with manual signing settings
-        cd ios
-        
-        # Use plutil or sed to update signing settings in project
-        ruby -i -pe "gsub(/CODE_SIGN_STYLE = Automatic;/, 'CODE_SIGN_STYLE = Manual;')" Runner.xcodeproj/project.pbxproj
-        ruby -i -pe "gsub(/DEVELOPMENT_TEAM = \"\";/, 'DEVELOPMENT_TEAM = \"${{ secrets.APPLE_TEAM_ID }}\";')" Runner.xcodeproj/project.pbxproj
-        ruby -i -pe "gsub(/DEVELOPMENT_TEAM = ;/, 'DEVELOPMENT_TEAM = ${{ secrets.APPLE_TEAM_ID }};')" Runner.xcodeproj/project.pbxproj
-        
-        cd ..
-    
     - name: Install CocoaPods Dependencies
       run: |
         cd ios
@@ -147,6 +130,12 @@ jobs:
     
     - name: Build and Sign IPA
       run: |
+        echo "=== Build Configuration ==="
+        echo "Code Sign Style: Manual"
+        echo "Development Team: ${{ secrets.APPLE_TEAM_ID }}"
+        echo "Provisioning Profile: ${PROFILE_UUID}"
+        echo "=========================="
+        
         flutter build ipa --release \
           --build-name=${{ steps.get_version.outputs.version_name }} \
           --build-number=${{ steps.get_version.outputs.build_number }} \
