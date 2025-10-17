@@ -125,9 +125,15 @@ jobs:
         EOF
 
     # --- Build and Upload ---
+    - name: Pre-build iOS Framework
+      run: |
+        flutter precache --ios
+        flutter build ios-framework --no-debug --no-profile --release
+    
     - name: Install CocoaPods Dependencies
       run: |
         cd ios
+        rm -rf Pods Podfile.lock
         pod install --repo-update
         cd ..
     
