@@ -89,11 +89,14 @@ jobs:
         # Setup provisioning profile
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/gaiosophy.mobileprovision
-        
-        # Get profile UUID
-        PROFILE_UUID=$(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/gaiosophy.mobileprovision | plutil -extract UUID xml1 -o - - | xmllint --xpath "//string/text()" -)
+
+        PROFILE_PLIST=$(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/gaiosophy.mobileprovision)
+        PROFILE_UUID=$(echo "$PROFILE_PLIST" | plutil -extract UUID xml1 -o - - | xmllint --xpath "//string/text()" -)
+        PROFILE_NAME=$(echo "$PROFILE_PLIST" | plutil -extract Name xml1 -o - - | xmllint --xpath "//string/text()" -)
         echo "Profile UUID: ${PROFILE_UUID}"
+        echo "Profile Name: ${PROFILE_NAME}"
         echo "PROFILE_UUID=${PROFILE_UUID}" >> $GITHUB_ENV
+        echo "PROFILE_NAME=${PROFILE_NAME}" >> $GITHUB_ENV
 
     - name: Create ExportOptions.plist
       run: |
@@ -115,7 +118,7 @@ jobs:
             <key>provisioningProfiles</key>
             <dict>
                 <key>com.gaiosophy.app</key>
-                <string>${PROFILE_UUID}</string>
+                <string>${PROFILE_NAME}</string>
             </dict>
         </dict>
         </plist>
@@ -129,11 +132,15 @@ jobs:
         cd ..
     
     - name: Build and Sign IPA
+      env:
+        FLUTTER_XCODE_CODE_SIGN_STYLE: Manual
+        FLUTTER_XCODE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER: ${{ env.PROFILE_NAME }}
       run: |
         echo "=== Build Configuration ==="
         echo "Code Sign Style: Manual"
         echo "Development Team: ${{ secrets.APPLE_TEAM_ID }}"
-        echo "Provisioning Profile: ${PROFILE_UUID}"
+        echo "Provisioning Profile: ${PROFILE_NAME}"
         echo "=========================="
         
         flutter build ipa --release \
