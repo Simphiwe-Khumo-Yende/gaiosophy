@@ -125,11 +125,12 @@ jobs:
         EOF
 
     # --- Build and Upload ---
-    - name: Pre-build iOS Framework
+    - name: Ensure CocoaPods (Homebrew)
       run: |
-        flutter precache --ios
-        flutter build ios-framework --no-debug --no-profile --release
-    
+        sudo gem uninstall cocoapods -a -x || true
+        brew install cocoapods
+        pod --version
+
     - name: Install CocoaPods Dependencies
       run: |
         cd ios
