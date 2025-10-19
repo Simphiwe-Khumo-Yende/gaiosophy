@@ -49,6 +49,18 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	
+	<!-- PRIVACY PERMISSIONS - Added for App Store Compliance -->
+	
+	<!-- Microphone - Required by App Store Review (even though NOT actively used) -->
+	<!-- Apple's static analysis detects microphone capability in dependencies -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Gaiosophy does not access your microphone. This permission is required by Apple's App Store guidelines due to audio playback capabilities in the app.</string>
+	
+	<!-- User Tracking - Required for transparency (iOS 14.5+) -->
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Gaiosophy values your privacy. We do not track you across apps or websites. This information helps us understand app performance to improve your experience with plant wisdom and seasonal guidance.</string>
+	
 	<!-- Google Sign-In URL Scheme -->
 	<key>CFBundleURLTypes</key>
 	<array>
