@@ -58,7 +58,7 @@ post_install do |installer|
       
       # Ensure proper Swift version
       if config.build_settings['SWIFT_VERSION'].nil? || config.build_settings['SWIFT_VERSION'].empty?
-        config.build_settings['SWIFT_VERSION'] = '5.0'
+        config.build_settings['SWIFT_VERSION'] = '5.9'
       end
     end
 
