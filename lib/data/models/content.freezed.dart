@@ -1216,6 +1216,7 @@ mixin _$Content {
   String? get summary => throw _privateConstructorUsedError;
   String? get body => throw _privateConstructorUsedError;
   String? get season => throw _privateConstructorUsedError;
+  String? get seasonId => throw _privateConstructorUsedError;
   String? get featuredImageId => throw _privateConstructorUsedError;
   String? get audioId => throw _privateConstructorUsedError;
   String? get templateType => throw _privateConstructorUsedError;
@@ -1259,6 +1260,7 @@ abstract class $ContentCopyWith<$Res> {
       String? summary,
       String? body,
       String? season,
+      String? seasonId,
       String? featuredImageId,
       String? audioId,
       String? templateType,
@@ -1300,6 +1302,7 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
     Object? summary = freezed,
     Object? body = freezed,
     Object? season = freezed,
+    Object? seasonId = freezed,
     Object? featuredImageId = freezed,
     Object? audioId = freezed,
     Object? templateType = freezed,
@@ -1346,6 +1349,10 @@ class _$ContentCopyWithImpl<$Res, $Val extends Content>
       season: freezed == season
           ? _value.season
           : season // ignore: cast_nullable_to_non_nullable
+              as String?,
+      seasonId: freezed == seasonId
+          ? _value.seasonId
+          : seasonId // ignore: cast_nullable_to_non_nullable
               as String?,
       featuredImageId: freezed == featuredImageId
           ? _value.featuredImageId
@@ -1434,6 +1441,7 @@ abstract class _$$ContentImplCopyWith<$Res> implements $ContentCopyWith<$Res> {
       String? summary,
       String? body,
       String? season,
+      String? seasonId,
       String? featuredImageId,
       String? audioId,
       String? templateType,
@@ -1473,6 +1481,7 @@ class __$$ContentImplCopyWithImpl<$Res>
     Object? summary = freezed,
     Object? body = freezed,
     Object? season = freezed,
+    Object? seasonId = freezed,
     Object? featuredImageId = freezed,
     Object? audioId = freezed,
     Object? templateType = freezed,
@@ -1519,6 +1528,10 @@ class __$$ContentImplCopyWithImpl<$Res>
       season: freezed == season
           ? _value.season
           : season // ignore: cast_nullable_to_non_nullable
+              as String?,
+      seasonId: freezed == seasonId
+          ? _value.seasonId
+          : seasonId // ignore: cast_nullable_to_non_nullable
               as String?,
       featuredImageId: freezed == featuredImageId
           ? _value.featuredImageId
@@ -1603,6 +1616,7 @@ class _$ContentImpl implements _Content {
       this.summary,
       this.body,
       this.season,
+      this.seasonId,
       this.featuredImageId,
       this.audioId,
       this.templateType,
@@ -1643,6 +1657,8 @@ class _$ContentImpl implements _Content {
   final String? body;
   @override
   final String? season;
+  @override
+  final String? seasonId;
   @override
   final String? featuredImageId;
   @override
@@ -1719,7 +1735,7 @@ class _$ContentImpl implements _Content {
 
   @override
   String toString() {
-    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, subtitle: $subtitle, prepTime: $prepTime, infusionTime: $infusionTime, difficulty: $difficulty, ritual: $ritual, published: $published, tags: $tags, media: $media, linkedRecipeIds: $linkedRecipeIds, contentBlocks: $contentBlocks, harvestPeriods: $harvestPeriods, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Content(id: $id, type: $type, title: $title, slug: $slug, summary: $summary, body: $body, season: $season, seasonId: $seasonId, featuredImageId: $featuredImageId, audioId: $audioId, templateType: $templateType, status: $status, subtitle: $subtitle, prepTime: $prepTime, infusionTime: $infusionTime, difficulty: $difficulty, ritual: $ritual, published: $published, tags: $tags, media: $media, linkedRecipeIds: $linkedRecipeIds, contentBlocks: $contentBlocks, harvestPeriods: $harvestPeriods, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -1734,6 +1750,8 @@ class _$ContentImpl implements _Content {
             (identical(other.summary, summary) || other.summary == summary) &&
             (identical(other.body, body) || other.body == body) &&
             (identical(other.season, season) || other.season == season) &&
+            (identical(other.seasonId, seasonId) ||
+                other.seasonId == seasonId) &&
             (identical(other.featuredImageId, featuredImageId) ||
                 other.featuredImageId == featuredImageId) &&
             (identical(other.audioId, audioId) || other.audioId == audioId) &&
@@ -1776,6 +1794,7 @@ class _$ContentImpl implements _Content {
         summary,
         body,
         season,
+        seasonId,
         featuredImageId,
         audioId,
         templateType,
@@ -1820,6 +1839,7 @@ abstract class _Content implements Content {
       final String? summary,
       final String? body,
       final String? season,
+      final String? seasonId,
       final String? featuredImageId,
       final String? audioId,
       final String? templateType,
@@ -1854,6 +1874,8 @@ abstract class _Content implements Content {
   String? get body;
   @override
   String? get season;
+  @override
+  String? get seasonId;
   @override
   String? get featuredImageId;
   @override

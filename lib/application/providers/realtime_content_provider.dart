@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:developer' as developer;
 import '../../data/models/content.dart';
+import 'app_config_provider.dart';
 
 /// Real-time content state for streaming updates
 class RealTimeContentState {
@@ -224,17 +225,34 @@ final realTimeContentProvider = StateNotifierProvider<RealTimeContentNotifier, R
 /// Provider for specific content type real-time updates
 final realTimeContentByTypeProvider = StateNotifierProvider.family<RealTimeContentByTypeNotifier, RealTimeContentState, ContentType?>((ref, type) {
   final db = FirebaseFirestore.instance;
-  return RealTimeContentByTypeNotifier(db, type);
+  return RealTimeContentByTypeNotifier(db, type, ref);
 });
 
 /// Real-time content notifier filtered by type
 class RealTimeContentByTypeNotifier extends StateNotifier<RealTimeContentState> {
-  RealTimeContentByTypeNotifier(this._db, this._contentType) : super(const RealTimeContentState()) {
+  RealTimeContentByTypeNotifier(this._db, this._contentType, this._ref) : super(const RealTimeContentState()) {
+    // Watch for season changes and restart listening when season changes
+    _ref.listen<String>(
+      appConfigProvider.select((config) => config.currentSeason),
+      (previous, next) {
+        if (previous != null && previous != next) {
+          if (kDebugMode) {
+            developer.log(
+              '[$_contentType] Season changed from $previous to $next, restarting stream',
+              name: 'RealTimeContentByType',
+            );
+          }
+          refresh();
+        }
+      },
+    );
+    
     _startListening();
   }
 
   final FirebaseFirestore _db;
   final ContentType? _contentType;
+  final Ref _ref;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _subscription;
 
   void _startListening() {
@@ -249,9 +267,57 @@ class RealTimeContentByTypeNotifier extends StateNotifier<RealTimeContentState> 
           .snapshots()
           .listen(
             _onDataReceived,
+            onError: (Object error, StackTrace stackTrace) {
+              // Check if it's an index error
+              if (error.toString().contains('index') || 
+                  error.toString().contains('FAILED_PRECONDITION')) {
+                if (kDebugMode) {
+                  developer.log(
+                    '[$_contentType] Index required. Falling back to query without season filter.',
+                    name: 'RealTimeContentByType',
+                    error: error,
+                  );
+                }
+                // Retry without season filter
+                _startListeningWithoutSeasonFilter();
+              } else {
+                _onError(error, stackTrace: stackTrace);
+              }
+            },
+          );
+    } catch (error, stackTrace) {
+      _onError(error, stackTrace: stackTrace);
+    }
+  }
+
+  void _startListeningWithoutSeasonFilter() {
+    try {
+      final collectionName = _collectionPath();
+      Query<Map<String, dynamic>> query = _db
+          .collection(collectionName)
+          .where('status', isEqualTo: 'published');
+
+      // Add type filter if needed
+      if (_contentType != null && _collectionIncludesTypeField()) {
+        query = query.where('type', isEqualTo: _getTypeString(_contentType!));
+      }
+
+      _subscription = query
+          .orderBy('updated_at', descending: true)
+          .limit(50)
+          .snapshots()
+          .listen(
+            _onDataReceived,
             onError: (Object error, StackTrace stackTrace) =>
                 _onError(error, stackTrace: stackTrace),
           );
+
+      if (kDebugMode) {
+        developer.log(
+          '[$_contentType] Using fallback query without season filter',
+          name: 'RealTimeContentByType',
+        );
+      }
     } catch (error, stackTrace) {
       _onError(error, stackTrace: stackTrace);
     }
@@ -314,6 +380,15 @@ class RealTimeContentByTypeNotifier extends StateNotifier<RealTimeContentState> 
     Query<Map<String, dynamic>> query = _db
         .collection(collectionName)
         .where('status', isEqualTo: 'published');
+
+    // Get current season ID from app config
+    final appConfig = _ref.read(appConfigProvider);
+    final currentSeasonId = appConfig.currentSeason;
+
+    // Filter by season_id if available
+    if (currentSeasonId.isNotEmpty) {
+      query = query.where('season_id', isEqualTo: currentSeasonId);
+    }
 
     if (_contentType == null) {
       return query;

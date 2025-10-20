@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/content.dart';
 import 'network_connectivity_provider.dart';
 import 'realtime_content_provider.dart';
+import 'app_config_provider.dart';
 
 class HomeSection {
   HomeSection({required this.title, this.subtitle, required this.items});
@@ -35,6 +36,7 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
   final plantState = ref.watch(realTimeContentByTypeProvider(ContentType.plant));
   final recipeState = ref.watch(realTimeContentByTypeProvider(ContentType.recipe));
   final isOffline = ref.watch(isOfflineProvider);
+  final appConfig = ref.watch(appConfigProvider);
 
   List<Content> limitItems(List<Content> items) => items.take(12).toList(growable: false);
 
@@ -46,7 +48,7 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
     ),
     HomeSection(
       title: 'Plant Allies',
-      subtitle: 'Green wisdom for the autumn season',
+      subtitle: 'Green wisdom for the ${appConfig.currentSeasonName.toLowerCase()} season',
       items: limitItems(plantState.items),
     ),
     HomeSection(

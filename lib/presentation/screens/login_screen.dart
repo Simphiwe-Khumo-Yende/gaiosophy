@@ -66,6 +66,31 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _apple() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      await AuthService(FirebaseAuth.instance).signInWithApple();
+      // Check if user profile is complete, if not redirect to profile setup
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && mounted) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        
+        if (userDoc.exists && userDoc.data()?['profileCompleted'] == true) {
+          context.go('/');
+        } else {
+          context.go('/profile-setup');
+        }
+      }
+    } catch (e) {
+      setState(() { _error = e.toString(); });
+    } finally {
+      if (mounted) setState(() { _loading = false; });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -289,6 +314,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: IconButton(
                         onPressed: _loading ? null : _google,
                         icon: const FaIcon(FontAwesomeIcons.google, size: 24, color: Colors.red),
+                        padding: const EdgeInsets.all(12),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Apple Button
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        onPressed: _loading ? null : _apple,
+                        icon: const FaIcon(FontAwesomeIcons.apple, size: 24, color: Colors.black),
                         padding: const EdgeInsets.all(12),
                       ),
                     ),

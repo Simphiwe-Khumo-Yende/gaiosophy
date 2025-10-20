@@ -131,6 +131,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  Future<void> _apple() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final userCredential = await AuthService(FirebaseAuth.instance).signInWithApple();
+      final user = userCredential.user;
+      
+      if (user != null && mounted) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        
+        // Check if this is a new user (document doesn't exist)
+        final isNewUser = !userDoc.exists;
+        
+        if (isNewUser) {
+          // Create user document for new Apple users
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set({
+            'email': user.email ?? '',
+            'displayName': user.displayName ?? '',
+            'createdAt': FieldValue.serverTimestamp(),
+            'profileCompleted': false,
+          });
+          
+          // Send welcome email for new Apple users
+          final userName = user.displayName ?? user.email?.split('@')[0] ?? 'Friend';
+          final emailSent = await EmailService.sendWelcomeEmail(
+            userEmail: user.email ?? '',
+            userName: userName,
+          );
+          
+          if (emailSent) {
+            
+          } else {
+            
+          }
+        }
+        
+        if (userDoc.exists && userDoc.data()?['profileCompleted'] == true) {
+          context.go('/');
+        } else {
+          context.go('/profile-setup');
+        }
+      }
+    } catch (e) {
+      setState(() { _error = e.toString(); });
+    } finally {
+      if (mounted) setState(() { _loading = false; });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -390,6 +444,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: IconButton(
                         onPressed: _loading ? null : _google,
                         icon: const FaIcon(FontAwesomeIcons.google, size: 24, color: Colors.red),
+                        padding: const EdgeInsets.all(12),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Apple Button
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        onPressed: _loading ? null : _apple,
+                        icon: const FaIcon(FontAwesomeIcons.apple, size: 24, color: Colors.black),
                         padding: const EdgeInsets.all(12),
                       ),
                     ),

@@ -9,6 +9,7 @@ import 'presentation/theme/app_theme.dart';
 import 'firebase_options.dart';
 import 'data/local/hive_init.dart';
 import 'application/providers/push_notification_provider.dart';
+import 'application/providers/season_notification_provider.dart';
 import 'data/services/push_notification_service.dart';
 
 Future<void> main() async {
@@ -63,7 +64,7 @@ Future<void> main() async {
     // Initialize asynchronously - don't block app startup
     pushNotificationService.initialize().then((_) {
       debugPrint('✅ Push notifications initialized successfully');
-    }).catchError((error, stackTrace) {
+    }).catchError((Object error, StackTrace stackTrace) {
       debugPrint('⚠️ Push notifications unavailable: $error');
       debugPrint('Stack trace: $stackTrace');
       // App continues without push notifications
@@ -185,6 +186,9 @@ class GaiosophyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Watch season changes to trigger notifications
+    ref.watch(seasonChangeMonitorProvider);
+    
     return MaterialApp.router(
       title: 'Gaiosophy',
       debugShowCheckedModeBanner: false,

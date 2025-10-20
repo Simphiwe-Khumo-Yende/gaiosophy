@@ -53,6 +53,7 @@ Content parseContentFromData(
     summary: data['summary'] as String? ?? data['excerpt'] as String?,
     body: data['body'] as String? ?? data['content'] as String?,
     season: data['season'] as String?,
+    seasonId: data['season_id'] as String?,
     featuredImageId: data['featured_image_id'] as String?,
     audioId: data['audio_id'] as String?,
     templateType: data['template_type'] as String?,
