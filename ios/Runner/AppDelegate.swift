@@ -10,13 +10,16 @@ import UserNotifications
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    if FirebaseApp.app() == nil {
-      FirebaseApp.configure()
-    }
+    // DON'T initialize Firebase here - Flutter will do it in Dart
+    // This prevents "Firebase already initialized" crash
+    // if FirebaseApp.app() == nil {
+    //   FirebaseApp.configure()
+    // }
 
-    UNUserNotificationCenter.current().delegate = self
-    Messaging.messaging().delegate = self
-    application.registerForRemoteNotifications()
+    // Push notification setup will be done after Firebase init in Dart
+    // UNUserNotificationCenter.current().delegate = self
+    // Messaging.messaging().delegate = self
+    // application.registerForRemoteNotifications()
 
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -26,7 +29,10 @@ import UserNotifications
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
-    Messaging.messaging().apnsToken = deviceToken
+    // Only set APNS token if Firebase Messaging is available
+    if FirebaseApp.app() != nil {
+      Messaging.messaging().apnsToken = deviceToken
+    }
     super.application(
       application,
       didRegisterForRemoteNotificationsWithDeviceToken: deviceToken
