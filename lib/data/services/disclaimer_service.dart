@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,11 +17,18 @@ class DisclaimerService {
         return true;
       }
       
-      // Check Firestore as backup
+      // Check Firestore as backup with timeout to prevent hanging
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
-          .get();
+          .get()
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              print('⚠️ Firestore timeout checking disclaimer - using local value');
+              throw TimeoutException('Firestore get timeout');
+            },
+          );
       
       final firestoreValue = userDoc.data()?['disclaimerAccepted'] as bool? ?? false;
       
@@ -31,6 +39,7 @@ class DisclaimerService {
       
       return firestoreValue;
     } catch (e) {
+      print('⚠️ Error checking disclaimer: $e');
       return false;
     }
   }
@@ -79,18 +88,45 @@ final disclaimerServiceProvider = Provider<DisclaimerService>((ref) {
 });
 
 final disclaimerAcceptedProvider = FutureProvider<bool>((ref) async {
-  final authState = ref.watch(firebaseAuthProvider);
-  final user = authState.value;
-  
-  if (user == null) {
+  try {
+    final authState = ref.watch(firebaseAuthProvider);
+    
+    // Handle loading state
+    if (authState.isLoading) {
+      return false;
+    }
+    
+    // Handle error state
+    if (authState.hasError) {
+      print('⚠️ DisclaimerProvider: Auth state error: ${authState.error}');
+      return false;
+    }
+    
+    final user = authState.value;
+    
+    if (user == null) {
+      return false;
+    }
+    
+    final service = ref.read(disclaimerServiceProvider);
+    return await service.hasAcceptedDisclaimer(user.uid);
+  } catch (e, stackTrace) {
+    // Catch any errors to prevent crash
+    print('❌ DisclaimerProvider error: $e');
+    print('Stack trace: $stackTrace');
+    // Default to false (user hasn't accepted) to be safe
     return false;
   }
-  
-  final service = ref.read(disclaimerServiceProvider);
-  return await service.hasAcceptedDisclaimer(user.uid);
 });
 
 // Firebase auth provider for consistency
 final firebaseAuthProvider = StreamProvider<User?>((ref) {
-  return FirebaseAuth.instance.authStateChanges();
+  try {
+    return FirebaseAuth.instance.authStateChanges();
+  } catch (e, stackTrace) {
+    print('❌ FirebaseAuthProvider error: $e');
+    print('Stack trace: $stackTrace');
+    // Return empty stream to prevent crash
+    return Stream.value(null);
+  }
 });

@@ -31,59 +31,69 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) async {
-      // Show loading during auth state determination
-      if (authState.isLoading || disclaimerAccepted.isLoading) {
-        return '/splash';
-      }
-      
-      final user = authState.value;
-      final loggedIn = user != null;
-      final hasAcceptedDisclaimer = disclaimerAccepted.value ?? false;
-      final loggingIn = state.matchedLocation == '/login';
-      final registering = state.matchedLocation == '/register';
-      final forgotPassword = state.matchedLocation == '/forgot-password';
-      final onProfileSetup = state.matchedLocation == '/profile-setup';
-      final onDisclaimer = state.matchedLocation == '/disclaimer';
-      final onLegal = state.matchedLocation == '/legal';
-      
-      // Always allow access to legal page
-      if (onLegal) {
+      try {
+        // Show loading during auth state determination
+        if (authState.isLoading || disclaimerAccepted.isLoading) {
+          return '/splash';
+        }
+        
+        final user = authState.value;
+        final loggedIn = user != null;
+        final hasAcceptedDisclaimer = disclaimerAccepted.value ?? false;
+        final loggingIn = state.matchedLocation == '/login';
+        final registering = state.matchedLocation == '/register';
+        final forgotPassword = state.matchedLocation == '/forgot-password';
+        final onProfileSetup = state.matchedLocation == '/profile-setup';
+        final onDisclaimer = state.matchedLocation == '/disclaimer';
+        final onLegal = state.matchedLocation == '/legal';
+        
+        // Always allow access to legal page
+        if (onLegal) {
+          return null;
+        }
+        
+        // If not authenticated, go to login (but not if already on login/register/forgot-password)
+        if (!loggedIn && !loggingIn && !registering && !forgotPassword) {
+          return '/login';
+        }
+        
+        // If logged in, check profile completion first
+        if (loggedIn && !onProfileSetup && !loggingIn && !registering && !onDisclaimer) {
+          try {
+            final userDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .get();
+            
+            final profileCompleted = userDoc.data()?['profileCompleted'] as bool? ?? false;
+            if (!profileCompleted) {
+              return '/profile-setup';
+            }
+          } catch (e) {
+            // If error checking profile, allow through to avoid crash
+            // User might be offline or Firestore might be slow
+            print('⚠️ Router: Error checking profile completion: $e');
+          }
+        }
+        
+        // After profile is complete, check disclaimer acceptance for authenticated users
+        if (loggedIn && !hasAcceptedDisclaimer && !onDisclaimer && !onProfileSetup && !loggingIn && !registering) {
+          return '/disclaimer';
+        }
+        
+        // If logged in and on auth pages, go to home
+        if (loggedIn && (loggingIn || registering)) {
+          return '/';
+        }
+        
+        return null;
+      } catch (e, stackTrace) {
+        // Catch any routing errors to prevent crash
+        print('❌ Router redirect error: $e');
+        print('Stack trace: $stackTrace');
+        // Allow navigation to continue - don't crash the app
         return null;
       }
-      
-      // If not authenticated, go to login (but not if already on login/register/forgot-password)
-      if (!loggedIn && !loggingIn && !registering && !forgotPassword) {
-        return '/login';
-      }
-      
-      // If logged in, check profile completion first
-      if (loggedIn && !onProfileSetup && !loggingIn && !registering && !onDisclaimer) {
-        try {
-          final userDoc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .get();
-          
-          final profileCompleted = userDoc.data()?['profileCompleted'] as bool? ?? false;
-          if (!profileCompleted) {
-            return '/profile-setup';
-          }
-        } catch (e) {
-          // If error checking profile, allow through
-        }
-      }
-      
-      // After profile is complete, check disclaimer acceptance for authenticated users
-      if (loggedIn && !hasAcceptedDisclaimer && !onDisclaimer && !onProfileSetup && !loggingIn && !registering) {
-        return '/disclaimer';
-      }
-      
-      // If logged in and on auth pages, go to home
-      if (loggedIn && (loggingIn || registering)) {
-        return '/';
-      }
-      
-      return null;
     },
     routes: [
       GoRoute(path: '/splash', builder: (c, s) => const SplashScreen()),
