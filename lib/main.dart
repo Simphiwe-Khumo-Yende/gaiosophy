@@ -11,6 +11,7 @@ import 'data/local/hive_init.dart';
 import 'application/providers/push_notification_provider.dart';
 import 'application/providers/season_notification_provider.dart';
 import 'data/services/push_notification_service.dart';
+import 'utils/notification_navigation_handler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -189,13 +190,14 @@ class GaiosophyApp extends ConsumerWidget {
     // Watch season changes to trigger notifications
     ref.watch(seasonChangeMonitorProvider);
     
-    return MaterialApp.router(
-      title: 'Gaiosophy',
-      debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.system,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      routerConfig: ref.watch(appRouterProvider),
+    return NotificationNavigationWrapper(
+      child: MaterialApp.router(
+        title: 'Gaiosophy',
+        debugShowCheckedModeBanner: false,
+        themeMode: ThemeMode.system,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        routerConfig: ref.watch(appRouterProvider),
       builder: (context, widget) {
         // Set custom error widget for build-time errors
         ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
@@ -240,6 +242,7 @@ class GaiosophyApp extends ConsumerWidget {
         if (widget != null) return widget;
         throw StateError('widget is null');
       },
+      ),
     );
   }
 }

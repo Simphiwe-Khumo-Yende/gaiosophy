@@ -11,9 +11,24 @@ Consumer-facing Flutter application for the Gaiosophy platform.
 
 ## Push Notifications
 
-Push notifications for new content are handled through Firebase Cloud Messaging (FCM). Devices subscribe to the `new-content` topic when notifications are enabled from the in-app settings screen.
+Push notifications for new content are fully automated using Firebase Cloud Messaging (FCM) and Cloud Functions. When new content is added to Firestore, notifications are automatically sent to all users who have enabled notifications.
 
-See [`PUSH_NOTIFICATIONS_SETUP.md`](./PUSH_NOTIFICATIONS_SETUP.md) for a full configuration guide covering Firebase, iOS capabilities, Android permissions, and the recommended Cloud Function trigger for publishing notifications.
+**Key Features:**
+- ✅ Automatic notifications when content is created
+- ✅ Real-time content updates in app
+- ✅ Tap notifications to view content
+- ✅ Works across iOS, Android, and Web
+
+**Documentation:**
+- [`PUSH_NOTIFICATIONS_COMPLETE.md`](./PUSH_NOTIFICATIONS_COMPLETE.md) - Quick start guide
+- [`CLOUD_FUNCTIONS_DEPLOYMENT.md`](./CLOUD_FUNCTIONS_DEPLOYMENT.md) - Deploy Cloud Functions
+- [`PUSH_NOTIFICATIONS_SETUP.md`](./PUSH_NOTIFICATIONS_SETUP.md) - FCM configuration
+- [`PUSH_NOTIFICATIONS_IMPLEMENTATION.md`](./PUSH_NOTIFICATIONS_IMPLEMENTATION.md) - Technical details
+
+**To Enable:**
+1. Deploy Cloud Functions: `cd functions && npm install && firebase deploy --only functions`
+2. Users enable notifications in Settings → Notifications
+3. New content with `status: "published"` triggers automatic notifications
 
 ## Getting Started
 
