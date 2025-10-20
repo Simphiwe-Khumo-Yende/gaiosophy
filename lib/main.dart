@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,19 @@ import 'data/services/push_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Set up global error handlers FIRST
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('❌ Flutter Error: ${details.exception}');
+    debugPrint('Stack trace: ${details.stack}');
+  };
+  
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('❌ PlatformDispatcher Error: $error');
+    debugPrint('Stack trace: $stack');
+    return true; // Prevent app crash
+  };
   
   // Initialize Firebase with error handling
   try {
@@ -171,15 +185,57 @@ class GaiosophyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-  // Bootstrap no longer blocks UI; run side-effects after first frame if needed.
-  return MaterialApp.router(
+    return MaterialApp.router(
       title: 'Gaiosophy',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       routerConfig: ref.watch(appRouterProvider),
-  builder: (context, child) => child!,
+      builder: (context, widget) {
+        // Set custom error widget for build-time errors
+        ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFFCF9F2),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      size: 64,
+                      color: Color(0xFF8B6B47),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Something went wrong',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1612),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error: ${errorDetails.exception}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF5A4E3C),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        };
+        
+        if (widget != null) return widget;
+        throw StateError('widget is null');
+      },
     );
   }
 }
