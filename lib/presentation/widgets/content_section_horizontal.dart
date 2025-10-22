@@ -55,7 +55,7 @@ class ContentSectionHorizontal extends StatelessWidget {
             ),
           ),
           
-          const SizedBox(height: 12),
+          const SizedBox(height: 25),
           
           // Horizontal scrolling list with padding for shadow
           Padding(
