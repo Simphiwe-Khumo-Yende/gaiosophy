@@ -36,26 +36,19 @@ class HomeSectionsState {
 final homeSavedContentProvider = FutureProvider<List<Content>>((ref) async {
   final service = ref.watch(offlineStorageServiceProvider);
   final content = await service.getAllSavedContent();
-  print('🏠 Home: Loaded ${content.length} saved items');
   return content;
 });
 
 final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
   final isOffline = ref.watch(isOfflineProvider);
   final appConfig = ref.watch(appConfigProvider);
-  
-  print('🌐 Home Sections: isOffline = $isOffline');
-  
   // When offline, show only saved content
   if (isOffline) {
-    print('📱 Offline mode detected - loading saved content');
     final savedContentAsync = ref.watch(homeSavedContentProvider);
     
     return savedContentAsync.when(
       data: (savedContent) {
-        print('✅ Saved content loaded: ${savedContent.length} items');
         if (savedContent.isEmpty) {
-          print('⚠️ No saved content available');
           return HomeSectionsState(
             sections: const [],
             isInitialLoading: false,
@@ -72,7 +65,6 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
         final plantItems = savedContent.where((c) => c.type == ContentType.plant).toList();
         final recipeItems = savedContent.where((c) => c.type == ContentType.recipe).toList();
         
-        print('📊 Grouped: ${seasonalItems.length} seasonal, ${plantItems.length} plants, ${recipeItems.length} recipes');
         
         final sections = <HomeSection>[
           if (seasonalItems.isNotEmpty)
@@ -95,7 +87,7 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
             ),
         ];
         
-        print('📦 Created ${sections.length} sections for home screen');
+        
         
         return HomeSectionsState(
           sections: sections,
@@ -108,7 +100,6 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
         );
       },
       loading: () {
-        print('⏳ Loading saved content...');
         return HomeSectionsState(
           sections: const [],
           isInitialLoading: true,
@@ -120,7 +111,6 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
         );
       },
       error: (error, _) {
-        print('❌ Error loading saved content: $error');
         return HomeSectionsState(
           sections: const [],
           isInitialLoading: false,
@@ -133,8 +123,6 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
       },
     );
   }
-  
-  print('🌍 Online mode - loading regular content');
   
   // When online, show regular content
   final seasonalState = ref.watch(realTimeContentByTypeProvider(ContentType.seasonal));

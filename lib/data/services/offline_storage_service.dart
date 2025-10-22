@@ -125,6 +125,10 @@ class OfflineStorageService {
           'id': block.id,
           'type': block.type,
           'order': block.order,
+          'audioId': block.audioId,
+          'audioAutoPlay': block.audioAutoPlay,
+          'audioTranscript': block.audioTranscript,
+          'showAudioTranscript': block.showAudioTranscript,
           'data': {
             'title': block.data.title,
             'subtitle': block.data.subtitle,
@@ -184,6 +188,77 @@ class OfflineStorageService {
       }
       
       // Reconstruct Content from simplified data
+      // First, reconstruct content blocks
+      final List<ContentBlock> contentBlocks = [];
+      if (data['contentBlocks'] != null && data['contentBlocks'] is List) {
+        for (final blockData in (data['contentBlocks'] as List)) {
+          if (blockData is Map) {
+            final blockMap = Map<String, dynamic>.from(blockData);
+            
+            // Reconstruct SubBlocks
+            final List<SubBlock> subBlocks = [];
+            if (blockMap['data'] != null && blockMap['data'] is Map) {
+              final dataMap = blockMap['data'] is Map<String, dynamic>
+                  ? blockMap['data'] as Map<String, dynamic>
+                  : Map<String, dynamic>.from(blockMap['data'] as Map);
+              if (dataMap['subBlocks'] != null && dataMap['subBlocks'] is List) {
+                for (final subBlockData in (dataMap['subBlocks'] as List)) {
+                  if (subBlockData is Map) {
+                    final subBlockMap = Map<String, dynamic>.from(subBlockData);
+                    subBlocks.add(SubBlock(
+                      id: subBlockMap['id']?.toString(),
+                      plantPartName: subBlockMap['plantPartName']?.toString(),
+                      imageUrl: subBlockMap['imageUrl']?.toString(),
+                      medicinalUses: (subBlockMap['medicinalUses'] as List<dynamic>?)?.cast<String>() ?? [],
+                      energeticUses: (subBlockMap['energeticUses'] as List<dynamic>?)?.cast<String>() ?? [],
+                      skincareUses: (subBlockMap['skincareUses'] as List<dynamic>?)?.cast<String>() ?? [],
+                    ));
+                  }
+                }
+              }
+              
+              // Reconstruct ContentBlockData
+              final contentBlockData = ContentBlockData(
+                title: dataMap['title']?.toString(),
+                subtitle: dataMap['subtitle']?.toString(),
+                content: dataMap['content']?.toString(),
+                featuredImageId: dataMap['featuredImageId']?.toString(),
+                galleryImageIds: (dataMap['galleryImageIds'] as List<dynamic>?)?.cast<String>() ?? [],
+                listItems: (dataMap['listItems'] as List<dynamic>?)?.cast<String>() ?? [],
+                listStyle: dataMap['listStyle']?.toString(),
+                subBlocks: subBlocks,
+              );
+              
+              // Reconstruct Button if exists
+              ContentBlockButton? button;
+              if (blockMap['button'] != null && blockMap['button'] is Map) {
+                final buttonMap = blockMap['button'] is Map<String, dynamic>
+                    ? blockMap['button'] as Map<String, dynamic>
+                    : Map<String, dynamic>.from(blockMap['button'] as Map);
+                button = ContentBlockButton(
+                  action: buttonMap['action']?.toString() ?? '',
+                  show: buttonMap['show'] as bool? ?? false,
+                  text: buttonMap['text']?.toString() ?? '',
+                );
+              }
+              
+              // Create ContentBlock
+              contentBlocks.add(ContentBlock(
+                id: blockMap['id']?.toString() ?? '',
+                type: blockMap['type']?.toString() ?? '',
+                order: blockMap['order'] as int? ?? 0,
+                audioId: blockMap['audioId']?.toString(),
+                audioAutoPlay: blockMap['audioAutoPlay'] as bool? ?? false,
+                audioTranscript: blockMap['audioTranscript']?.toString(),
+                showAudioTranscript: blockMap['showAudioTranscript'] as bool? ?? false,
+                data: contentBlockData,
+                button: button,
+              ));
+            }
+          }
+        }
+      }
+      
       final content = Content(
         id: data['id']?.toString() ?? contentId,
         title: data['title']?.toString() ?? '',
@@ -191,8 +266,18 @@ class OfflineStorageService {
         type: _parseContentType(data['type']?.toString()),
         summary: data['summary']?.toString(),
         body: data['body']?.toString(),
-        contentBlocks: <ContentBlock>[], // Empty for offline content
+        season: data['season']?.toString(),
+        featuredImageId: data['featuredImageId']?.toString(),
+        audioId: data['audioId']?.toString(),
+        templateType: data['templateType']?.toString(),
+        status: data['status']?.toString(),
+        subtitle: data['subtitle']?.toString(),
+        prepTime: data['prepTime']?.toString(),
+        infusionTime: data['infusionTime']?.toString(),
+        difficulty: data['difficulty']?.toString(),
+        contentBlocks: contentBlocks,
         tags: (data['tags'] as List<dynamic>?)?.cast<String>() ?? <String>[],
+        media: (data['media'] as List<dynamic>?)?.cast<String>() ?? <String>[],
         createdAt: data['createdAt'] != null 
           ? DateTime.tryParse(data['createdAt'].toString()) 
           : null,
