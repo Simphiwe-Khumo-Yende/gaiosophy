@@ -54,13 +54,13 @@ class HomeHeroHeader extends StatelessWidget {
         }
         if (!snapshot.hasData || snapshot.data == null) {
           return const SizedBox(
-            height: 500,
+            height: 540,
             child: Center(child: Text('No hero data found')),
           );
         }
         final hero = snapshot.data!;
         return SizedBox(
-          height: 500,
+          height: 540,
           child: Stack(
             fit: StackFit.expand,
             children: [

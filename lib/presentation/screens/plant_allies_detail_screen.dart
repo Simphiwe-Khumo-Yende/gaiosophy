@@ -54,7 +54,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
           Stack(
             children: [
               Container(
-                height: 500,
+                height: 540,
                 width: double.infinity,
                 child: widget.content.featuredImageId != null
                     ? FirebaseStorageImage(
@@ -72,7 +72,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
               ),
               // Gradient overlay
               Container(
-                height: 500,
+                height: 540,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
