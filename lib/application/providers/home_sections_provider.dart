@@ -3,6 +3,7 @@ import '../../data/models/content.dart';
 import 'network_connectivity_provider.dart';
 import 'realtime_content_provider.dart';
 import 'app_config_provider.dart';
+import '../../data/services/offline_storage_service.dart';
 
 class HomeSection {
   HomeSection({required this.title, this.subtitle, required this.items});
@@ -31,12 +32,114 @@ class HomeSectionsState {
   final bool hasData;
 }
 
+// Provider for saved content list (reuse from offline_storage_service)
+final homeSavedContentProvider = FutureProvider<List<Content>>((ref) async {
+  final service = ref.watch(offlineStorageServiceProvider);
+  final content = await service.getAllSavedContent();
+  print('🏠 Home: Loaded ${content.length} saved items');
+  return content;
+});
+
 final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
+  final isOffline = ref.watch(isOfflineProvider);
+  final appConfig = ref.watch(appConfigProvider);
+  
+  print('🌐 Home Sections: isOffline = $isOffline');
+  
+  // When offline, show only saved content
+  if (isOffline) {
+    print('📱 Offline mode detected - loading saved content');
+    final savedContentAsync = ref.watch(homeSavedContentProvider);
+    
+    return savedContentAsync.when(
+      data: (savedContent) {
+        print('✅ Saved content loaded: ${savedContent.length} items');
+        if (savedContent.isEmpty) {
+          print('⚠️ No saved content available');
+          return HomeSectionsState(
+            sections: const [],
+            isInitialLoading: false,
+            isRefreshing: false,
+            error: null,
+            isOffline: true,
+            hasRealtimeConnection: false,
+            hasData: false,
+          );
+        }
+        
+        // Group saved content by type
+        final seasonalItems = savedContent.where((c) => c.type == ContentType.seasonal).toList();
+        final plantItems = savedContent.where((c) => c.type == ContentType.plant).toList();
+        final recipeItems = savedContent.where((c) => c.type == ContentType.recipe).toList();
+        
+        print('📊 Grouped: ${seasonalItems.length} seasonal, ${plantItems.length} plants, ${recipeItems.length} recipes');
+        
+        final sections = <HomeSection>[
+          if (seasonalItems.isNotEmpty)
+            HomeSection(
+              title: 'Saved Seasonal Content',
+              subtitle: 'Your bookmarked seasonal wisdom',
+              items: seasonalItems,
+            ),
+          if (plantItems.isNotEmpty)
+            HomeSection(
+              title: 'Saved Plant Allies',
+              subtitle: 'Your bookmarked plant guides',
+              items: plantItems,
+            ),
+          if (recipeItems.isNotEmpty)
+            HomeSection(
+              title: 'Saved Recipes & Crafts',
+              subtitle: 'Your bookmarked recipes',
+              items: recipeItems,
+            ),
+        ];
+        
+        print('📦 Created ${sections.length} sections for home screen');
+        
+        return HomeSectionsState(
+          sections: sections,
+          isInitialLoading: false,
+          isRefreshing: false,
+          error: null,
+          isOffline: true,
+          hasRealtimeConnection: false,
+          hasData: sections.isNotEmpty,
+        );
+      },
+      loading: () {
+        print('⏳ Loading saved content...');
+        return HomeSectionsState(
+          sections: const [],
+          isInitialLoading: true,
+          isRefreshing: false,
+          error: null,
+          isOffline: true,
+          hasRealtimeConnection: false,
+          hasData: false,
+        );
+      },
+      error: (error, _) {
+        print('❌ Error loading saved content: $error');
+        return HomeSectionsState(
+          sections: const [],
+          isInitialLoading: false,
+          isRefreshing: false,
+          error: error,
+          isOffline: true,
+          hasRealtimeConnection: false,
+          hasData: false,
+        );
+      },
+    );
+  }
+  
+  print('🌍 Online mode - loading regular content');
+  
+  // When online, show regular content
   final seasonalState = ref.watch(realTimeContentByTypeProvider(ContentType.seasonal));
   final plantState = ref.watch(realTimeContentByTypeProvider(ContentType.plant));
   final recipeState = ref.watch(realTimeContentByTypeProvider(ContentType.recipe));
-  final isOffline = ref.watch(isOfflineProvider);
-  final appConfig = ref.watch(appConfigProvider);
 
   List<Content> limitItems(List<Content> items) => items.take(12).toList(growable: false);
 
@@ -70,7 +173,7 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
       isInitialLoading: false,
       isRefreshing: false,
       error: error,
-      isOffline: isOffline,
+      isOffline: false,
       hasRealtimeConnection: hasRealtimeConnection,
       hasData: false,
     );
@@ -82,7 +185,7 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
       isInitialLoading: true,
       isRefreshing: false,
       error: null,
-      isOffline: isOffline,
+      isOffline: false,
       hasRealtimeConnection: hasRealtimeConnection,
       hasData: false,
     );
@@ -93,7 +196,7 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
     isInitialLoading: !hasItems && anyLoading,
     isRefreshing: hasItems && anyLoading,
     error: error,
-    isOffline: isOffline,
+    isOffline: false,
     hasRealtimeConnection: hasRealtimeConnection,
     hasData: hasItems,
   );

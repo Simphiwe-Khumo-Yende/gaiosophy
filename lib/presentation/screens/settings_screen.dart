@@ -222,14 +222,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               _buildSettingsItem(
                 context,
-                icon: Icons.bookmark,
-                title: 'Saved Content',
-                subtitle: 'View your bookmarked content',
-                onTap: () => context.push('/saved-content'),
-              ),
-              const Divider(height: 1, color: Color(0xFFE5E5E5)),
-              _buildSettingsItem(
-                context,
                 icon: Icons.notifications_outlined,
                 title: 'Notifications',
                 subtitle: 'Manage your notification preferences',

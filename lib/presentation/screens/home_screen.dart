@@ -118,6 +118,58 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     if (!state.hasData) {
+      if (state.isOffline) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.cloud_off_outlined,
+                  size: 64,
+                  color: const Color(0xFF8B6B47).withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'You\'re Offline',
+                  style: TextStyle(
+                    color: Color(0xFF1A1612),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'You don\'t have any saved content yet. When online, bookmark content to access it offline.',
+                  style: TextStyle(
+                    color: Color(0xFF1A1612),
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ref.read(realTimeContentProvider.notifier).refresh();
+                    for (final type in ContentType.values) {
+                      ref.read(realTimeContentByTypeProvider(type).notifier).refresh();
+                    }
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try to Reconnect'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B6B47),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
       return const Center(
         child: Text(
           'No published content available yet.',
@@ -156,7 +208,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Offline mode: showing cached content.',
+                            'Offline mode: showing only your saved content.',
                             style: TextStyle(color: Colors.orange, fontSize: 12),
                           ),
                         ),
@@ -295,6 +347,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   color: Color(0xFFE5E5E5),
                   indent: 16,
                   endIndent: 16,
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.bookmark_outline,
+                    color: Color(0xFF8B6B47),
+                  ),
+                  title: Text(
+                    'Saved Content',
+                    style: context.secondaryBodyLarge.copyWith(
+                      color: const Color(0xFF1A1612),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/saved-content');
+                  },
                 ),
                 ListTile(
                   leading: const Icon(
