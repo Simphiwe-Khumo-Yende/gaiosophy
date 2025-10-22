@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -10,6 +11,12 @@ import '../../data/services/offline_storage_service.dart';
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
 import '../theme/typography.dart';
+
+// AudioHandler implementation for just_audio
+class AudioPlayerHandler extends BaseAudioHandler {
+  final AudioPlayer _player;
+  AudioPlayerHandler(this._player);
+}
 
 class AudioPlayerScreen extends ConsumerStatefulWidget {
   final content_model.Content content;
@@ -27,6 +34,7 @@ class AudioPlayerScreen extends ConsumerStatefulWidget {
 
 class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
   late AudioPlayer _audioPlayer;
+  late AudioHandler _audioHandler;
   double _currentPosition = 0.0; // Start at 0%
   bool isPlaying = false;
   bool isLoading = false;
@@ -40,17 +48,11 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
   void initState() {
     super.initState();
     _audioPlayer = AudioPlayer();
-    _fullContent = widget.content; // Initialize with passed content
-
-    // Sign in anonymously to Firebase Auth (if not already signed in)
-    _signInAndInitAudio();
-    
-    // If featuredImageId is missing, try to fetch complete content
+    _fullContent = widget.content;
+    _initAudioHandler();
     if (widget.content.featuredImageId == null) {
       _fetchCompleteContent();
     }
-
-    // Listen to audio player state changes
     _audioPlayer.playerStateStream.listen((state) {
       setState(() {
         isPlaying = state.playing;
@@ -58,8 +60,6 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
                    state.processingState == ProcessingState.buffering;
       });
     });
-
-    // Listen to position changes
     _audioPlayer.positionStream.listen((position) {
       setState(() {
         _position = position;
@@ -68,13 +68,23 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
         }
       });
     });
-
-    // Listen to duration changes
     _audioPlayer.durationStream.listen((duration) {
       setState(() {
         _duration = duration ?? Duration.zero;
       });
     });
+  }
+
+  Future<void> _initAudioHandler() async {
+    _audioHandler = await AudioService.init(
+      builder: () => AudioPlayerHandler(_audioPlayer),
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.gaiosophy.audio',
+        androidNotificationChannelName: 'Audio Playback',
+        androidNotificationOngoing: true,
+      ),
+    );
+    _signInAndInitAudio();
   }
 
   Future<void> _fetchCompleteContent() async {
