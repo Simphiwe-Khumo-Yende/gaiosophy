@@ -222,7 +222,6 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
 
     return Column(
       children: [
-
         const Spacer(),
         
         const SizedBox(height: 24),
@@ -541,6 +540,7 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
         ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: PageView.builder(
@@ -578,11 +578,15 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
   }
 
   Widget _buildDetailedPageContent(content_model.ContentBlock block) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(32, 40, 32, 24),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 64),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
           if (block.data.title != null) ...[
                 Text(
                   block.data.title!,
@@ -595,7 +599,7 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
                     height: 1.2,
                   ),
                 ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
 
           // Audio button - show if button exists, show is true, and action is play_audio
@@ -640,7 +644,7 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
                 height: 1.5,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
           ],
 
           if (block.data.featuredImageId != null) ...[
@@ -653,12 +657,15 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
                 fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
           ],
 
           if (block.data.content != null) _buildDetailedHtmlContent(block.data.content!),
         ],
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 
