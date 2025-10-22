@@ -57,24 +57,28 @@ class ContentSectionHorizontal extends StatelessWidget {
           
           const SizedBox(height: 12),
           
-          // Horizontal scrolling list
-          SizedBox(
-            height: sectionHeight,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                final item = section.items[index];
-                // Use PlantAllyCard for plant sections
-                if (isPlantSection) {
-                  return PlantAllyCard(content: item);
-                }
-                return ContentCard(content: item);
-              },
-              separatorBuilder: (_, __) => SizedBox(
-                width: isPlantSection ? 8 : 8,
+          // Horizontal scrolling list with padding for shadow
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8), // Extra space for shadow
+            child: SizedBox(
+              height: sectionHeight,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none, // Don't clip shadows
+                itemBuilder: (context, index) {
+                  final item = section.items[index];
+                  // Use PlantAllyCard for plant sections
+                  if (isPlantSection) {
+                    return PlantAllyCard(content: item);
+                  }
+                  return ContentCard(content: item);
+                },
+                separatorBuilder: (_, __) => SizedBox(
+                  width: isPlantSection ? 8 : 8,
+                ),
+                itemCount: section.items.length,
               ),
-              itemCount: section.items.length,
             ),
           ),
         ],
