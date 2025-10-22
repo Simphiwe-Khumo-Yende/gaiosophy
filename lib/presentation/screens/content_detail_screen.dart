@@ -271,23 +271,21 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
 
       
       
-      child: ClipRRect(
-        child: content.featuredImageId != null
-            ? FirebaseStorageImage(
-                imageId: content.featuredImageId!,
+      child: content.featuredImageId != null
+          ? FirebaseStorageImage(
+              imageId: content.featuredImageId!,
                 fit: BoxFit.cover,
               )
-            : Container(
-                color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
-                child: const Center(
-                  child: Icon(
-                    Icons.image_outlined,
-                    size: 64,
-                    color: Color(0xFF8B6B47),
-                  ),
+          : Container(
+              color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
+              child: const Center(
+                child: Icon(
+                  Icons.image_outlined,
+                  size: 64,
+                  color: Color(0xFF8B6B47),
                 ),
               ),
-      ),
+            ),
     );
   }
 

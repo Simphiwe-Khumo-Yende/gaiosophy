@@ -69,7 +69,6 @@ class _FirebaseStorageImageState extends ConsumerState<FirebaseStorageImage> {
         height: widget.height,
         decoration: BoxDecoration(
           color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
         ),
         child: const Center(
           child: CircularProgressIndicator(),
@@ -86,7 +85,6 @@ class _FirebaseStorageImageState extends ConsumerState<FirebaseStorageImage> {
         height: widget.height,
         decoration: BoxDecoration(
           color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
         ),
         child: const Icon(
           Icons.image_not_supported,
@@ -102,7 +100,6 @@ class _FirebaseStorageImageState extends ConsumerState<FirebaseStorageImage> {
         height: widget.height,
         decoration: BoxDecoration(
           color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.grey[300]!),
         ),
         child: Column(
@@ -128,32 +125,27 @@ class _FirebaseStorageImageState extends ConsumerState<FirebaseStorageImage> {
 
     // On web (production), still try to load the image
     if (kIsWeb) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          _imageUrl!,
-          width: widget.width,
-          height: widget.height,
-          fit: widget.fit,
-          errorBuilder: (context, error, stack) {
+      return Image.network(
+        _imageUrl!,
+        width: widget.width,
+        height: widget.height,
+        fit: widget.fit,
+        errorBuilder: (context, error, stack) {
             
-            return widget.errorWidget ?? Container(
-              width: widget.width,
-              height: widget.height,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-              ),
-              child: const Icon(
-                Icons.image_not_supported,
-                color: Colors.grey,
-              ),
-            );
-          },
-        ),
+          return widget.errorWidget ?? Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+            ),
+            child: const Icon(
+              Icons.image_not_supported,
+              color: Colors.grey,
+            ),
+          );
+        },
       );
-    }
-
-    // On native platforms keep CachedNetworkImage for caching benefits
+    }    // On native platforms keep CachedNetworkImage for caching benefits
     return CachedNetworkImage(
       imageUrl: _imageUrl!,
       width: widget.width,
@@ -163,7 +155,6 @@ class _FirebaseStorageImageState extends ConsumerState<FirebaseStorageImage> {
         height: widget.height,
         decoration: BoxDecoration(
           image: DecorationImage(image: imageProvider, fit: widget.fit),
-          borderRadius: BorderRadius.circular(8),
         ),
       ),
       placeholder: (context, url) => widget.placeholder ?? Container(
@@ -171,7 +162,6 @@ class _FirebaseStorageImageState extends ConsumerState<FirebaseStorageImage> {
         height: widget.height,
         decoration: BoxDecoration(
           color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
         ),
         child: const Center(
           child: CircularProgressIndicator(),
@@ -184,7 +174,6 @@ class _FirebaseStorageImageState extends ConsumerState<FirebaseStorageImage> {
           height: widget.height,
           decoration: BoxDecoration(
             color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(8),
           ),
           child: const Icon(
             Icons.image_not_supported,

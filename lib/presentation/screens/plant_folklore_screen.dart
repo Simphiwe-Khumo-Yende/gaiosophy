@@ -96,10 +96,9 @@ class PlantFolkloreScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: ClipRRect(
-        child: imageId != null
-            ? FirebaseStorageImage(
-                imageId: imageId,
+      child: imageId != null
+          ? FirebaseStorageImage(
+              imageId: imageId,
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: double.infinity,
@@ -122,17 +121,16 @@ class PlantFolkloreScreen extends StatelessWidget {
                   ),
                 ),
               )
-            : Container(
-                color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
-                child: const Center(
-                  child: Icon(
-                    Icons.auto_fix_high,
-                    size: 64,
-                    color: Color(0xFF8B6B47),
-                  ),
+          : Container(
+              color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
+              child: const Center(
+                child: Icon(
+                  Icons.auto_fix_high,
+                  size: 64,
+                  color: Color(0xFF8B6B47),
                 ),
               ),
-      ),
+            ),
     );
   }
 
@@ -340,32 +338,6 @@ class PlantFolkloreDetailedView extends StatelessWidget {
                   fontWeight: FontWeight.w300,
                   color: const Color(0xFF1A1612).withValues(alpha: 0.8),
                   height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-
-            // Use content block's featured image if available, otherwise fall back to parent's
-            if (contentBlock.data.featuredImageId != null || parentFeaturedImageId != null) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: FirebaseStorageImage(
-                  imageId: contentBlock.data.featuredImageId ?? parentFeaturedImageId!,
-                  width: double.infinity,
-                  height: 250,
-                  fit: BoxFit.cover,
-                  errorWidget: Container(
-                    width: double.infinity,
-                    height: 250,
-                    color: const Color(0xFF8B6B47).withValues(alpha: 0.1),
-                    child: const Center(
-                      child: Icon(
-                        Icons.auto_fix_high,
-                        size: 64,
-                        color: Color(0xFF8B6B47),
-                      ),
-                    ),
-                  ),
                 ),
               ),
               const SizedBox(height: 24),
