@@ -10,11 +10,13 @@ import 'audio_player_screen.dart';
 class PlantFolkloreScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
   final String parentTitle;
+  final String? parentFeaturedImageId;
 
   const PlantFolkloreScreen({
     super.key,
     required this.contentBlock,
     required this.parentTitle,
+    this.parentFeaturedImageId,
   });
 
   @override
@@ -78,6 +80,9 @@ class PlantFolkloreScreen extends StatelessWidget {
 
   // Large featured image matching Figma design
   Widget _buildFeaturedImage() {
+    // Use content block's featured image if available, otherwise fall back to parent's
+    final imageId = contentBlock.data.featuredImageId ?? parentFeaturedImageId;
+    
     return Container(
       height: 345,
       width: 247,
@@ -92,9 +97,9 @@ class PlantFolkloreScreen extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        child: contentBlock.data.featuredImageId != null
+        child: imageId != null
             ? FirebaseStorageImage(
-                imageId: contentBlock.data.featuredImageId!,
+                imageId: imageId,
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: double.infinity,
@@ -232,6 +237,7 @@ class PlantFolkloreScreen extends StatelessWidget {
         builder: (context) => PlantFolkloreDetailedView(
           contentBlock: contentBlock,
           parentTitle: parentTitle,
+          parentFeaturedImageId: parentFeaturedImageId,
         ),
       ),
     );
@@ -282,11 +288,13 @@ class PlantFolkloreScreen extends StatelessWidget {
 class PlantFolkloreDetailedView extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
   final String parentTitle;
+  final String? parentFeaturedImageId;
 
   const PlantFolkloreDetailedView({
     super.key,
     required this.contentBlock,
     required this.parentTitle,
+    this.parentFeaturedImageId,
   });
 
   @override
@@ -337,11 +345,12 @@ class PlantFolkloreDetailedView extends StatelessWidget {
               const SizedBox(height: 24),
             ],
 
-            if (contentBlock.data.featuredImageId != null) ...[
+            // Use content block's featured image if available, otherwise fall back to parent's
+            if (contentBlock.data.featuredImageId != null || parentFeaturedImageId != null) ...[
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: FirebaseStorageImage(
-                  imageId: contentBlock.data.featuredImageId!,
+                  imageId: contentBlock.data.featuredImageId ?? parentFeaturedImageId!,
                   width: double.infinity,
                   height: 250,
                   fit: BoxFit.cover,

@@ -8,18 +8,22 @@ import '../theme/typography.dart';
 class FolkMedicineScreen extends StatelessWidget {
   final content_model.ContentBlock contentBlock;
   final String parentTitle;
+  final String? parentFeaturedImageId;
 
   const FolkMedicineScreen({
     super.key,
     required this.contentBlock,
     required this.parentTitle,
+    this.parentFeaturedImageId,
   });
 
   Widget _getImageWidget() {
-    // First try to get featuredImageId from the content block
-    if (contentBlock.data.featuredImageId != null && contentBlock.data.featuredImageId!.isNotEmpty) {
+    // First try to get featuredImageId from the content block, then fall back to parent's
+    final imageId = contentBlock.data.featuredImageId ?? parentFeaturedImageId;
+    
+    if (imageId != null && imageId.isNotEmpty) {
       return FirebaseStorageImage(
-        imageId: contentBlock.data.featuredImageId!,
+        imageId: imageId,
         width: 180,
         height: 180,
         fit: BoxFit.cover,

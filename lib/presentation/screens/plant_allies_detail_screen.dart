@@ -209,6 +209,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
           destinationScreen = PlantOverviewScreen(
             contentBlock: block,
             parentTitle: widget.content.title,
+            parentFeaturedImageId: widget.content.featuredImageId,
           );
           
         } else if (blockType == 'folklore' ||
@@ -217,6 +218,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
           destinationScreen = PlantFolkloreScreen(
             contentBlock: block,
             parentTitle: widget.content.title,
+            parentFeaturedImageId: widget.content.featuredImageId,
           );
           
         } else if (blockType == 'ritual' ||
@@ -235,6 +237,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
           destinationScreen = PlantFolkloreScreen(
             contentBlock: block,
             parentTitle: widget.content.title,
+            parentFeaturedImageId: widget.content.featuredImageId,
           );
           
         } else if (blockType == 'harvesting' || 
@@ -254,6 +257,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
           destinationScreen = FolkMedicineScreen(
             contentBlock: block,
             parentTitle: widget.content.title,
+            parentFeaturedImageId: widget.content.featuredImageId,
           );
           
         } else {
@@ -390,6 +394,7 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                   builder: (context) => FolkMedicineScreen(
                     contentBlock: focusedBlock,
                     parentTitle: widget.content.title,
+                    parentFeaturedImageId: widget.content.featuredImageId,
                   ),
                 ),
               );
