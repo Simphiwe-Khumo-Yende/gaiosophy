@@ -261,7 +261,6 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
       width: 247,
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -274,7 +273,6 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
       
       
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
         child: content.featuredImageId != null
             ? FirebaseStorageImage(
                 imageId: content.featuredImageId!,

@@ -83,7 +83,6 @@ class PlantFolkloreScreen extends StatelessWidget {
       width: 247,
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -93,7 +92,6 @@ class PlantFolkloreScreen extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
         child: contentBlock.data.featuredImageId != null
             ? FirebaseStorageImage(
                 imageId: contentBlock.data.featuredImageId!,

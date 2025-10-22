@@ -10,6 +10,7 @@ import 'firebase_options.dart';
 import 'data/local/hive_init.dart';
 import 'application/providers/push_notification_provider.dart';
 import 'application/providers/season_notification_provider.dart';
+import 'application/providers/content_notification_provider.dart';
 import 'data/services/push_notification_service.dart';
 import 'utils/notification_navigation_handler.dart';
 
@@ -189,6 +190,9 @@ class GaiosophyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch season changes to trigger notifications
     ref.watch(seasonChangeMonitorProvider);
+    
+    // Watch content changes to trigger notifications for new content
+    ref.watch(contentNotificationMonitorProvider);
     
     return NotificationNavigationWrapper(
       child: MaterialApp.router(

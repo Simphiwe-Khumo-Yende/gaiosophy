@@ -4,25 +4,25 @@ service cloud.firestore {
     function isSignedIn() { return request.auth != null; }
     function isOwner(userId) { return request.auth.uid == userId; }
 
-    // Main content collection - allow read access for signed-in users
+    // Main content collection - allow reading published content
     match /content/{id} {
-      allow read, list: if isSignedIn();
+      allow read, list: if resource.data.status == 'published';
       allow create, update, delete: if isSignedIn() && request.auth.token.admin == true;
     }
 
-    // Content collections for different types - allow read access for signed-in users
+    // Content collections for different types - allow reading published content
     match /content_seasonal_wisdom/{id} {
-      allow read, list: if isSignedIn();
+      allow read, list: if resource.data.status == 'published';
       allow create, update, delete: if isSignedIn() && request.auth.token.admin == true;
     }
 
     match /content_plant_allies/{id} {
-      allow read, list: if isSignedIn();
+      allow read, list: if resource.data.status == 'published';
       allow create, update, delete: if isSignedIn() && request.auth.token.admin == true;
     }
 
     match /content_recipes/{id} {
-      allow read, list: if isSignedIn();
+      allow read, list: if resource.data.status == 'published';
       allow create, update, delete: if isSignedIn() && request.auth.token.admin == true;
     }
 

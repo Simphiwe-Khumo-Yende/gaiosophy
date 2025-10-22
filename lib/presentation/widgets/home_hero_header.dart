@@ -48,19 +48,19 @@ class HomeHeroHeader extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
-            height: 380,
+            height: 500,
             child: Center(child: CircularProgressIndicator()),
           );
         }
         if (!snapshot.hasData || snapshot.data == null) {
           return const SizedBox(
-            height: 380,
+            height: 500,
             child: Center(child: Text('No hero data found')),
           );
         }
         final hero = snapshot.data!;
         return SizedBox(
-          height: 480,
+          height: 500,
           child: Stack(
             fit: StackFit.expand,
             children: [
