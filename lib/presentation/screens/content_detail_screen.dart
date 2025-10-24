@@ -707,18 +707,19 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
 
   void _playAudioFromBlock(content_model.ContentBlock block) {
     // Use the block's audioId if available, otherwise fall back to content audioId
-    final audioId = block.audioId ?? widget.content.audioId ?? 'default_audio';
+    final blockAudioId = block.audioId ?? widget.content.audioId ?? 'default_audio';
     
     // Create a Content object from the ContentBlock for audio playback
+    // Set audioId to null to ensure the audioUrl parameter is recognized as block audio
     final content = content_model.Content(
       id: block.id,
       type: content_model.ContentType.seasonal,
-      title: block.data.title ?? 'Seasonal Wisdom',
+      title: block.data.title ?? widget.content.title,
       slug: block.id,
       summary: block.data.subtitle,
       body: block.data.content,
-      featuredImageId: block.data.featuredImageId,
-      audioId: widget.content.audioId, // Keep original content audioId
+      featuredImageId: widget.content.featuredImageId, // Always use content's image
+      audioId: null, // Set to null so audioUrl is recognized as block audio
       published: true,
       contentBlocks: [block],
     );
@@ -728,7 +729,7 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
       MaterialPageRoute<void>(
         builder: (context) => AudioPlayerScreen(
           content: content,
-          audioUrl: audioId, // Use the actual audio ID
+          audioUrl: blockAudioId, // Pass block audio ID as audioUrl parameter
         ),
       ),
     );

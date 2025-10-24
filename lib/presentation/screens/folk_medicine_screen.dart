@@ -18,12 +18,76 @@ class FolkMedicineScreen extends StatelessWidget {
   });
 
   Widget _getImageWidget() {
-    // First try to get featuredImageId from the content block, then fall back to parent's
-    final imageId = contentBlock.data.featuredImageId ?? parentFeaturedImageId;
+    // PRIORITY 1: Try to get image from the first sub-block (block-level image)
+    if (contentBlock.data.subBlocks.isNotEmpty) {
+      final subBlock = contentBlock.data.subBlocks.first;
+      if (subBlock.imageUrl != null && subBlock.imageUrl!.isNotEmpty) {
+        // Check if it's a direct URL that needs to be converted
+        if (subBlock.imageUrl!.startsWith('http')) {
+          try {
+            final uri = Uri.parse(subBlock.imageUrl!);
+            String pathSegment = uri.path;
+            
+            // Remove leading slash
+            if (pathSegment.startsWith('/')) {
+              pathSegment = pathSegment.substring(1);
+            }
+            
+            // Extract filename from paths like media/folk-medicine/filename.png
+            final pathParts = pathSegment.split('/');
+            if (pathParts.length > 0) {
+              final filename = pathParts.last;
+              // Remove file extension to get the ID
+              final filenameWithoutExt = filename.split('.').first;
+              
+              print('🔄 Converting URL to Firebase Storage ID: $filenameWithoutExt');
+              
+              return FirebaseStorageImage(
+                imageId: filenameWithoutExt,
+                width: 180,
+                height: 180,
+                fit: BoxFit.cover,
+                placeholder: _buildImagePlaceholder(),
+                errorWidget: _buildImageErrorWidget(),
+              );
+            }
+          } catch (e) {
+            print('❌ Failed to parse image URL: $e');
+            // Failed to parse URL - continue to fallback
+          }
+        }
+        
+        // Fallback to direct network loading for non-URL strings
+        return Image.network(
+          subBlock.imageUrl!,
+          width: 180,
+          height: 180,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return SizedBox(
+              width: 180,
+              height: 180,
+              child: _buildImagePlaceholder(),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            print('❌ Failed to load image from network: $error');
+            return SizedBox(
+              width: 180,
+              height: 180,
+              child: _buildImageErrorWidget(),
+            );
+          },
+        );
+      }
+    }
     
-    if (imageId != null && imageId.isNotEmpty) {
+    // PRIORITY 2: Try to get featuredImageId from the content block
+    final blockImageId = contentBlock.data.featuredImageId;
+    if (blockImageId != null && blockImageId.isNotEmpty) {
       return FirebaseStorageImage(
-        imageId: imageId,
+        imageId: blockImageId,
         width: 180,
         height: 180,
         fit: BoxFit.cover,
@@ -32,68 +96,17 @@ class FolkMedicineScreen extends StatelessWidget {
       );
     }
     
-    // If not found, try to get direct imageUrl from subBlocks
-    if (contentBlock.data.subBlocks.isNotEmpty) {
-      for (final subBlock in contentBlock.data.subBlocks) {
-        if (subBlock.imageUrl != null && subBlock.imageUrl!.isNotEmpty) {
-          // Check if it's a direct URL that needs to be converted
-          if (subBlock.imageUrl!.startsWith('http')) {
-            try {
-              final uri = Uri.parse(subBlock.imageUrl!);
-              String pathSegment = uri.path;
-              
-              // Remove leading slash
-              if (pathSegment.startsWith('/')) {
-                pathSegment = pathSegment.substring(1);
-              }
-              
-              // Extract filename from paths like media/folk-medicine/filename.png
-              final pathParts = pathSegment.split('/');
-              if (pathParts.length > 0) {
-                final filename = pathParts.last;
-                // Remove file extension to get the ID
-                final filenameWithoutExt = filename.split('.').first;
-                
-                print('🔄 Converting URL to Firebase Storage ID: $filenameWithoutExt');
-                
-                return FirebaseStorageImage(
-                  imageId: filenameWithoutExt,
-                  width: 180,
-                  height: 180,
-                  fit: BoxFit.cover,
-                  placeholder: _buildImagePlaceholder(),
-                  errorWidget: _buildImageErrorWidget(),
-                );
-              }
-            } catch (e) {
-              // Failed to parse URL - continue to fallback
-            }
-          }
-          
-          // Fallback to direct network loading for non-URL strings
-          return Image.network(
-            subBlock.imageUrl!,
-            width: 180,
-            height: 180,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return SizedBox(
-                width: 180,
-                height: 180,
-                child: _buildImagePlaceholder(),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return SizedBox(
-                width: 180,
-                height: 180,
-                child: _buildImageErrorWidget(),
-              );
-            },
-          );
-        }
-      }
+    // PRIORITY 3: Fall back to parent's featuredImageId (global)
+    if (parentFeaturedImageId != null && parentFeaturedImageId!.isNotEmpty) {
+      print('⚠️ Using parent/global image as fallback');
+      return FirebaseStorageImage(
+        imageId: parentFeaturedImageId!,
+        width: 180,
+        height: 180,
+        fit: BoxFit.cover,
+        placeholder: _buildImagePlaceholder(),
+        errorWidget: _buildImageErrorWidget(),
+      );
     }
     
     // No image found
@@ -303,6 +316,27 @@ class FolkMedicineScreen extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    // Combine all uses into a single HTML string to preserve rich formatting
+    final combinedHtml = validUses.join('\n');
+    
+    // Check if content contains HTML tags (like <ul>, <li>, <p>, etc.)
+    final hasHtmlTags = combinedHtml.contains(RegExp(r'<[^>]+>'));
+    
+    if (hasHtmlTags) {
+      // Use EnhancedHtmlRenderer for rich HTML content
+      return EnhancedHtmlRenderer(
+        content: combinedHtml,
+        textStyle: context.secondaryFont(
+          fontSize: 14,
+          color: const Color(0xFF3C3C3C),
+          height: 1.5,
+        ),
+        iconSize: 16,
+        iconColor: const Color(0xFF8B6B47),
+      );
+    }
+    
+    // Fall back to simple bullet list for plain text
     return Padding(
       padding: const EdgeInsets.only(left: 16),
       child: Column(
