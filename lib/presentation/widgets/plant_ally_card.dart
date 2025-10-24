@@ -48,20 +48,6 @@ class PlantAllyCard extends StatelessWidget {
                       errorWidget: _buildErrorWidget(),
                     )
                   : _buildPlaceholder(),
-              
-              // Dark overlay for better text readability
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.2),
-                      Colors.black.withOpacity(0.6),
-                    ],
-                  ),
-                ),
-              ),
             ],
           ),
         ),

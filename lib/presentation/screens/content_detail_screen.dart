@@ -222,19 +222,19 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
 
     return Column(
       children: [
-        const Spacer(),
-        
-        const SizedBox(height: 24),
+        const SizedBox(height: 40),
         // Title on top of featured image
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           child: Text(
             content.title,
             textAlign: TextAlign.center,
             style: AppTheme.screenHeadingStyle,
           ),
         ),
+        
+        const SizedBox(height: 40),
         
         // Large Featured Image (Figma design style)
         _buildFeaturedImage(content),
@@ -318,7 +318,7 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
     }
     
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
       child: Text(
         previewText,
         style: context.secondaryFont(
@@ -579,7 +579,7 @@ class _DetailedReadingViewState extends State<DetailedReadingView> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(32, 40, 32, 24),
+          padding: const EdgeInsets.fromLTRB(48, 40, 48, 24),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight - 64),
             child: Column(

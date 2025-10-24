@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -58,17 +59,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.white.withValues(alpha: appBarOpacity),
-                Colors.white.withValues(alpha: appBarOpacity * 0.8),
-                Colors.transparent,
-              ],
-              stops: const [0.0, 0.7, 1.0],
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: 10.0 * appBarOpacity,
+              sigmaY: 10.0 * appBarOpacity,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.3 * appBarOpacity),
+                    Colors.white.withValues(alpha: 0.2 * appBarOpacity),
+                    Colors.white.withValues(alpha: 0.05 * appBarOpacity),
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.2 * appBarOpacity),
+                    width: 1.0,
+                  ),
+                ),
+              ),
             ),
           ),
         ),

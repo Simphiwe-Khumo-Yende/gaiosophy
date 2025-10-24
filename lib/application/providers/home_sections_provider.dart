@@ -143,7 +143,7 @@ final homeSectionsProvider = Provider<HomeSectionsState>((ref) {
       items: limitItems(plantState.items),
     ),
     HomeSection(
-      title: 'Seasonal Remedies & Recipes and Crafts',
+      title: 'Seasonal Remedies, Recipes and Crafts',
       subtitle: 'Co-create with the land',
       items: limitItems(recipeState.items),
     ),
