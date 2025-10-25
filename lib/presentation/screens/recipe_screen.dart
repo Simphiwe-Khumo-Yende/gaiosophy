@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../data/models/content.dart' as content_model;
 import '../widgets/firebase_storage_image.dart';
 import '../widgets/bookmark_button.dart';
+import '../widgets/enhanced_html_renderer.dart';
+import '../theme/typography.dart';
 
 class RecipeScreen extends StatelessWidget {
   final content_model.Content content;
@@ -183,92 +185,85 @@ class RecipeScreen extends StatelessWidget {
   }
 
   List<Widget> _buildGroupedContentBlocks(BuildContext context) {
+    // Get all blocks with order > 0 (order 0 is typically intro)
     final blocks = content.contentBlocks.where((block) => block.order > 0).toList();
+    
+    // Sort by order to maintain the sequence from Firestore
+    blocks.sort((a, b) => a.order.compareTo(b.order));
+    
     final List<Widget> widgets = [];
     
-    // Group ingredients and equipment together
-    final ingredientBlocks = blocks.where((block) {
-      final title = block.data.title?.toLowerCase() ?? '';
-      return title.contains('ingredient');
-    }).toList();
-    
-    final equipmentBlocks = blocks.where((block) {
-      final title = block.data.title?.toLowerCase() ?? '';
-      return title.contains('equipment');
-    }).toList();
-    
-    // Create combined ingredients/equipment box if either exists
-    if (ingredientBlocks.isNotEmpty || equipmentBlocks.isNotEmpty) {
-      widgets.add(_buildCombinedIngredientsEquipmentBox(context, ingredientBlocks, equipmentBlocks));
-    }
-    
-    // Process other blocks individually
-    final otherBlocks = blocks.where((block) {
-      final title = block.data.title?.toLowerCase() ?? '';
-      return !title.contains('ingredient') && !title.contains('equipment');
-    }).toList();
-    
-    for (final block in otherBlocks) {
-      widgets.add(_buildContentBlock(context, block));
+    // Process blocks and group consecutive ingredient/equipment blocks
+    int i = 0;
+    while (i < blocks.length) {
+      final block = blocks[i];
+      final String title = block.data.title?.toLowerCase() ?? '';
+      
+      // Check if this is an ingredient/equipment/you-will-need block
+      final bool isIngredientType = title.contains('ingredient') || 
+                                    title.contains('equipment') || 
+                                    title.contains('you will need');
+      
+      if (isIngredientType) {
+        // Find all consecutive ingredient/equipment blocks
+        final List<content_model.ContentBlock> groupedBlocks = [block];
+        int j = i + 1;
+        while (j < blocks.length) {
+          final nextBlock = blocks[j];
+          final nextTitle = nextBlock.data.title?.toLowerCase() ?? '';
+          final isNextIngredientType = nextTitle.contains('ingredient') || 
+                                       nextTitle.contains('equipment') || 
+                                       nextTitle.contains('you will need');
+          
+          if (isNextIngredientType) {
+            groupedBlocks.add(nextBlock);
+            j++;
+          } else {
+            break;
+          }
+        }
+        
+        // Build combined box for all grouped blocks
+        widgets.add(_buildCombinedBox(context, groupedBlocks));
+        i = j; // Skip the grouped blocks
+      } else {
+        // Regular block (method, traditional uses, etc.)
+        widgets.add(_buildContentBlock(context, block));
+        i++;
+      }
     }
     
     return widgets;
   }
 
-  Widget _buildCombinedIngredientsEquipmentBox(BuildContext context, 
-      List<content_model.ContentBlock> ingredientBlocks, 
-      List<content_model.ContentBlock> equipmentBlocks) {
+  Widget _buildCombinedBox(BuildContext context, List<content_model.ContentBlock> blocks) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFE9E2D5),
+        color: const Color(0xFFE9E2D5), // Ingredients/Equipment box color
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Render ingredient blocks
-          ...ingredientBlocks.map((block) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (block.data.title != null && block.data.title!.isNotEmpty) ...[
-                Text(
-                  block.data.title!,
-                  style: const TextStyle(
-                    fontFamily: 'Roboto Serif',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF3A3025),
-                  ),
+          for (int i = 0; i < blocks.length; i++) ...[
+            if (blocks[i].data.title != null && blocks[i].data.title!.isNotEmpty) ...[
+              Text(
+                blocks[i].data.title!,
+                style: const TextStyle(
+                  fontFamily: 'Roboto Serif',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF3A3025),
                 ),
-                const SizedBox(height: 8),
-              ],
-              _buildBlockContent(context, block, isBoxed: true),
-              if (equipmentBlocks.isNotEmpty) const SizedBox(height: 16),
+              ),
+              const SizedBox(height: 12),
             ],
-          )).toList(),
-          
-          // Render equipment blocks
-          ...equipmentBlocks.map((block) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (block.data.title != null && block.data.title!.isNotEmpty) ...[
-                Text(
-                  block.data.title!,
-                  style: const TextStyle(
-                    fontFamily: 'Roboto Serif',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF3A3025),
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-              _buildBlockContent(context, block, isBoxed: true),
-            ],
-          )).toList(),
+            _buildBlockContent(context, blocks[i]),
+            if (i < blocks.length - 1) const SizedBox(height: 16),
+          ],
         ],
       ),
     );
@@ -277,39 +272,46 @@ class RecipeScreen extends StatelessWidget {
   Widget _buildContentBlock(BuildContext context, content_model.ContentBlock block) {
     final String title = block.data.title?.toLowerCase() ?? '';
     
-    // Traditional Uses gets its own box
-    final bool isTraditionalUses = title.contains('traditional') || title.contains('uses') || title.contains('usage');
+    // Check if this block should be in a colored box
+    // Typically: ingredients, equipment, traditional uses, etc.
+    final bool shouldBox = title.contains('ingredient') || 
+                           title.contains('equipment') || 
+                           title.contains('you will need') ||
+                           title.contains('traditional') || 
+                           title.contains('usage');
     
-    if (isTraditionalUses) {
+    if (shouldBox) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(24),
-        margin: const EdgeInsets.only(bottom: 16), // Reduced margin between boxes
+        margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF2E9D7), // Bottom box color - matches Figma
+          color: title.contains('traditional') || title.contains('usage')
+              ? const Color(0xFFF2E9D7) // Traditional uses box
+              : const Color(0xFFE9E2D5), // Ingredients/Equipment box
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              block.data.title ?? '',
-              style: const TextStyle(
-                fontFamily: 'Roboto Serif',
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF3A3025),
+            if (block.data.title != null && block.data.title!.isNotEmpty) ...[
+              Text(
+                block.data.title!,
+                style: const TextStyle(
+                  fontFamily: 'Roboto Serif',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF3A3025),
+                ),
               ),
-            ),
-            const SizedBox(height: 12), // Decreased but reasonable spacing inside boxes
-            _buildBlockContent(context, block, isBoxed: true),
+              const SizedBox(height: 12),
+            ],
+            _buildBlockContent(context, block),
           ],
         ),
       );
-    }
-    
-    // Other content - no box (including Method)
-    else {
+    } else {
+      // Other content - no box (including Method)
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -323,250 +325,34 @@ class RecipeScreen extends StatelessWidget {
                 color: Color(0xFF3A3025),
               ),
             ),
-            const SizedBox(height: 12), // Decreased but reasonable spacing for unboxed content
+            const SizedBox(height: 12),
           ],
-          _buildBlockContent(context, block, isBoxed: false),
-          const SizedBox(height: 16), // Reduced spacing between unboxed content
+          _buildBlockContent(context, block),
+          const SizedBox(height: 16),
         ],
       );
     }
   }
 
-  Widget _buildBlockContent(BuildContext context, content_model.ContentBlock block, {required bool isBoxed}) {
-    // Always try to parse as structured content first
+  Widget _buildBlockContent(BuildContext context, content_model.ContentBlock block) {
     String content = block.data.content ?? '';
     
-    // Check if we have list items directly
-    if (block.data.listItems.isNotEmpty) {
-      return _buildListContent(context, block);
-    }
-    
     // If content is empty, return empty widget
-    if (content.isEmpty) return const SizedBox.shrink();
-    
-    // Check if content has list-like structure or multiple paragraphs
-    // Also check if this is an ingredients block (which should always be bulleted)
-    final String title = block.data.title?.toLowerCase() ?? '';
-    final bool isIngredients = title.contains('ingredient');
-    
-    if (_hasStructuredContent(content) || isIngredients) {
-      return _buildListContent(context, block, forceBullets: isIngredients);
-    } else {
-      // Use simple text rendering for basic content
-      return Text(
-        content.replaceAll(RegExp(r'<[^>]*>'), '').trim(),
-        style: const TextStyle(
-          fontFamily: 'Roboto Serif',
-          fontSize: 16,
-          fontWeight: FontWeight.normal,
-          color: Color(0xFF3A3025),
-          height: 1.4,
-        ),
-      );
+    if (content.isEmpty) {
+      return const SizedBox.shrink();
     }
-  }
-
-  bool _hasStructuredContent(String content) {
-    // Check specifically for bullet point indicators
-    return content.contains('<li') || 
-           content.contains('<ul') ||
-           content.contains('<ol');
-  }
-
-  Widget _buildListContent(BuildContext context, content_model.ContentBlock block, {bool forceBullets = false}) {
-    List<_ListItem> items = _parseListItems(block, forceBullets: forceBullets);
     
-    if (items.isEmpty) return const SizedBox.shrink();
-    
-    List<Widget> widgets = [];
-    
-    for (int i = 0; i < items.length; i++) {
-      final item = items[i];
-      
-      if (item.isHeader) {
-        // Section header
-        widgets.add(
-          Padding(
-            padding: EdgeInsets.only(
-              top: i > 0 ? 12.0 : 0.0,
-              bottom: 6.0,
-            ),
-            child: Text(
-              item.text,
-              style: const TextStyle(
-                fontFamily: 'Roboto Serif',
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF3A3025),
-                height: 1.3,
-              ),
-            ),
-          ),
-        );
-      } else if (item.isBullet) {
-        // Bullet point item
-        widgets.add(
-          Padding(
-            padding: const EdgeInsets.only(bottom: 4.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 4,
-                  height: 4,
-                  margin: const EdgeInsets.only(
-                    left: 24,
-                    top: 8,
-                    right: 12,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF3A3025),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 24),
-                    child: Text(
-                      item.text,
-                      style: const TextStyle(
-                        fontFamily: 'Roboto Serif',
-                        fontSize: 16,
-                        fontWeight: FontWeight.normal,
-                        color: Color(0xFF3A3025),
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      } else {
-        // Regular text (no bullet)
-        widgets.add(
-          Padding(
-            padding: const EdgeInsets.only(bottom: 4.0, left: 24, right: 24),
-            child: Text(
-              item.text,
-              style: const TextStyle(
-                fontFamily: 'Roboto Serif',
-                fontSize: 16,
-                fontWeight: FontWeight.normal,
-                color: Color(0xFF3A3025),
-                height: 1.4,
-              ),
-            ),
-          ),
-        );
-      }
-    }
-
-        return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: widgets,
+    // Use EnhancedHtmlRenderer for ALL content - it handles everything properly
+    return EnhancedHtmlRenderer(
+      content: content,
+      textStyle: context.secondaryFont(
+        fontSize: 16,
+        color: const Color(0xFF3A3025),
+        height: 1.4,
+      ),
+      iconSize: 16,
+      iconColor: const Color(0xFF8B6B47),
     );
-  }
-
-  List<_ListItem> _parseListItems(content_model.ContentBlock block, {bool forceBullets = false}) {
-    List<String> rawItems = [];
-    
-    // Extract items from various sources
-    if (block.data.listItems.isNotEmpty) {
-      rawItems = block.data.listItems.where((item) => item.trim().isNotEmpty).toList();
-    } else if (block.data.content != null && block.data.content!.isNotEmpty) {
-      // Clean and parse HTML content from rich text editor
-      String cleanContent = _cleanHtmlContent(block.data.content!);
-      
-      // Split by lines and filter meaningful content
-      rawItems = cleanContent
-          .split('\n')
-          .map((item) => item.trim())
-          .where((item) => item.isNotEmpty && item.length > 1)
-          .toList();
-    }
-    
-    // Parse items based on what's actually in the rich text editor
-    List<_ListItem> parsedItems = [];
-    
-    for (String item in rawItems) {
-      String cleanItem = item.trim();
-      if (cleanItem.isEmpty) continue;
-      
-      // Check if this item has a bullet point from the rich text editor
-      bool hasBullet = cleanItem.startsWith('•') || 
-                      cleanItem.startsWith('·') || 
-                      cleanItem.startsWith('-') ||
-                      cleanItem.startsWith('*');
-      
-      // Remove the bullet character for display
-      if (hasBullet) {
-        cleanItem = cleanItem.replaceAll(RegExp(r'^[•·\-*]\s*'), '');
-      }
-      
-      // Simple header detection - just look for colons or very short lines
-      bool isHeader = cleanItem.endsWith(':') && cleanItem.split(' ').length <= 4;
-      
-      // Force bullets for ingredient lists (unless it's a header)
-      bool shouldHaveBullet = (hasBullet || forceBullets) && !isHeader;
-      
-      parsedItems.add(_ListItem(
-        text: cleanItem,
-        isHeader: isHeader,
-        isBullet: shouldHaveBullet,
-      ));
-    }
-    
-    return parsedItems;
-  }
-
-  String _cleanHtmlContent(String html) {
-    return html
-        // First, normalize line breaks and spaces
-        .replaceAll(RegExp(r'\r\n|\r'), '\n')
-        
-        // Handle list structures - preserve as bullet points
-        .replaceAll(RegExp(r'<ul[^>]*>'), '')
-        .replaceAll(RegExp(r'</ul>'), '')
-        .replaceAll(RegExp(r'<ol[^>]*>'), '')
-        .replaceAll(RegExp(r'</ol>'), '')
-        .replaceAll(RegExp(r'<li[^>]*>'), '\n• ')
-        .replaceAll(RegExp(r'</li>'), '')
-        
-        // Handle paragraphs - each becomes a new line
-        .replaceAll(RegExp(r'<p[^>]*>'), '\n')
-        .replaceAll(RegExp(r'</p>'), '\n')
-        
-        // Handle line breaks
-        .replaceAll(RegExp(r'<br\s*/?>'), '\n')
-        
-        // Handle divs as line breaks
-        .replaceAll(RegExp(r'<div[^>]*>'), '\n')
-        .replaceAll(RegExp(r'</div>'), '\n')
-        
-        // Remove formatting tags but preserve content
-        .replaceAll(RegExp(r'<span[^>]*>'), '')
-        .replaceAll(RegExp(r'</span>'), '')
-        .replaceAll(RegExp(r'<strong[^>]*>'), '')
-        .replaceAll(RegExp(r'</strong>'), '')
-        .replaceAll(RegExp(r'<b[^>]*>'), '')
-        .replaceAll(RegExp(r'</b>'), '')
-        .replaceAll(RegExp(r'<i[^>]*>'), '')
-        .replaceAll(RegExp(r'</i>'), '')
-        .replaceAll(RegExp(r'<u[^>]*>'), '')
-        .replaceAll(RegExp(r'</u>'), '')
-        
-        // Remove any remaining HTML tags
-        .replaceAll(RegExp(r'<[^>]*>'), '')
-        
-        // Clean up whitespace but preserve structure
-        .replaceAll(RegExp(r'&nbsp;'), ' ')
-        .replaceAll(RegExp(r'\n\s*\n\s*\n'), '\n\n')  // Max 2 consecutive newlines
-        .replaceAll(RegExp(r'^\n+'), '')  // Remove leading newlines
-        .replaceAll(RegExp(r'\n+$'), '')  // Remove trailing newlines
-        .trim();
   }
 
   Widget _buildSaveButton(BuildContext context) {
@@ -605,17 +391,4 @@ class RecipeScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-// Helper class for list items
-class _ListItem {
-  final String text;
-  final bool isHeader;
-  final bool isBullet;
-  
-  _ListItem({
-    required this.text,
-    required this.isHeader,
-    required this.isBullet,
-  });
 }
