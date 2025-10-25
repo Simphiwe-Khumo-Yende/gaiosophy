@@ -220,36 +220,35 @@ class _ContentScreenState extends ConsumerState<ContentScreen> {
     // Note: Blocks available but using Figma design layout instead
     // final sortedBlocks = [...blocks]..sort((a, b) => a.order.compareTo(b.order));
 
-    return Column(
-      children: [
-        const SizedBox(height: 40),
-        // Title on top of featured image
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          child: Text(
-            content.title,
-            textAlign: TextAlign.center,
-            style: AppTheme.screenHeadingStyle,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 40),
+          // Title on top of featured image
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Text(
+              content.title,
+              textAlign: TextAlign.center,
+              style: AppTheme.screenHeadingStyle,
+            ),
           ),
-        ),
-        
-        const SizedBox(height: 40),
-        
-        // Large Featured Image (Figma design style)
-        _buildFeaturedImage(content),
-        
-        // Content Preview Text
-        _buildContentPreview(content),
-        
-        // Action Buttons closer to content
-        _buildActionButtons(content),
-        
-        // Spacer to fill remaining space
-        const Spacer(),
-        
-        const SizedBox(height: 24), // Bottom padding
-      ],
+          
+          const SizedBox(height: 40),
+          
+          // Large Featured Image (Figma design style)
+          _buildFeaturedImage(content),
+          
+          // Content Preview Text
+          _buildContentPreview(content),
+          
+          // Action Buttons closer to content
+          _buildActionButtons(content),
+          
+          const SizedBox(height: 24), // Bottom padding
+        ],
+      ),
     );
   }
 

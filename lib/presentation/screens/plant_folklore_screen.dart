@@ -26,36 +26,35 @@ class PlantFolkloreScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F2),
       appBar: _buildAppBar(context),
-      body: Column(
-        children: [
-          const SizedBox(height: 40),
-          // Title on top of featured image
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Text(
-              contentBlock.data.title ?? 'Folklore & Legends',
-              textAlign: TextAlign.center,
-              style: AppTheme.screenHeadingStyle,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            // Title on top of featured image
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: Text(
+                contentBlock.data.title ?? 'Folklore & Legends',
+                textAlign: TextAlign.center,
+                style: AppTheme.screenHeadingStyle,
+              ),
             ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Large Featured Image (Figma design style)
-          _buildFeaturedImage(),
-          
-          // Content Preview Text
-          _buildContentPreview(context),
-          
-          // Action Buttons closer to content
-          _buildActionButtons(context, theme),
-          
-          // Spacer to fill remaining space
-          const Spacer(),
-          
-          const SizedBox(height: 24), // Bottom padding
-        ],
+            
+            const SizedBox(height: 16),
+            
+            // Large Featured Image (Figma design style)
+            _buildFeaturedImage(),
+            
+            // Content Preview Text
+            _buildContentPreview(context),
+            
+            // Action Buttons closer to content
+            _buildActionButtons(context, theme),
+            
+            const SizedBox(height: 24), // Bottom padding
+          ],
+        ),
       ),
     );
   }
