@@ -439,8 +439,6 @@ class _PlantAlliesDetailScreenState extends ConsumerState<PlantAlliesDetailScree
                           );
                         },
                         errorBuilder: (context, error, stackTrace) {
-                          
-                          
                           return Container(
                             width: 80,
                             height: 80,

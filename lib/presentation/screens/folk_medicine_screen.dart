@@ -22,42 +22,7 @@ class FolkMedicineScreen extends StatelessWidget {
     if (contentBlock.data.subBlocks.isNotEmpty) {
       final subBlock = contentBlock.data.subBlocks.first;
       if (subBlock.imageUrl != null && subBlock.imageUrl!.isNotEmpty) {
-        // Check if it's a direct URL that needs to be converted
-        if (subBlock.imageUrl!.startsWith('http')) {
-          try {
-            final uri = Uri.parse(subBlock.imageUrl!);
-            String pathSegment = uri.path;
-            
-            // Remove leading slash
-            if (pathSegment.startsWith('/')) {
-              pathSegment = pathSegment.substring(1);
-            }
-            
-            // Extract filename from paths like media/folk-medicine/filename.png
-            final pathParts = pathSegment.split('/');
-            if (pathParts.length > 0) {
-              final filename = pathParts.last;
-              // Remove file extension to get the ID
-              final filenameWithoutExt = filename.split('.').first;
-              
-              print('🔄 Converting URL to Firebase Storage ID: $filenameWithoutExt');
-              
-              return FirebaseStorageImage(
-                imageId: filenameWithoutExt,
-                width: 180,
-                height: 180,
-                fit: BoxFit.cover,
-                placeholder: _buildImagePlaceholder(),
-                errorWidget: _buildImageErrorWidget(),
-              );
-            }
-          } catch (e) {
-            print('❌ Failed to parse image URL: $e');
-            // Failed to parse URL - continue to fallback
-          }
-        }
-        
-        // Fallback to direct network loading for non-URL strings
+        // Use Image.network directly with the URL from Firestore
         return Image.network(
           subBlock.imageUrl!,
           width: 180,
