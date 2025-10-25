@@ -264,7 +264,7 @@ class PlantFolkloreScreen extends StatelessWidget {
               contentBlock.data.content!.length > 100 ? 100 : contentBlock.data.content!.length)
           : null,
       body: contentBlock.data.content,
-      featuredImageId: contentBlock.data.featuredImageId,
+      featuredImageId: contentBlock.data.featuredImageId ?? parentFeaturedImageId,
       audioId: null, // Set to null so it's different from audioUrl
       published: true,
       contentBlocks: [contentBlock],

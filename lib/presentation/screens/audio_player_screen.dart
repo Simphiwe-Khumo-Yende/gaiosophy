@@ -18,6 +18,9 @@ class AudioPlayerHandler extends BaseAudioHandler {
   AudioPlayerHandler(this._player);
 }
 
+// Global audio handler instance
+AudioHandler? _globalAudioHandler;
+
 class AudioPlayerScreen extends ConsumerStatefulWidget {
   final content_model.Content content;
   final String? audioUrl;
@@ -34,7 +37,7 @@ class AudioPlayerScreen extends ConsumerStatefulWidget {
 
 class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
   late AudioPlayer _audioPlayer;
-  late AudioHandler _audioHandler;
+  AudioHandler? _audioHandler;
   double _currentPosition = 0.0; // Start at 0%
   bool isPlaying = false;
   bool isLoading = false;
@@ -43,47 +46,67 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
   content_model.Content? _fullContent; // Store the complete content data
+  bool _isDisposed = false;
 
   @override
   void initState() {
     super.initState();
+    _isDisposed = false;
     _audioPlayer = AudioPlayer();
     _fullContent = widget.content;
+    _setupAudioListeners();
     _initAudioHandler();
     if (widget.content.featuredImageId == null) {
       _fetchCompleteContent();
     }
+  }
+
+  void _setupAudioListeners() {
     _audioPlayer.playerStateStream.listen((state) {
-      setState(() {
-        isPlaying = state.playing;
-        isLoading = state.processingState == ProcessingState.loading || 
-                   state.processingState == ProcessingState.buffering;
-      });
+      if (mounted && !_isDisposed) {
+        setState(() {
+          isPlaying = state.playing;
+          isLoading = state.processingState == ProcessingState.loading || 
+                     state.processingState == ProcessingState.buffering;
+        });
+      }
     });
     _audioPlayer.positionStream.listen((position) {
-      setState(() {
-        _position = position;
-        if (_duration.inMilliseconds > 0) {
-          _currentPosition = position.inMilliseconds / _duration.inMilliseconds;
-        }
-      });
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _position = position;
+          if (_duration.inMilliseconds > 0) {
+            _currentPosition = position.inMilliseconds / _duration.inMilliseconds;
+          }
+        });
+      }
     });
     _audioPlayer.durationStream.listen((duration) {
-      setState(() {
-        _duration = duration ?? Duration.zero;
-      });
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _duration = duration ?? Duration.zero;
+        });
+      }
     });
   }
 
   Future<void> _initAudioHandler() async {
-    _audioHandler = await AudioService.init(
-      builder: () => AudioPlayerHandler(_audioPlayer),
-      config: const AudioServiceConfig(
-        androidNotificationChannelId: 'com.gaiosophy.audio',
-        androidNotificationChannelName: 'Audio Playback',
-        androidNotificationOngoing: true,
-      ),
-    );
+    // Use global audio handler if already initialized
+    if (_globalAudioHandler == null) {
+      try {
+        _globalAudioHandler = await AudioService.init(
+          builder: () => AudioPlayerHandler(_audioPlayer),
+          config: const AudioServiceConfig(
+            androidNotificationChannelId: 'com.gaiosophy.audio',
+            androidNotificationChannelName: 'Audio Playback',
+            androidNotificationOngoing: true,
+          ),
+        );
+      } catch (e) {
+        // AudioService may already be initialized
+      }
+    }
+    _audioHandler = _globalAudioHandler;
     _signInAndInitAudio();
   }
 
@@ -99,35 +122,47 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
         setState(() {
           _fullContent = completeContent;
         });
-        print('Fetched complete content - Featured Image ID: ${completeContent.featuredImageId}');
       }
     } catch (e) {
-      print('Error fetching complete content: $e');
+      // Error fetching complete content
     }
   }
 
   Future<void> _signInAndInitAudio() async {
+    if (!mounted) return;
+    
     try {
       if (FirebaseAuth.instance.currentUser == null) {
         await FirebaseAuth.instance.signInAnonymously();
-        
       }
     } catch (e) {
-      
+      // Error signing in
     }
+    
+    if (!mounted) return;
+    
     // Check if we have audio available - either from audioUrl parameter or content.audioId
-    hasAudio = (widget.audioUrl != null && widget.audioUrl!.isNotEmpty) || 
-               (widget.content.audioId != null && widget.content.audioId!.isNotEmpty);
+    final audioAvailable = (widget.audioUrl != null && widget.audioUrl!.isNotEmpty) || 
+                           (widget.content.audioId != null && widget.content.audioId!.isNotEmpty);
+    
+    setState(() {
+      hasAudio = audioAvailable;
+    });
     
     if (hasAudio) {
-      _resolveAndInitializeAudio();
+      await _resolveAndInitializeAudio();
     }
   }
   
   Future<void> _resolveAndInitializeAudio() async {
+    if (!mounted || _isDisposed) return;
+    
     try {
+      if (!mounted || _isDisposed) return;
+      
       setState(() {
         isLoading = true;
+        hasAudio = true; // Assume we have audio until proven otherwise
       });
 
       // Use audioUrl if provided, otherwise use content.audioId
@@ -142,25 +177,19 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
       if (isBlockAudio) {
         // Block audio uses media/audio bucket
         if (audioId.startsWith('media/audio/')) {
-          // audioId already has full path
           audioPath = audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a';
         } else if (audioId.startsWith('media/audio')) {
-          // audioId has path but might be missing trailing slash
           audioPath = audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a';
         } else {
-          // audioId is just the filename, prepend media/audio/
           audioPath = 'media/audio/' + (audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a');
         }
       } else {
         // Global content audio uses media/content-audio bucket
         if (audioId.startsWith('media/content-audio/')) {
-          // audioId already has full path
           audioPath = audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a';
         } else if (audioId.startsWith('media/content-audio')) {
-          // audioId has path but might be missing trailing slash
           audioPath = audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a';
         } else {
-          // audioId is just the filename, prepend media/content-audio/
           audioPath = 'media/content-audio/' + (audioId.endsWith('.m4a') || audioId.endsWith('.mp4') ? audioId : audioId + '.m4a');
         }
       }
@@ -178,16 +207,42 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
           foundUrl = await refMp4.getDownloadURL();
           
         } catch (e2) {
-          throw e2;
+          throw Exception('Audio file not found: $audioPath (tried both .m4a and .mp4)');
         }
       }
+      
+      if (!mounted || _isDisposed) return;
+      
+      // Stop and clear any previous audio before setting new URL
+      try {
+        await _audioPlayer.stop();
+        // Small delay to ensure stop completes
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      } catch (e) {
+        // Error stopping previous audio
+      }
+      
+      if (!mounted || _isDisposed) return;
+      
+      // Set the new audio URL
       await _audioPlayer.setUrl(foundUrl);
       
+      if (!mounted || _isDisposed) return;
+      
+      setState(() {
+        hasAudio = true;
+        isLoading = false;
+      });
+      
     } catch (e) {
+      if (!mounted || _isDisposed) return;
+      
       setState(() {
         hasAudio = false;
+        isLoading = false;
       });
-      if (mounted) {
+      
+      if (mounted && !_isDisposed) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error loading audio: ${e.toString()}'),
@@ -196,16 +251,21 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
           ),
         );
       }
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
+    
+    // Stop the player without awaiting to prevent future completion errors
+    _audioPlayer.stop().catchError((Object e) {
+      // Error stopping audio on dispose
+    });
+    
+    // Dispose the player
     _audioPlayer.dispose();
+    
     super.dispose();
   }
 
@@ -213,15 +273,6 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
   Widget build(BuildContext context) {
     // Use the complete content if available, otherwise use the original
     final displayContent = _fullContent ?? widget.content;
-    
-    // Debug: Print content details
-    print('AudioPlayer Debug:');
-    print('  - Content ID: ${widget.content.id}');
-    print('  - Content Title: ${widget.content.title}');
-    print('  - Original Featured Image ID: ${widget.content.featuredImageId}');
-    print('  - Complete Featured Image ID: ${displayContent.featuredImageId}');
-    print('  - Audio ID: ${widget.content.audioId}');
-    print('  - Audio URL param: ${widget.audioUrl}');
     
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F2),

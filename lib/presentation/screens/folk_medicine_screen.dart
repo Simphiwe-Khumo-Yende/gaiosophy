@@ -268,6 +268,8 @@ class FolkMedicineScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _buildSimpleUsesList(context, subBlock.medicinalUses),
               const SizedBox(height: 24),
+            ] else ...[
+              const SizedBox.shrink(), // Debug: This section was skipped
             ],
 
             // Skincare uses - only show if has valid content
